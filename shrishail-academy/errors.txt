@@ -1,1 +1,0 @@
-FINDSTR: Cannot open error\ /c:\illegal\ /c:\cannot\ /c:\symbol\ /c:\java:\ 
