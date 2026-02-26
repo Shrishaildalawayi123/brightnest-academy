@@ -1,0 +1,16 @@
+# =============================================
+# .dockerignore - BrightNest Academy
+# =============================================
+target/
+.git/
+.gitignore
+.idea/
+*.iml
+.vscode/
+*.md
+*.txt
+*.bat
+.env
+.env.*
+logs/
+node_modules/

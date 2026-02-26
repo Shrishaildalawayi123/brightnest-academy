@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Course | BrightNest Academy</title>
+    <meta name="description" content="Learn Science with BrightNest Academy. Expert tutoring in Physics, Chemistry &amp; Biology for school curriculum and competitive exam preparation.">
+    <link rel="canonical" href="https://brightnest-academy.com/science.html">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://brightnest-academy.com/science.html">
+    <meta property="og:title" content="Science Course | BrightNest Academy">
+    <meta property="og:description" content="Learn Science with BrightNest Academy. Expert tutoring in Physics, Chemistry &amp; Biology for school curriculum and competitive exam preparation.">
+    <meta property="og:site_name" content="BrightNest Academy">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <nav class="nav container">
+            <a href="index.html" class="logo"><span class="logo-icon">ðŸŽ“</span><span>BrightNest Academy</span></a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li class="nav-dropdown">
+                    <a href="courses.html" class="nav-link active">Courses <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;vertical-align:middle"><polyline points="6 9 12 15 18 9"/></svg></a>                    <ul class="dropdown-menu">
+                        <li><a href="courses.html">All Courses</a></li>
+                        <li><a href="kannada.html">Kannada</a></li>
+                        <li><a href="english.html">English</a></li>
+                        <li><a href="hindi.html">Hindi</a></li>
+                        <li><a href="sanskrit.html">Sanskrit</a></li>
+                        <li><a href="french.html">French</a></li>
+                        <li><a href="maths.html">Maths</a></li>
+                        <li><a href="science.html">Science</a></li>
+                        <li><a href="german.html">German</a></li>
+                    </ul>
+                </li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="login.html" class="nav-link">Login</a></li>
+                <li><a href="demo.html" class="btn btn-accent btn-sm">Book a Demo</a></li>
+            </ul>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        </nav>
+    </header>
+
+    <!-- Course Hero -->
+    <section class="course-detail-hero">
+        <div class="container">
+            <div class="course-icon-large">ðŸ”¬</div>
+            <h1 id="courseTitle">Science</h1>
+            <p id="courseTagline"></p>
+        </div>
+    </section>
+
+    <!-- Why This Course -->
+    <section class="course-why">
+        <div class="container">
+            <div class="course-why-content">
+                <h2>Why Learn Science with Us?</h2>
+                <p id="courseDescription"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- What We Offer -->
+    <section class="course-offerings">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">What We Offer</h2>
+                <p class="section-subtitle">Three focused programs designed to give your child a complete Science learning experience.</p>
+            </div>
+            <div class="grid grid-3" id="offeringsGrid"></div>
+        </div>
+    </section>
+
+    <!-- Educators -->
+    <section class="course-educators">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Our Science Educators</h2>
+                <p class="section-subtitle">Meet the expert teachers who will guide your Science learning journey.</p>
+            </div>
+            <div class="team-grid" id="educatorsGrid"></div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Start Discovering Science Today</h2>
+            <p>Book a demo class and experience our curiosity-driven, exam-ready teaching approach firsthand.</p>
+            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                <a href="demo.html" class="btn btn-accent btn-lg">Book a Demo - ₹100</a>
+                <a href="courses.html" class="btn btn-secondary btn-lg">View All Courses</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="footerPlaceholder"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        const courseKey = 'science';
+        const info = COURSE_INFO[courseKey];
+        if (info) {
+            document.getElementById('courseTagline').textContent = info.tagline;
+            document.getElementById('courseDescription').textContent = info.description;
+            const grid = document.getElementById('offeringsGrid');
+            grid.innerHTML = info.offerings.map(o =>
+                '<div class="offering-card">'
+                + '<div class="offering-icon">' + o.icon + '</div>'
+                + '<h3>' + o.title + '</h3>'
+                + '<p>' + o.desc + '</p>'
+                + '</div>'
+            ).join('');
+        }
+        const educators = getEducatorsForSubject(courseKey);
+        const educatorsGrid = document.getElementById('educatorsGrid');
+        if (educatorsGrid) {
+            educatorsGrid.innerHTML = educators.map(m => renderTeamCard(m)).join('');
+        }
+        const footerEl = document.getElementById('footerPlaceholder');
+        if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();
+    </script>
+</body>
+</html>
+
+
+

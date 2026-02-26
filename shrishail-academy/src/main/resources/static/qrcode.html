@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI QR Code Payment | BrightNest Academy</title>
+    <meta name="description" content="Pay your BrightNest Academy tuition fees via UPI QR code - GPay, PhonePe, or PayTM. Zero transaction fees.">
+    <link rel="canonical" href="https://brightnest-academy.com/qrcode.html">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <nav class="nav container">
+            <a href="index.html" class="logo"><span class="logo-icon"></span><span>BrightNest Academy</span></a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li class="nav-dropdown">
+                    <a href="courses.html" class="nav-link">Courses <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;vertical-align:middle"><polyline points="6 9 12 15 18 9"/></svg></a>                    <ul class="dropdown-menu">
+                        <li><a href="courses.html">All Courses</a></li>
+                        <li><a href="kannada.html">Kannada</a></li>
+                        <li><a href="english.html">English</a></li>
+                        <li><a href="hindi.html">Hindi</a></li>
+                        <li><a href="sanskrit.html">Sanskrit</a></li>
+                        <li><a href="french.html">French</a></li>
+                        <li><a href="maths.html">Maths</a></li>
+                        <li><a href="science.html">Science</a></li>
+                        <li><a href="german.html">German</a></li>
+                    </ul>
+                </li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="login.html" class="nav-link">Login</a></li>
+                <li><a href="demo.html" class="btn btn-accent btn-sm">Book a Demo</a></li>
+            </ul>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        </nav>
+    </header>
+
+    <section class="page-hero"><div class="container"><h1>Pay via UPI QR Code</h1><p>Scan and pay with GPay, PhonePe, PayTM, or any UPI app - zero transaction fees.</p></div></section>
+
+    <section class="section">
+        <div class="container" style="max-width:600px;text-align:center;">
+
+            <!-- QR Code -->
+            <div style="background:white;border-radius:var(--border-radius-lg);padding:var(--space-3xl);box-shadow:var(--shadow-lg);margin-bottom:var(--space-2xl);border:1px solid var(--neutral-200);">
+                <div style="width:250px;height:250px;margin:0 auto var(--space-xl);background:var(--navy-50);border-radius:var(--border-radius);display:flex;align-items:center;justify-content:center;border:2px dashed var(--navy-200);">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi%3A%2F%2Fpay%3Fpa%3Dbrightnest%40upi%26pn%3DBrightNest%2520Academy%26cu%3DINR" alt="BrightNest Academy UPI QR Code" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+                </div>
+                <p style="font-size:1.1rem;font-weight:600;color:var(--navy-800);margin-bottom:var(--space-sm);">BrightNest Academy</p>
+                <p style="color:var(--navy-500);font-size:0.9rem;margin-bottom:0;">UPI ID: <strong>brightnest@upi</strong></p>
+            </div>
+
+            <!-- Instructions -->
+            <div style="background:var(--primary-50);border-radius:var(--border-radius);padding:var(--space-xl);text-align:left;margin-bottom:var(--space-2xl);">
+                <h3 style="color:var(--primary-700);margin-bottom:var(--space-lg);font-size:1.1rem;">How to Pay</h3>
+                <ol style="color:var(--navy-600);line-height:1.8;padding-left:var(--space-xl);">
+                    <li>Open your UPI app (GPay, PhonePe, PayTM, or any other)</li>
+                    <li>Scan the QR code above or enter the UPI ID manually</li>
+                    <li>Enter the fee amount as communicated to you</li>
+                    <li>Complete the payment and take a screenshot</li>
+                    <li>Send the screenshot via WhatsApp to <strong>+91-7204193980</strong></li>
+                </ol>
+            </div>
+
+            <!-- WhatsApp CTA -->
+            <div style="margin-bottom:var(--space-2xl);">
+                <a href="https://api.whatsapp.com/send/?phone=917204193980&text=Hi%2C%20I%27ve%20made%20a%20fee%20payment.%20Sharing%20the%20screenshot.&type=phone_number&app_absent=0"
+                   class="btn btn-primary btn-lg btn-block" style="display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;max-width:400px;">
+                    Send Payment Screenshot via WhatsApp
+                </a>
+            </div>
+
+            <p style="color:var(--navy-400);font-size:0.85rem;">No transaction fee for UPI payments. For other payment options, visit our <a href="fee-payment.html">Fee Payment</a> page.</p>
+        </div>
+    </section>
+
+    <div id="footerPlaceholder"></div>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        const footerEl = document.getElementById('footerPlaceholder');
+        if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();
+    </script>
+</body></html>
+
+

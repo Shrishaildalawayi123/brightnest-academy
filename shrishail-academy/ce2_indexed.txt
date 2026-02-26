@@ -1,0 +1,19 @@
+[0] [INFO] Scanning for projects...
+[1] [INFO] 
+[2] [INFO] ---------------< com.shrishailacademy:shrishail-academy >---------------
+[3] [INFO] Building Shrishail Academy 1.0.0
+[4] [INFO]   from pom.xml
+[5] [INFO] --------------------------------[ jar ]---------------------------------
+[6] [INFO] 
+[7] [INFO] --- resources:3.3.1:resources (default-resources) @ shrishail-academy ---
+[8] [INFO] Copying 1 resource from src\main\resources to target\classes
+[9] [INFO] Copying 9 resources from src\main\resources to target\classes
+[10] [INFO] 
+[11] [INFO] --- compiler:3.11.0:compile (default-compile) @ shrishail-academy ---
+[12] [INFO] Nothing to compile - all classes are up to date
+[13] [INFO] ------------------------------------------------------------------------
+[14] [INFO] BUILD SUCCESS
+[15] [INFO] ------------------------------------------------------------------------
+[16] [INFO] Total time:  2.884 s
+[17] [INFO] Finished at: 2026-02-23T20:57:29+05:30
+[18] [INFO] ------------------------------------------------------------------------

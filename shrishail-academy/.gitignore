@@ -1,0 +1,53 @@
+# =============================================
+# .gitignore - BrightNest Academy
+# =============================================
+
+# Compiled output
+target/
+*.class
+*.jar
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment / secrets
+.env
+.env.*
+*.env
+application-local.properties
+
+# Logs
+*.log
+logs/
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Build artifacts
+compile_errors.txt
+compile_out.txt
+errors.txt
+err_lines.txt
+ce.txt
+ce2.txt
+ce2_indexed.txt
+courses_response.txt
+
+# Node (if frontend is separate)
+node_modules/
+dist/
+build/
