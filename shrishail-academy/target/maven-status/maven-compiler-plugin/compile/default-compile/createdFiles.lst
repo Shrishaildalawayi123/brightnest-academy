@@ -3,6 +3,7 @@ com\shrishailacademy\config\GlobalExceptionHandler.class
 com\shrishailacademy\model\BlogPost.class
 com\shrishailacademy\model\TeacherApplication$Status.class
 com\shrishailacademy\repository\AttendanceRepository.class
+com\shrishailacademy\security\CsrfProtectionFilter.class
 com\shrishailacademy\security\RateLimitFilter$RateLimitEntry.class
 com\shrishailacademy\config\WebConfig.class
 com\shrishailacademy\dto\ContactRequest.class
