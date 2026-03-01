@@ -56,8 +56,21 @@ echo.
 :: Step 3: Git commit with timestamp
 set TIMESTAMP=%date:~6,4%-%date:~3,2%-%date:~0,2% %time:~0,8%
 echo [3/4] Committing changes...
+
+set "DEFAULT_MSG=Deploy: %TIMESTAMP%"
+set "COMMIT_MSG="
+
+if not "%~1"=="" (
+    set "COMMIT_MSG=%*"
+    if "!COMMIT_MSG:~0,1!"=="\"" if "!COMMIT_MSG:~-1!"=="\"" set "COMMIT_MSG=!COMMIT_MSG:~1,-1!"
+) else (
+    set /p COMMIT_MSG=Enter commit message ^(leave blank for !DEFAULT_MSG!^): 
+)
+
+if "!COMMIT_MSG!"=="" set "COMMIT_MSG=!DEFAULT_MSG!"
+
 pushd "%REPO_ROOT%" >nul
-git commit -m "Deploy: %TIMESTAMP%"
+git commit -m "!COMMIT_MSG!"
 if errorlevel 1 (
     echo       No changes to commit ^(or commit failed^). Continuing...
 )
