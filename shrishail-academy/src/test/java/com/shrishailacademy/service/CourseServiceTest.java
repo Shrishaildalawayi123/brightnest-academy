@@ -14,6 +14,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -37,7 +38,8 @@ class CourseServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> courseService.createCourse(course));
 
-        assertEquals("Course with this title already exists", ex.getMessage());
+        assertTrue(ex.getMessage().contains("Course already exists"));
+        assertTrue(ex.getMessage().contains("Mathematics"));
         verify(courseRepository, never()).save(any(Course.class));
     }
 
@@ -91,7 +93,8 @@ class CourseServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> courseService.getCourseById(99L));
 
-        assertEquals("Course not found with id: 99", ex.getMessage());
+        assertTrue(ex.getMessage().contains("Course not found"));
+        assertTrue(ex.getMessage().contains("99"));
     }
 
     @Test

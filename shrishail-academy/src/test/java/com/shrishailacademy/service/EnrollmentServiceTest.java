@@ -18,6 +18,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,8 @@ class EnrollmentServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> enrollmentService.enrollStudent(1L, 10L));
 
-        assertEquals("Student already enrolled in this course", ex.getMessage());
+        assertTrue(ex.getMessage().contains("Enrollment already exists"));
+        assertTrue(ex.getMessage().contains("1+10"));
         verify(enrollmentRepository, never()).save(any(Enrollment.class));
         verify(notificationService, never()).sendEnrollmentConfirmation(any(Enrollment.class));
     }

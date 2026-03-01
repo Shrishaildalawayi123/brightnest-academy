@@ -138,7 +138,10 @@ class PaymentServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> paymentService.confirmPayment(9L, "gw-1"));
 
-        assertEquals("Only PENDING payments can be confirmed. Current status: FAILED", ex.getMessage());
+        assertTrue(ex.getMessage().contains("Cannot transition"));
+        assertTrue(ex.getMessage().contains("Payment"));
+        assertTrue(ex.getMessage().contains("FAILED"));
+        assertTrue(ex.getMessage().contains("SUCCESS"));
         verify(paymentRepository, never()).save(any(Payment.class));
     }
 

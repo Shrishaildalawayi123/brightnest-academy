@@ -8,6 +8,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
@@ -47,27 +49,19 @@ public class TeacherApplicationController {
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> submitApplicationWithResume(
-            @RequestParam String fullName,
-            @RequestParam String email,
-            @RequestParam String phone,
-            @RequestParam String subjectExpertise,
-            @RequestParam(required = false) String qualification,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String teachingMode,
-            @RequestParam(required = false) String experience,
-            @RequestParam(required = false) String motivation,
-            @RequestParam(required = false) MultipartFile resume) {
+            @Valid @ModelAttribute TeacherApplicationRequest request,
+            BindingResult bindingResult,
+            @RequestPart(value = "resume", required = false) MultipartFile resume) {
 
-        TeacherApplicationRequest request = new TeacherApplicationRequest();
-        request.setFullName(fullName);
-        request.setEmail(email);
-        request.setPhone(phone);
-        request.setSubjectExpertise(subjectExpertise);
-        request.setQualification(qualification);
-        request.setCity(city);
-        request.setTeachingMode(teachingMode);
-        request.setExperience(experience);
-        request.setMotivation(motivation);
+        if (bindingResult != null && bindingResult.hasErrors()) {
+            FieldError first = bindingResult.getFieldErrors().stream().findFirst().orElse(null);
+            String message = (first != null && first.getDefaultMessage() != null)
+                    ? first.getDefaultMessage()
+                    : "Validation failed";
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", "false",
+                    "message", message));
+        }
 
         String resumeFileName = null;
         String resumeFilePath = null;

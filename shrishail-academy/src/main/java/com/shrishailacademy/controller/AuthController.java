@@ -2,6 +2,7 @@ package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ApiResponse;
 import com.shrishailacademy.dto.AuthResponse;
+import com.shrishailacademy.dto.AuthUserResponse;
 import com.shrishailacademy.dto.LoginRequest;
 import com.shrishailacademy.dto.RegisterRequest;
 import com.shrishailacademy.model.User;
@@ -67,7 +68,9 @@ public class AuthController {
             setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
             auditLogService.logEvent(response.getId(), "REGISTER",
                     "New user registered: " + request.getEmail(), httpRequest);
-            return ResponseEntity.ok(response);
+            // Cookie-based auth: do NOT return JWT in JSON.
+            return ResponseEntity.ok(new AuthUserResponse(response.getId(), response.getName(), response.getEmail(),
+                response.getRole()));
         } catch (Exception e) {
             log.warn("Registration failed for email: {}", request.getEmail());
             auditLogService.logEvent(null, "REGISTER_FAILED",
@@ -87,7 +90,9 @@ public class AuthController {
             setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
             auditLogService.logEvent(response.getId(), "LOGIN_SUCCESS",
                     "User logged in: " + request.getEmail(), httpRequest);
-            return ResponseEntity.ok(response);
+            // Cookie-based auth: do NOT return JWT in JSON.
+            return ResponseEntity.ok(new AuthUserResponse(response.getId(), response.getName(), response.getEmail(),
+                response.getRole()));
         } catch (Exception e) {
             log.warn("Login failed for email: {}", request.getEmail());
             auditLogService.logEvent(null, "LOGIN_FAILED",
@@ -127,9 +132,9 @@ public class AuthController {
         auditLogService.logEvent(user.getId(), "TOKEN_REFRESH",
                 "Access token refreshed", httpRequest);
 
+        // Cookie-based auth: do NOT return JWT in JSON.
         return ResponseEntity.ok(Map.of(
-                "token", newAccessToken,
-                "message", "Token refreshed successfully"));
+            "message", "Token refreshed successfully"));
     }
 
     @PostMapping("/logout")

@@ -1,7 +1,7 @@
 @echo off
 :: ============================================================
 :: BrightNest Academy - Deploy Script
-:: Syncs static files to target and pushes to GitHub
+:: Builds (optional) and pushes to GitHub
 :: ============================================================
 cd /d "%~dp0"
 
@@ -11,16 +11,20 @@ echo  BrightNest Academy - Deploy
 echo ====================================================
 echo.
 
-:: Step 1: Sync static files from src to target
-echo [1/4] Syncing static files to target...
-if not exist "target\classes\static" mkdir "target\classes\static"
-xcopy /E /Y /Q "src\main\resources\static\*" "target\classes\static\"
+:: Step 1: Optional build (avoids committing anything under /target)
+echo [1/4] Building project (optional)...
+where mvn >nul 2>nul
 if %errorlevel% neq 0 (
-    echo ERROR: File sync failed!
-    pause
-    exit /b 1
+    echo       Maven not found. Skipping build.
+) else (
+    call mvn -q -DskipTests package
+    if %errorlevel% neq 0 (
+        echo ERROR: Maven build failed!
+        pause
+        exit /b 1
+    )
+    echo       Done. Build succeeded.
 )
-echo       Done. Files synced.
 echo.
 
 :: Step 2: Git add all changes

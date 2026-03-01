@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -60,7 +61,8 @@ class AuthServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.register(request));
 
-        assertEquals("Email already exists", ex.getMessage());
+        assertTrue(ex.getMessage().contains("User already exists"));
+        assertTrue(ex.getMessage().contains("student@example.com"));
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -125,6 +127,7 @@ class AuthServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.login(request));
 
-        assertEquals("User not found", ex.getMessage());
+        assertTrue(ex.getMessage().contains("User not found"));
+        assertTrue(ex.getMessage().contains("missing@example.com"));
     }
 }

@@ -37,8 +37,8 @@ class PublicApiIntegrationTest {
         mockMvc.perform(get("/api/courses"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(greaterThanOrEqualTo(1)));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(greaterThanOrEqualTo(1)));
     }
 
     @Test
