@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,17 +25,27 @@ public class ResumeStorageService {
 
     private static final Logger log = LoggerFactory.getLogger(ResumeStorageService.class);
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-    private static final Set<String> ALLOWED_TYPES = Set.of(
+    private static final long DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final Set<String> DEFAULT_ALLOWED_TYPES = Set.of(
             "application/pdf",
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "doc", "docx");
+    private static final Set<String> DEFAULT_ALLOWED_EXTENSIONS = Set.of("pdf", "doc", "docx");
 
     private final Path uploadDir;
+    private final long maxFileSize;
+    private final Set<String> allowedTypes;
+    private final Set<String> allowedExtensions;
 
-    public ResumeStorageService(@Value("${resume.upload.dir:uploads/resumes}") String uploadPath) {
+    public ResumeStorageService(
+            @Value("${resume.upload.dir:uploads/resumes}") String uploadPath,
+            @Value("${resume.upload.max-bytes:" + DEFAULT_MAX_FILE_SIZE + "}") long maxFileSize,
+            @Value("${resume.upload.allowed-types:}") String allowedTypes,
+            @Value("${resume.upload.allowed-extensions:}") String allowedExtensions) {
         this.uploadDir = Paths.get(uploadPath).toAbsolutePath().normalize();
+        this.maxFileSize = maxFileSize > 0 ? maxFileSize : DEFAULT_MAX_FILE_SIZE;
+        this.allowedTypes = parseCsvOrDefault(allowedTypes, DEFAULT_ALLOWED_TYPES);
+        this.allowedExtensions = parseCsvOrDefault(allowedExtensions, DEFAULT_ALLOWED_EXTENSIONS);
         try {
             Files.createDirectories(this.uploadDir);
             log.info("Resume upload directory: {}", this.uploadDir);
@@ -52,13 +63,13 @@ public class ResumeStorageService {
         }
 
         // Validate file size
-        if (file.getSize() > MAX_FILE_SIZE) {
+        if (file.getSize() > maxFileSize) {
             throw new BusinessException("Resume file must be less than 5 MB", "FILE_TOO_LARGE");
         }
 
         // Validate content type
         String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
+        if (contentType == null || !allowedTypes.contains(contentType)) {
             throw new BusinessException("Only PDF and Word documents are allowed", "INVALID_FILE_TYPE");
         }
 
@@ -68,7 +79,7 @@ public class ResumeStorageService {
             throw new BusinessException("File name is missing", "INVALID_FILE_NAME");
         }
         String extension = getExtension(originalFilename);
-        if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+        if (!allowedExtensions.contains(extension.toLowerCase())) {
             throw new BusinessException("Only .pdf, .doc, .docx files are allowed", "INVALID_EXTENSION");
         }
 
@@ -92,5 +103,15 @@ public class ResumeStorageService {
     private String getExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
         return dotIndex >= 0 ? filename.substring(dotIndex + 1) : "";
+    }
+
+    private Set<String> parseCsvOrDefault(String csv, Set<String> defaultSet) {
+        if (csv == null || csv.isBlank()) {
+            return defaultSet;
+        }
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 }
