@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog | BrightNest Academy</title>
+    <title>Blog & Learning Tips | Education Insights | BrightNest Academy</title>
     <meta name="description" content="Read articles and insights from BrightNest Academy on language learning, education tips, and student success stories.">
     <link rel="canonical" href="https://brightnest-academy.com/blog.html">
     <meta property="og:type" content="website">
@@ -12,6 +12,7 @@
     <meta property="og:description" content="Read articles and insights from BrightNest Academy on language learning, education tips, and student success stories.">
     <meta property="og:site_name" content="BrightNest Academy">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -146,39 +147,49 @@
                                 if (!posts || posts.length === 0) throw new Error('No articles');
                                 renderBlogCards(posts);
                         } catch(e) {
-                                // Fallback: show dummy articles
+                                // Fallback: show real static articles
                                 const dummyPosts = [
                                     {
-                                        title: "5 Proven Exam Strategies for Success",
+                                        title: "5 Proven Study Strategies Every School Student Should Know",
                                         slug: "exam-strategies-success",
-                                        excerpt: "Discover actionable tips to boost your exam performance, reduce stress, and improve your scores.",
+                                        excerpt: "From the Pomodoro technique to spaced repetition, discover how these evidence-backed study methods can boost your scores and reduce exam stress.",
                                         category: "EXAM_STRATEGIES",
-                                        publishedAt: "2026-02-20T09:00:00Z",
-                                        coverImageUrl: "images/blog/exam-tips.jpg"
+                                        publishedAt: "2025-05-15T09:00:00Z"
                                     },
                                     {
-                                        title: "How to Master Mathematics: A Student's Guide",
+                                        title: "How to Master Mathematics: From Fear to Confidence",
                                         slug: "master-mathematics-guide",
-                                        excerpt: "Learn how to tackle math anxiety, build strong fundamentals, and excel in your exams.",
+                                        excerpt: "Math anxiety is real, but it's conquerable. Learn how to break difficult problems into smaller steps and build the strong fundamentals needed to excel.",
                                         category: "LEARNING_TIPS",
-                                        publishedAt: "2026-02-15T10:30:00Z",
-                                        coverImageUrl: "images/blog/math-guide.jpg"
+                                        publishedAt: "2025-05-08T10:30:00Z"
                                     },
                                     {
-                                        title: "BrightNest Academy Launches New German Course",
-                                        slug: "academy-news-german-course",
-                                        excerpt: "We're excited to announce our new German language program for grades 6-10!",
-                                        category: "ACADEMY_NEWS",
-                                        publishedAt: "2026-02-10T14:00:00Z",
-                                        coverImageUrl: "images/blog/german-course.jpg"
-                                    },
-                                    {
-                                        title: "Language Insights: Why Multilingual Kids Excel",
-                                        slug: "language-insights-multilingual",
-                                        excerpt: "Explore the cognitive and social benefits of learning multiple languages at a young age.",
+                                        title: "Why Learning Kannada Gives Your Child an Advantage",
+                                        slug: "learning-kannada-advantage",
+                                        excerpt: "Strong Kannada skills improve performance across all regional subjects. Our experienced tutors share how mother-tongue fluency builds academic confidence.",
                                         category: "LANGUAGE_INSIGHTS",
-                                        publishedAt: "2026-02-05T12:00:00Z",
-                                        coverImageUrl: "images/blog/language-benefits.jpg"
+                                        publishedAt: "2025-04-28T12:00:00Z"
+                                    },
+                                    {
+                                        title: "A Parent's Guide to Choosing the Right Tuition Centre",
+                                        slug: "choosing-right-tuition-centre",
+                                        excerpt: "Class size, teaching methodology, progress tracking — learn what to look for when selecting a tuition centre for your child in Bengaluru.",
+                                        category: "ACADEMY_NEWS",
+                                        publishedAt: "2025-04-18T14:00:00Z"
+                                    },
+                                    {
+                                        title: "CBSE vs Karnataka State Board: What Parents Need to Know",
+                                        slug: "cbse-vs-state-board-comparison",
+                                        excerpt: "Navigating the differences between boards can be confusing. This guide explains the key differences in syllabus, exam pattern, and academic expectations.",
+                                        category: "LEARNING_TIPS",
+                                        publishedAt: "2025-04-05T11:00:00Z"
+                                    },
+                                    {
+                                        title: "The Secret to Learning Hindi Quickly for Kannada Speakers",
+                                        slug: "hindi-learning-tips-kannada-speakers",
+                                        excerpt: "Hindi and Kannada share surprising similarities. Our Hindi tutors reveal the tricks that help Karnataka students pick up Hindi far faster than they expect.",
+                                        category: "LANGUAGE_INSIGHTS",
+                                        publishedAt: "2025-03-22T09:30:00Z"
                                     }
                                 ];
                                 renderBlogCards(dummyPosts.filter(p => !category || p.category === category || category === ""));

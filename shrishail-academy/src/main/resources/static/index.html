@@ -44,6 +44,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* ─── Top strip ─── */
@@ -216,7 +217,7 @@
             <div class="container hero-grid">
                 <div class="hero-copy hero-content">
                     <p class="eyebrow">Trusted by 500+ Families in Bengaluru</p>
-                    <h1 class="hero-title">Building <span class="highlight">Confidence</span> in Learning</h1>
+                    <h1 class="hero-title">Because Every <span class="highlight">Bright Mind</span> Deserves the Right Nest</h1>
                     <p class="hero-tagline">Personalized tuition in Kannada, English, Hindi, German, Mathematics &amp; Science. Online and offline classes for school students from grades 1 to 10.</p>
                     <div class="hero-buttons">
                         <a href="demo.html" class="btn btn-accent btn-lg">Book a Demo</a>
@@ -388,51 +389,25 @@
         const menuToggle = document.getElementById('menuToggle');
         if (menuToggle) { menuToggle.addEventListener('click', function() { const expanded = this.getAttribute('aria-expanded') === 'true'; this.setAttribute('aria-expanded', String(!expanded)); }); }
 
-        // Counseling form AJAX submission
+        // Counseling form → WhatsApp
         const counselingForm = document.getElementById('counselingForm');
         if (counselingForm) {
-            counselingForm.addEventListener('submit', async function(e) {
+            counselingForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const btn = document.getElementById('counselingBtn');
+                const name = document.getElementById('studentName').value.trim();
+                const grade = document.getElementById('studentClass').value.trim();
+                const board = document.getElementById('board').value;
+                const phone = document.getElementById('phone').value.trim();
+                const text = 'Hi BrightNest Academy! I\'d like to enroll my child.%0A%0AStudent Name: ' + encodeURIComponent(name) + '%0AClass / Grade: ' + encodeURIComponent(grade) + '%0ABoard: ' + encodeURIComponent(board) + '%0AParent Phone: ' + encodeURIComponent(phone) + '%0A%0APlease share course details and schedule.';
+                window.open('https://wa.me/916363464005?text=' + text, '_blank');
+                counselingForm.reset();
                 const msgDiv = document.getElementById('counselingMsg');
-                const originalText = btn.textContent;
-                btn.disabled = true;
-                btn.textContent = 'Submitting...';
-                msgDiv.style.display = 'none';
-
-                const payload = {
-                    studentName: document.getElementById('studentName').value.trim(),
-                    studentClass: document.getElementById('studentClass').value.trim(),
-                    board: document.getElementById('board').value,
-                    parentPhone: document.getElementById('phone').value.trim()
-                };
-
-                try {
-                    const res = await fetch('/api/counseling', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        msgDiv.style.background = '#f0fdf4';
-                        msgDiv.style.color = '#16a34a';
-                        msgDiv.style.border = '1px solid #bbf7d0';
-                        msgDiv.textContent = data.message;
-                        msgDiv.style.display = 'block';
-                        counselingForm.reset();
-                    } else {
-                        throw new Error(data.message || 'Something went wrong. Please try again.');
-                    }
-                } catch (err) {
-                    msgDiv.style.background = '#fef2f2';
-                    msgDiv.style.color = '#dc2626';
-                    msgDiv.style.border = '1px solid #fecaca';
-                    msgDiv.textContent = err.message || 'Network error. Please try again.';
+                if (msgDiv) {
+                    msgDiv.style.background = '#f0fdf4';
+                    msgDiv.style.color = '#16a34a';
+                    msgDiv.style.border = '1px solid #bbf7d0';
+                    msgDiv.textContent = 'Opening WhatsApp\u2026 we will reply within a few minutes!';
                     msgDiv.style.display = 'block';
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
                 }
             });
         }

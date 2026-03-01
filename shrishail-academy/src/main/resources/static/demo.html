@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book a Demo | BrightNest Academy</title>
+    <title>Book a Free Demo Class | BrightNest Academy Bengaluru</title>
     <meta name="description" content="Try a demo class at BrightNest Academy. Experience our personalized tutoring in Kannada, English, Hindi, Sanskrit, Mathematics and Science. Demo fee: ₹100.">
     <link rel="canonical" href="https://brightnest-academy.com/demo.html">
     <meta property="og:type" content="website">
@@ -12,6 +12,7 @@
     <meta property="og:description" content="Try a demo class at BrightNest Academy. Experience our personalized tutoring in Kannada, English, Hindi, Sanskrit, Mathematics and Science. Demo fee: ₹100.">
     <meta property="og:site_name" content="BrightNest Academy">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -202,40 +203,25 @@
             });
         });
 
-        // Demo form submission
-        document.getElementById('demoForm').addEventListener('submit', async function(e) {
+        // Demo form → WhatsApp
+        document.getElementById('demoForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.getElementById('demoSubmitBtn');
-            btn.disabled = true;
-            btn.textContent = 'Submitting...';
-
-            const requirements = Array.from(document.querySelectorAll('.req-check:checked')).map(c => c.value).join(', ');
+            const studentName = document.getElementById('demoStudentName').value.trim();
+            const parentName = document.getElementById('demoParentName').value.trim();
+            const email = document.getElementById('demoEmail').value.trim();
+            const phone = document.getElementById('demoPhone').value.trim();
+            const subject = document.getElementById('demoSubject').value;
+            const grade = document.getElementById('demoGrade').value;
+            const board = document.getElementById('demoBoard').value || '';
             const modeRadio = document.querySelector('input[name="classMode"]:checked');
-
-            const data = {
-                studentName: document.getElementById('demoStudentName').value.trim(),
-                parentName: document.getElementById('demoParentName').value.trim(),
-                email: document.getElementById('demoEmail').value.trim(),
-                phone: document.getElementById('demoPhone').value.trim(),
-                subject: document.getElementById('demoSubject').value,
-                grade: document.getElementById('demoGrade').value,
-                board: document.getElementById('demoBoard').value || null,
-                classMode: modeRadio ? modeRadio.value : 'ONLINE',
-                requirements: requirements || null,
-                message: document.getElementById('demoMessage').value.trim() || null
-            };
-
-            try {
-                await API.submitDemoBooking(data);
-                if (window.AppUtils) AppUtils.showNotification('Demo booked successfully! We will contact you within 24 hours to schedule your class.', 'success');
-                this.reset();
-                document.querySelectorAll('.mode-option').forEach(l => l.style.borderColor = '#e5e7eb');
-            } catch(err) {
-                if (window.AppUtils) AppUtils.showNotification('Booking failed: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Book My Demo';
-            }
+            const mode = modeRadio ? modeRadio.value : 'Online';
+            const requirements = Array.from(document.querySelectorAll('.req-check:checked')).map(function(c){ return c.value; }).join(', ') || 'Not specified';
+            const message = document.getElementById('demoMessage').value.trim() || '';
+            const text = 'Hi BrightNest Academy! I want to book a Demo Class.%0A%0AStudent: ' + encodeURIComponent(studentName) + '%0AParent: ' + encodeURIComponent(parentName) + '%0AEmail: ' + encodeURIComponent(email) + '%0APhone: ' + encodeURIComponent(phone) + '%0ASubject: ' + encodeURIComponent(subject) + '%0AGrade: ' + encodeURIComponent(grade) + (board ? '%0ABoard: ' + encodeURIComponent(board) : '') + '%0AMode: ' + encodeURIComponent(mode) + '%0ARequirements: ' + encodeURIComponent(requirements) + (message ? '%0AMessage: ' + encodeURIComponent(message) : '') + '%0A%0APlease schedule my demo session.';
+            window.open('https://wa.me/916363464005?text=' + text, '_blank');
+            this.reset();
+            document.querySelectorAll('.mode-option').forEach(function(l){ l.style.borderColor = '#e5e7eb'; });
+            if (window.AppUtils) AppUtils.showNotification('Opening WhatsApp to confirm your demo booking!', 'success');
         });
     </script>
 </body>

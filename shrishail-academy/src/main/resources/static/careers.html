@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,6 +12,7 @@
     <meta property="og:description" content="Join BrightNest Academy as a tutor. Apply for online or offline teaching positions.">
     <meta property="og:site_name" content="BrightNest Academy">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .careers-hero { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; padding: calc(var(--header-height) + 3rem) 0 3rem; text-align: center; }
@@ -368,7 +369,6 @@
                 return;
             }
 
-            // Validate resume size
             const resumeFile = resumeInput.files[0];
             if (resumeFile && resumeFile.size > 5 * 1024 * 1024) {
                 msgDiv.style.background = '#fef2f2';
@@ -383,49 +383,30 @@
             btn.textContent = 'Submitting...';
             msgDiv.style.display = 'none';
 
-            const formData = new FormData();
-            formData.append('fullName', document.getElementById('appFullName').value.trim());
-            formData.append('email', document.getElementById('appEmail').value.trim());
-            formData.append('phone', document.getElementById('appPhone').value.trim());
-            formData.append('subjectExpertise', document.getElementById('appSubject').value);
-            formData.append('qualification', document.getElementById('appQualification').value.trim());
-            formData.append('city', document.getElementById('appCity').value.trim());
-            formData.append('teachingMode', modeInput.value);
-            formData.append('experience', document.getElementById('appExperience').value);
-            formData.append('motivation', document.getElementById('appMotivation').value.trim());
-            if (resumeFile) {
-                formData.append('resume', resumeFile);
-            }
+            const fullName = document.getElementById('appFullName').value.trim();
+            const email = document.getElementById('appEmail').value.trim();
+            const phone = document.getElementById('appPhone').value.trim();
+            const subject = document.getElementById('appSubject').value;
+            const qualification = document.getElementById('appQualification').value.trim();
+            const city = document.getElementById('appCity').value.trim();
+            const teachingMode = modeInput.value;
+            const experience = document.getElementById('appExperience').value;
+            const motivation = document.getElementById('appMotivation').value.trim();
 
-            try {
-                const res = await fetch('/api/teacher-applications', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                if (res.ok && data.success === 'true') {
-                    msgDiv.style.background = '#f0fdf4';
-                    msgDiv.style.color = '#16a34a';
-                    msgDiv.style.border = '1px solid #bbf7d0';
-                    msgDiv.textContent = data.message;
-                    msgDiv.style.display = 'block';
-                    this.reset();
-                    fileInfo.style.display = 'none';
-                    modeToggle.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                    modeInput.value = '';
-                } else {
-                    throw new Error(data.message || 'Something went wrong. Please try again.');
-                }
-            } catch (err) {
-                msgDiv.style.background = '#fef2f2';
-                msgDiv.style.color = '#dc2626';
-                msgDiv.style.border = '1px solid #fecaca';
-                msgDiv.textContent = err.message || 'Network error. Please try again.';
-                msgDiv.style.display = 'block';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
+            const text = 'Hi BrightNest Academy! I want to apply as a tutor.%0A%0AName: ' + encodeURIComponent(fullName) + '%0AEmail: ' + encodeURIComponent(email) + '%0APhone: ' + encodeURIComponent(phone) + '%0ASubject: ' + encodeURIComponent(subject) + '%0AQualification: ' + encodeURIComponent(qualification) + '%0ACity: ' + encodeURIComponent(city) + '%0ATeaching Mode: ' + encodeURIComponent(teachingMode) + '%0AExperience: ' + encodeURIComponent(experience) + ' years%0A%0AMotivation:%0A' + encodeURIComponent(motivation) + (resumeFile ? '%0A%0A(I will email my resume to info@brightnest-academy.com)' : '');
+            window.open('https://wa.me/916363464005?text=' + text, '_blank');
+
+            msgDiv.style.background = '#f0fdf4';
+            msgDiv.style.color = '#16a34a';
+            msgDiv.style.border = '1px solid #bbf7d0';
+            msgDiv.textContent = resumeFile ? 'Opening WhatsApp! Please also email your resume to info@brightnest-academy.com' : 'Opening WhatsApp to submit your application!';
+            msgDiv.style.display = 'block';
+            this.reset();
+            fileInfo.style.display = 'none';
+            modeToggle.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active'); });
+            modeInput.value = '';
+            btn.disabled = false;
+            btn.textContent = originalText;
         });
     </script>
 </body>
