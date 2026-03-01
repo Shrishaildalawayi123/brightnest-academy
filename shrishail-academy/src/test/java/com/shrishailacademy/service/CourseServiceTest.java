@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +45,7 @@ class CourseServiceTest {
     void createCourseShouldSaveWhenTitleIsUnique() {
         Course course = new Course();
         course.setTitle("Mathematics");
-        course.setFee(3000.0);
+        course.setFee(new BigDecimal("3000.00"));
 
         when(courseRepository.existsByTitle("Mathematics")).thenReturn(false);
         when(courseRepository.save(course)).thenReturn(course);
@@ -62,12 +63,12 @@ class CourseServiceTest {
         existing.setTitle("Old Title");
         existing.setDescription("Old Description");
         existing.setDuration("6 months");
-        existing.setFee(1000.0);
+        existing.setFee(new BigDecimal("1000.00"));
         existing.setColor("#123456");
 
         Course patch = new Course();
         patch.setTitle("New Title");
-        patch.setFee(1500.0);
+        patch.setFee(new BigDecimal("1500.00"));
         patch.setDescription(null);
         patch.setDuration(null);
 
@@ -77,7 +78,7 @@ class CourseServiceTest {
         Course updated = courseService.updateCourse(1L, patch);
 
         assertEquals("New Title", updated.getTitle());
-        assertEquals(1500.0, updated.getFee());
+        assertEquals(new BigDecimal("1500.00"), updated.getFee());
         assertEquals("Old Description", updated.getDescription());
         assertEquals("6 months", updated.getDuration());
         assertEquals("#123456", updated.getColor());

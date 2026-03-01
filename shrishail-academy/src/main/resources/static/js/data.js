@@ -6,20 +6,21 @@
 const TEAM_DATA = [
   {
     id: "founder",
-    name: "Bharati Satappagol",
+    name: "Bharati R Satappagol",
     role: "Founder & Lead Educator",
-    subjects: ["Kannada", "English", "Science", "Maths"],
+    subjects: ["Kannada", "English", "Science", "Mathematics"],
     bio: "With 25 years of experience across thousands of diverse teaching scenarios, consistently delivering uncompromised quality and impactful learning.",
-    avatar: "ðŸ‘©â€ðŸ«",
+    avatar: "👩‍🏫",
+    photo: "images/bharati.jpg",
     color: "#6366f1",
   },
   {
     id: "aayusmita",
     name: "Miss Aayusmita Dey",
     role: "Educator",
-    subjects: ["Sanskrit", "Maths", "Science"],
+    subjects: ["Sanskrit", "Mathematics", "Science"],
     bio: "A young and enthusiastic teacher who builds strong connections with students, inspiring rapid and meaningful progress through trust and motivation.",
-    avatar: "ðŸ‘©â€ðŸ”¬",
+    avatar: "👩‍🔬",
     color: "#ec4899",
   },
   {
@@ -28,7 +29,7 @@ const TEAM_DATA = [
     role: "Educator",
     subjects: ["Kannada", "English"],
     bio: "Beloved by students for her clear, simplified teaching style that makes even the toughest topics easy to grasp and enjoy.",
-    avatar: "ðŸ‘©â€ðŸ«",
+    avatar: "👩‍🏫",
     color: "#14b8a6",
   },
   {
@@ -36,8 +37,8 @@ const TEAM_DATA = [
     name: "Mrs. Kamalakshi B K",
     role: "Educator",
     subjects: ["Kannada", "Hindi"],
-    bio: "A methodical and supportive teacher who expertly guides students from the basics to confident mastery â€” often in just a few weeks.",
-    avatar: "ðŸ‘©â€ðŸ«",
+    bio: "A methodical and supportive teacher who expertly guides students from the basics to confident mastery — often in just a few weeks.",
+    avatar: "👩‍🏫",
     color: "#f59e0b",
   },
   {
@@ -46,26 +47,17 @@ const TEAM_DATA = [
     role: "Educator",
     subjects: ["English"],
     bio: "Expert English educator blending academic rigor with an engaging, student-loved teaching style that makes learning a joy.",
-    avatar: "ðŸ‘©â€ðŸ’¼",
+    avatar: "👩‍💼",
     color: "#8b5cf6",
   },
   {
     id: "meghna",
     name: "Mrs. Meghna Roy",
     role: "Educator",
-    subjects: ["English", "Maths", "Science", "Hindi"],
+    subjects: ["English", "Mathematics", "Science", "Hindi"],
     bio: "A highly effective teacher who turns everyday lessons into confident learning and joyful discovery, inspiring students to excel with ease.",
-    avatar: "ðŸ‘©â€ðŸ”¬",
+    avatar: "👩‍🔬",
     color: "#06b6d4",
-  },
-  {
-    id: "priya",
-    name: "Mrs. Priya K",
-    role: "Educator",
-    subjects: ["German"],
-    bio: "Experienced German teacher who brings language to life with engaging lessons, cultural flair, and a deep commitment to student success.",
-    avatar: "ðŸ‘©â€ðŸ«",
-    color: "#f59e0b",
   },
   {
     id: "sushma",
@@ -73,7 +65,7 @@ const TEAM_DATA = [
     role: "Senior Educator",
     subjects: ["Sanskrit", "Hindi"],
     bio: "Empowering students for over 20 years with expert Hindi instruction that is both professional and warmly student-centered.",
-    avatar: "ðŸ‘©â€ðŸŽ“",
+    avatar: "👩‍🎓",
     color: "#10b981",
   },
   {
@@ -82,16 +74,16 @@ const TEAM_DATA = [
     role: "Senior Educator",
     subjects: ["Sanskrit", "Hindi"],
     bio: "Versatile Sanskrit expert with deep knowledge and a gift for connecting with learners of all ages through clear, compassionate teaching.",
-    avatar: "ðŸ‘©â€ðŸ«",
+    avatar: "👩‍🏫",
     color: "#3b82f6",
   },
   {
     id: "bharati",
     name: "Ms. Bharati R S",
     role: "Educator",
-    subjects: ["Kannada", "English", "Maths", "Science"],
+    subjects: ["Kannada", "English", "Mathematics", "Science"],
     bio: "A dedicated educator providing personalized, interactive instruction to help students achieve fluency and reach their learning goals.",
-    avatar: "ðŸ‘©â€ðŸ«",
+    avatar: "👩‍🏫",
     color: "#d946ef",
   },
   {
@@ -100,8 +92,18 @@ const TEAM_DATA = [
     role: "Senior Educator",
     subjects: ["Sanskrit"],
     bio: "A Sanskrit educator with 48 years of experience. Her friendly teaching approach creates a stress-free environment that fosters appreciation for Sanskrit's cultural heritage.",
-    avatar: "ðŸ‘©â€ðŸŽ“",
+    avatar: "👩‍🎓",
     color: "#0ea5e9",
+  },
+  {
+    id: "shrishail",
+    name: "Mr. Shrishail Dalawayi",
+    role: "German Language Educator",
+    subjects: ["German"],
+    bio: "A passionate German language educator dedicated to making the language accessible and enjoyable for school students through interactive and structured teaching methods.",
+    avatar: "👨‍🏫",
+    photo: "images/shrishail.jpg",
+    color: "#ef4444",
   },
 ];
 
@@ -109,7 +111,7 @@ const FAQ_DATA = {
   general: [
     {
       q: "What courses are offered at BrightNest Academy?",
-      a: "We offer Kannada, English, Hindi, Sanskrit, French, Maths, Science, and German. Our expert tutors provide personalized tuition to help students excel.",
+      a: "We offer Kannada, English, Hindi, Sanskrit, German, Mathematics, and Science. Our expert tutors provide personalized tuition to help students excel.",
     },
     {
       q: "What are the modes of class delivery?",
@@ -117,11 +119,11 @@ const FAQ_DATA = {
     },
     {
       q: "How can I enroll in a course?",
-      a: "Book a demo class through our website, or call us at +91-7204193980. After the demo, our team will guide you through enrollment.",
+      a: "Book a demo class through our website, or call us at +91-6363464005. After the demo, our team will guide you through enrollment.",
     },
     {
       q: "Where do offline classes take place?",
-      a: "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru â€“ 560078.",
+      a: "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru – 560078.",
     },
     {
       q: "Where can I learn about the teachers?",
@@ -135,11 +137,11 @@ const FAQ_DATA = {
   courseSpecific: [
     {
       q: "What curriculum boards do you support?",
-      a: "We support ICSE, CBSE, and Karnataka State Board curricula for grades I to XII.",
+      a: "We support ICSE, CBSE, and Karnataka State Board curricula for grades 1 to 10.",
     },
     {
       q: "Do you offer spoken language courses?",
-      a: "Yes! We offer Spoken Hindi, Spoken English, Spoken Kannada, Spoken French, and Spoken German courses for all ages.",
+      a: "Yes! We offer Spoken Hindi, Spoken English, Spoken Kannada, and Spoken German courses for school students.",
     },
     {
       q: "Can I take multiple courses simultaneously?",
@@ -150,14 +152,14 @@ const FAQ_DATA = {
       a: "Comprehension, creative writing, grammar, and vocabulary building through structured, interactive lessons.",
     },
     {
-      q: "Do you prepare students for competitive exams?",
-      a: "Yes, we offer preparation for various language proficiency tests and competitive exams.",
+      q: "Do you prepare students for school-level competitive exams?",
+      a: "Yes, we offer preparation for school Olympiads, NTSE, and other school-level tests.",
     },
   ],
   feePayment: [
     {
       q: "What is the demo class fee?",
-      a: "The demo class fee is â‚¹100. It gets adjusted in first month fees or refunded within 30 days if you don't enroll.",
+      a: "The demo class fee is ₹100. It gets adjusted in first month fees or refunded within 30 days if you don't enroll.",
     },
     {
       q: "What payment methods are accepted?",
@@ -188,9 +190,9 @@ const TESTIMONIALS = [
     rating: 5,
   },
   {
-    text: "My daughter's Maths score improved from 65% to 95% in just 3 months. The teachers explain every concept step-by-step with great patience.",
+    text: "My daughter's Mathematics score improved from 65% to 95% in just 3 months. The teachers explain every concept step-by-step with great patience.",
     author: "Rahul Sharma",
-    course: "Maths",
+    course: "Mathematics",
     rating: 5,
   },
   {
@@ -214,22 +216,55 @@ const COURSE_INFO = {
     description:
       "Our Sanskrit course is designed to nurture a deep understanding and appreciation for one of the world's oldest languages. Whether your child is beginning their Sanskrit journey or preparing for board exams, we provide personalized guidance every step of the way.",
     color: "#6366f1",
-    icon: "ðŸ•‰ï¸",
+    icon: "🕉️",
+    highlights: [
+      { icon: "🎓", label: "Grades 1–10" },
+      { icon: "📋", label: "CBSE · ICSE · State Board" },
+      { icon: "💻", label: "Online & Offline" },
+      { icon: "👥", label: "Small Batch Size" },
+    ],
+    outcomes: [
+      "Read and write fluently in Devanagari script",
+      "Strong command of Sanskrit grammar (Vyakarana)",
+      "Understand and appreciate Sanskrit prose & poetry",
+      "Chant popular slokas with correct pronunciation",
+      "Confident exam performance in board exams",
+      "Build vocabulary that strengthens Hindi and other languages",
+    ],
+    curriculum: [
+      {
+        grade: "Grades 1–4",
+        topics:
+          "Alphabet, basic words, simple sentences, slokas, rhymes in Sanskrit",
+      },
+      {
+        grade: "Grades 5–7",
+        topics:
+          "Grammar fundamentals, sandhi, vibhakti, prose & poetry comprehension, essay writing",
+      },
+      {
+        grade: "Grades 8–10",
+        topics:
+          "Advanced grammar, literature analysis, translation, composition, board exam preparation",
+      },
+    ],
+    targetAudience:
+      "Students in grades 1–10 studying Sanskrit under CBSE, ICSE, or Karnataka State Board. Also ideal for students who want to learn slokas, spoken Sanskrit, or build a strong language foundation.",
     offerings: [
       {
         title: "School Curriculum",
-        desc: "Comprehensive tuition aligned with CBSE, ICSE, and Karnataka State Board for grades Iâ€“XII. Our classes focus on grammar, prose, poetry, and exam preparation.",
-        icon: "ðŸ“š",
+        desc: "Comprehensive tuition aligned with CBSE, ICSE, and Karnataka State Board for grades 1–10. Our classes focus on grammar, prose, poetry, and exam preparation.",
+        icon: "📚",
       },
       {
         title: "Sloka & Spoken Sanskrit",
         desc: "Learn to chant popular slokas with correct pronunciation and explore conversational Sanskrit through engaging, interactive sessions.",
-        icon: "ðŸ—£ï¸",
+        icon: "🗣️",
       },
       {
         title: "Reading & Writing",
         desc: "Master Devanagari script, build vocabulary, and develop comprehension skills through structured reading and creative writing exercises.",
-        icon: "âœï¸",
+        icon: "✍️",
       },
     ],
   },
@@ -239,22 +274,55 @@ const COURSE_INFO = {
     description:
       "Our Hindi course helps students build fluency, reading skills, and academic excellence. From school curriculum support to spoken Hindi for daily life, we cover it all with a warm, engaging approach.",
     color: "#f59e0b",
-    icon: "ðŸ“–",
+    icon: "📖",
+    highlights: [
+      { icon: "🎓", label: "Grades 1–10" },
+      { icon: "📋", label: "CBSE · ICSE · State Board" },
+      { icon: "💻", label: "Online & Offline" },
+      { icon: "👥", label: "Small Batch Size" },
+    ],
+    outcomes: [
+      "Fluent reading and writing in Hindi (Devanagari script)",
+      "Strong grammar foundation — tenses, genders, cases",
+      "Confident spoken Hindi for everyday communication",
+      "Excellent comprehension and creative writing skills",
+      "Score high in board and school exams",
+      "Appreciation for Hindi literature and poetry",
+    ],
+    curriculum: [
+      {
+        grade: "Grades 1–4",
+        topics:
+          "Hindi alphabet (varnamala), simple sentences, stories, poems, picture description",
+      },
+      {
+        grade: "Grades 5–7",
+        topics:
+          "Grammar (vyakaran), essay writing, letter writing, comprehension, literature",
+      },
+      {
+        grade: "Grades 8–10",
+        topics:
+          "Advanced grammar, prose & poetry analysis, creative writing, board exam preparation",
+      },
+    ],
+    targetAudience:
+      "Students in grades 1–10 studying Hindi under CBSE, ICSE, or Karnataka State Board. Also ideal for non-Hindi speakers who want to learn spoken Hindi or improve conversational skills.",
     offerings: [
       {
         title: "School Curriculum",
-        desc: "Aligned with CBSE, ICSE, and State Board syllabi for grades Iâ€“XII. We cover grammar, literature, comprehension, and creative writing with exam-focused preparation.",
-        icon: "ðŸ“š",
+        desc: "Aligned with CBSE, ICSE, and State Board syllabi for grades 1–10. We cover grammar, literature, comprehension, and creative writing with exam-focused preparation.",
+        icon: "📚",
       },
       {
         title: "Spoken Hindi",
         desc: "Conversational Hindi classes for students and adults who want to speak fluently. Ideal for non-native speakers or those looking to improve communication skills.",
-        icon: "ðŸ—£ï¸",
+        icon: "🗣️",
       },
       {
         title: "Reading & Writing",
         desc: "Develop reading comprehension, essay writing, and Hindi script mastery through progressive, interactive exercises.",
-        icon: "âœï¸",
+        icon: "✍️",
       },
     ],
   },
@@ -264,22 +332,55 @@ const COURSE_INFO = {
     description:
       "Our English course empowers students to read, write, and communicate with confidence. From grammar fundamentals to creative expression, we build a solid English foundation for academic and real-world success.",
     color: "#3b82f6",
-    icon: "ðŸ“",
+    icon: "📝",
+    highlights: [
+      { icon: "🎓", label: "Grades 1–10" },
+      { icon: "📋", label: "CBSE · ICSE · State Board" },
+      { icon: "💻", label: "Online & Offline" },
+      { icon: "👥", label: "Small Batch Size" },
+    ],
+    outcomes: [
+      "Strong grammar foundation — tenses, voice, narration, articles",
+      "Confident spoken English with clear pronunciation",
+      "Creative and academic writing skills — essays, letters, stories",
+      "Deep comprehension and literature analysis abilities",
+      "Vocabulary enrichment for better expression",
+      "High scores in school and board examinations",
+    ],
+    curriculum: [
+      {
+        grade: "Grades 1–4",
+        topics:
+          "Phonics, basic grammar, sentence formation, storytelling, picture composition, reading practice",
+      },
+      {
+        grade: "Grades 5–7",
+        topics:
+          "Parts of speech, tenses, active/passive voice, comprehension, essay & letter writing, literature",
+      },
+      {
+        grade: "Grades 8–10",
+        topics:
+          "Advanced grammar, prose & poetry analysis, creative writing, formal writing, board exam preparation",
+      },
+    ],
+    targetAudience:
+      "Students in grades 1–10 across CBSE, ICSE, and State Board who want to strengthen English grammar, improve spoken skills, or excel in school and board examinations.",
     offerings: [
       {
         title: "School Curriculum",
-        desc: "Complete support for CBSE, ICSE, and State Board English â€” literature analysis, grammar, writing skills, and comprehensive exam preparation.",
-        icon: "ðŸ“š",
+        desc: "Complete support for CBSE, ICSE, and State Board English — literature analysis, grammar, writing skills, and comprehensive exam preparation.",
+        icon: "📚",
       },
       {
         title: "Spoken English",
         desc: "Interactive speaking practice focusing on pronunciation, vocabulary, fluency, and confidence building for students and adults alike.",
-        icon: "ðŸ—£ï¸",
+        icon: "🗣️",
       },
       {
         title: "Reading & Writing",
         desc: "Comprehension, creative writing, essay composition, and literary appreciation through structured and engaging sessions.",
-        icon: "âœï¸",
+        icon: "✍️",
       },
     ],
   },
@@ -289,72 +390,113 @@ const COURSE_INFO = {
     description:
       "Learn Kannada from expert native-speaking educators. Whether for school exams or daily communication, our Kannada course builds reading, writing, and speaking skills in a supportive environment.",
     color: "#10b981",
-    icon: "ðŸ›ï¸",
+    icon: "🏛️",
+    highlights: [
+      { icon: "🎓", label: "Grades 1–10" },
+      { icon: "📋", label: "CBSE · ICSE · State Board" },
+      { icon: "💻", label: "Online & Offline" },
+      { icon: "👥", label: "Small Batch Size" },
+    ],
+    outcomes: [
+      "Fluent reading and writing in Kannada script",
+      "Strong foundation in Kannada grammar (Vyakarana)",
+      "Appreciate Kannada literature — prose, poetry, and stories",
+      "Confident spoken Kannada for daily communication",
+      "Excel in school and board examinations",
+      "Cultural connection to Karnataka's rich heritage",
+    ],
+    curriculum: [
+      {
+        grade: "Grades 1–4",
+        topics:
+          "Kannada alphabet (Aksharamala), basic words, simple sentences, stories, poems, picture description",
+      },
+      {
+        grade: "Grades 5–7",
+        topics:
+          "Grammar (Vyakarana), prose & poetry comprehension, essay writing (Prabandha), letter writing",
+      },
+      {
+        grade: "Grades 8–10",
+        topics:
+          "Advanced grammar, Gadyabhaga & Padyabhaga analysis, creative writing, board exam preparation",
+      },
+    ],
+    targetAudience:
+      "Students in grades 1–10 studying Kannada under CBSE, ICSE, or Karnataka State Board. Also great for non-Kannada speakers and new residents of Karnataka who want to learn the language.",
     offerings: [
       {
         title: "School Curriculum",
-        desc: "Aligned with CBSE, ICSE, and Karnataka State Board syllabi. Grammar, prose, poetry, and exam-focused preparation for grades Iâ€“XII.",
-        icon: "ðŸ“š",
+        desc: "Aligned with CBSE, ICSE, and Karnataka State Board syllabi. Grammar, prose, poetry, and exam-focused preparation for grades 1–10.",
+        icon: "📚",
       },
       {
         title: "Spoken Kannada",
         desc: "Conversational Kannada for non-native speakers, new residents of Karnataka, and students wanting to improve everyday communication.",
-        icon: "ðŸ—£ï¸",
+        icon: "🗣️",
       },
       {
         title: "Reading & Writing",
         desc: "Kannada script mastery, reading comprehension, story writing, and vocabulary building through interactive lessons.",
-        icon: "âœï¸",
-      },
-    ],
-  },
-  french: {
-    name: "French",
-    tagline: "Explore the Language of Art, Culture & Diplomacy",
-    description:
-      "Our French course introduces students to one of the world's most beautiful languages. From classroom learning to real-world conversation, we make French accessible and enjoyable.",
-    color: "#ef4444",
-    icon: "ðŸ‡«ðŸ‡·",
-    offerings: [
-      {
-        title: "School Curriculum",
-        desc: "Complete support for CBSE and ICSE French syllabi. Grammar, comprehension, writing, and exam preparation tailored to each student's level.",
-        icon: "ðŸ“š",
-      },
-      {
-        title: "Spoken French",
-        desc: "Learn to speak French confidently with our interactive conversation classes. Perfect for beginners and intermediate learners alike.",
-        icon: "ðŸ—£ï¸",
-      },
-      {
-        title: "Reading & Writing",
-        desc: "French reading comprehension, composition, and writing exercises designed to build fluency and appreciation for French literature.",
-        icon: "âœï¸",
+        icon: "✍️",
       },
     ],
   },
   maths: {
-    name: "Maths",
+    name: "Mathematics",
     tagline: "Build Strong Problem-Solving & Analytical Skills",
     description:
-      "Our Mathematics course helps students develop a deep understanding of concepts, strong calculation skills, and confident problem-solving ability. From basic arithmetic to advanced calculus, we make Maths approachable and enjoyable.",
+      "Our Mathematics course helps students develop a deep understanding of concepts, strong calculation skills, and confident problem-solving ability. From basic arithmetic to advanced topics, we make Mathematics approachable and enjoyable for school students.",
     color: "#6366f1",
-    icon: "ðŸ“",
+    icon: "📐",
+    highlights: [
+      { icon: "🎓", label: "Grades 1–10" },
+      { icon: "📋", label: "CBSE · ICSE · State Board" },
+      { icon: "💻", label: "Online & Offline" },
+      { icon: "👥", label: "Small Batch Size" },
+    ],
+    outcomes: [
+      "Strong conceptual understanding of all mathematical topics",
+      "Fast and accurate calculation skills",
+      "Confident problem-solving with step-by-step approach",
+      "Ability to tackle word problems and application-based questions",
+      "High scores in school exams, Olympiads, and NTSE",
+      "Love for Mathematics through engaging teaching",
+    ],
+    curriculum: [
+      {
+        grade: "Grades 1–4",
+        topics:
+          "Numbers, basic arithmetic (addition, subtraction, multiplication, division), shapes, patterns, measurement, time & money",
+      },
+      {
+        grade: "Grades 5–7",
+        topics:
+          "Fractions, decimals, percentages, integers, basic algebra, geometry, data handling, ratio & proportion",
+      },
+      {
+        grade: "Grades 8–10",
+        topics:
+          "Advanced algebra, linear equations, quadratic equations, geometry & mensuration, trigonometry, statistics, probability, board exam preparation",
+      },
+    ],
+    targetAudience:
+      "Students in grades 1–10 across CBSE, ICSE, and Karnataka State Board who want to build a strong mathematics foundation, improve problem-solving skills, or prepare for competitive exams like Olympiads and NTSE.",
     offerings: [
       {
         title: "School Curriculum",
-        desc: "Complete coverage of CBSE, ICSE, and Karnataka State Board Maths for grades Iâ€“XII. Algebra, geometry, trigonometry, calculus, statistics and exam-focused practice.",
-        icon: "ðŸ“š",
+        desc: "Complete coverage of CBSE, ICSE, and Karnataka State Board Mathematics for grades 1–10. Arithmetic, algebra, geometry, mensuration, statistics and exam-focused practice.",
+        icon: "📚",
       },
       {
         title: "Concept Building",
         desc: "Step-by-step conceptual learning that builds a solid foundation. We break down complex topics into easy-to-understand segments for lasting understanding.",
-        icon: "ðŸ§®",
+        icon: "🧮",
       },
       {
         title: "Problem Practice & Exams",
         desc: "Extensive practice with solved examples, worksheets, past papers, and timed tests to build speed, accuracy, and exam confidence.",
-        icon: "âœï¸",
+        icon: "✍️",
       },
     ],
   },
@@ -364,47 +506,113 @@ const COURSE_INFO = {
     description:
       "Our Science course nurtures curiosity, critical thinking, and a love for discovery. Covering Physics, Chemistry, and Biology, we help students understand the natural world and excel in their board exams.",
     color: "#10b981",
-    icon: "ðŸ”¬",
+    icon: "🔬",
+    highlights: [
+      { icon: "🎓", label: "Grades 1–10" },
+      { icon: "📋", label: "CBSE · ICSE · State Board" },
+      { icon: "💻", label: "Online & Offline" },
+      { icon: "👥", label: "Small Batch Size" },
+    ],
+    outcomes: [
+      "Clear conceptual understanding of Physics, Chemistry & Biology",
+      "Ability to explain scientific phenomena and processes",
+      "Strong diagram and practical/lab knowledge",
+      "Critical thinking and analytical reasoning skills",
+      "Excellent performance in school and board exams",
+      "Readiness for Olympiads, NTSE, and competitive exams",
+    ],
+    curriculum: [
+      {
+        grade: "Grades 1–4",
+        topics:
+          "Living & non-living things, plants & animals, human body basics, water, air, weather, simple machines, materials",
+      },
+      {
+        grade: "Grades 5–7",
+        topics:
+          "Cell biology, ecosystems, physical & chemical changes, light, sound, electricity basics, measurements",
+      },
+      {
+        grade: "Grades 8–10",
+        topics:
+          "Physics (force, motion, electricity, magnetism), Chemistry (atoms, reactions, acids & bases, metals), Biology (life processes, genetics, evolution), board exam preparation",
+      },
+    ],
+    targetAudience:
+      "Students in grades 1–10 across CBSE, ICSE, and Karnataka State Board looking to master Physics, Chemistry, and Biology concepts and prepare for board exams, school Olympiads, and NTSE.",
     offerings: [
       {
         title: "School Curriculum",
-        desc: "Aligned with CBSE, ICSE, and Karnataka State Board Science syllabi for grades Iâ€“X, and Physics/Chemistry/Biology for grades XIâ€“XII.",
-        icon: "ðŸ“š",
+        desc: "Aligned with CBSE, ICSE, and Karnataka State Board Science syllabi for grades 1–10. Covers Physics, Chemistry, and Biology with clear conceptual understanding.",
+        icon: "📚",
       },
       {
         title: "Practical & Lab Concepts",
         desc: "Clear explanations of experiments, diagrams, and practical concepts that help students excel in both theory and practical examinations.",
-        icon: "âš—ï¸",
+        icon: "⚗️",
       },
       {
-        title: "Competitive Exam Prep",
-        desc: "Targeted preparation for competitive exams including NEET, JEE foundation, and Olympiads with additional concept enrichment.",
-        icon: "ðŸ†",
+        title: "Exam Preparation",
+        desc: "Focused preparation for school exams, Olympiads, and NTSE with structured revision, practice tests, and concept enrichment.",
+        icon: "🏆",
       },
     ],
   },
   german: {
     name: "German",
-    tagline: "Open Doors to Europe's Most Spoken Language",
+    tagline: "Learn German — Open Doors to Global Opportunities",
     description:
-      "Our German course builds language skills from the ground up â€” from alphabet and basic grammar to fluent conversation and advanced writing. German opens doors to global education, career, and cultural experiences.",
-    color: "#f59e0b",
-    icon: "ðŸ‡©ðŸ‡ª",
+      "Our German course introduces school students to one of Europe's most widely spoken languages. From basic greetings and grammar to reading and writing, we build a strong foundation that helps students excel academically and prepares them for future opportunities.",
+    color: "#ef4444",
+    icon: "🇩🇪",
+    highlights: [
+      { icon: "🎓", label: "Grades 1–10" },
+      { icon: "📋", label: "CBSE · ICSE" },
+      { icon: "💻", label: "Online & Offline" },
+      { icon: "👥", label: "Small Batch Size" },
+    ],
+    outcomes: [
+      "Basic to intermediate German communication skills",
+      "Strong foundation in German grammar and sentence structure",
+      "Confident reading and comprehension in German",
+      "Writing skills — essays, letters, descriptions in German",
+      "High scores in school and board German exams",
+      "Cultural awareness of German-speaking countries",
+    ],
+    curriculum: [
+      {
+        grade: "Grades 1–4",
+        topics:
+          "German alphabet, greetings, numbers, colors, family, animals, basic phrases and vocabulary",
+      },
+      {
+        grade: "Grades 5–7",
+        topics:
+          "Sentence structure, present tense, articles (der/die/das), everyday conversations, short compositions",
+      },
+      {
+        grade: "Grades 8–10",
+        topics:
+          "Advanced grammar (cases, tenses, prepositions), comprehension, essay & letter writing, board exam preparation",
+      },
+    ],
+    targetAudience:
+      "Students in grades 1–10 studying German as a second or third language under CBSE or ICSE. Also ideal for beginners who want to start learning German from scratch.",
     offerings: [
       {
         title: "School Curriculum",
-        desc: "Complete support for CBSE and ICSE German syllabi. Grammar, vocabulary, reading comprehension, writing, and board exam preparation.",
-        icon: "ðŸ“š",
+        desc: "Aligned with CBSE and ICSE German syllabi for grades 1–10. We cover grammar, comprehension, vocabulary, and exam-focused preparation.",
+        icon: "📚",
       },
       {
         title: "Spoken German",
-        desc: "Interactive conversation classes to develop confident everyday German. Ideal for beginners, travelers, and students preparing for study abroad.",
-        icon: "ðŸ—£ï¸",
+        desc: "Interactive conversational German classes to build pronunciation, fluency, and confidence in everyday communication.",
+        icon: "🗣️",
       },
       {
         title: "Reading & Writing",
-        desc: "German script mastery, reading comprehension, essay writing, and vocabulary enrichment through structured and progressive exercises.",
-        icon: "âœï¸",
+        desc: "Develop reading comprehension, essay writing, and German script mastery through progressive, interactive exercises.",
+        icon: "✍️",
       },
     ],
   },
@@ -415,10 +623,9 @@ const COURSE_EDUCATORS = {
   hindi: ["founder", "kamalakshi", "sushma", "vimala", "meghna"],
   english: ["meghna", "madhvi", "arundathi", "bharati"],
   kannada: ["arundathi", "kamalakshi", "bharati"],
-  french: ["priya"],
   maths: ["aayusmita", "meghna", "bharati", "founder"],
   science: ["aayusmita", "meghna", "bharati", "founder"],
-  german: ["priya"],
+  german: ["shrishail", "founder", "madhvi", "meghna"],
 };
 
 /* Helper Functions */
@@ -428,10 +635,13 @@ function getEducatorsForSubject(subject) {
 }
 
 function renderTeamCard(member) {
+  const avatarContent = member.photo
+    ? `<img src="${member.photo}" alt="${member.name}" class="team-photo">`
+    : `<span>${member.avatar}</span>`;
   return `
         <div class="team-card" data-aos="fade-up">
-            <div class="team-avatar" style="background:${member.color}">
-                <span>${member.avatar}</span>
+            <div class="team-avatar${member.photo ? " has-photo" : ""}" style="background:${member.color}">
+                ${avatarContent}
             </div>
             <h3 class="team-name">${member.name}</h3>
             <p class="team-role">${member.role}</p>
@@ -478,7 +688,7 @@ function renderTestimonialSlider(containerId) {
     const t = TESTIMONIALS[idx];
     container.innerHTML = `
             <div class="testimonial-card">
-                <div class="testimonial-stars">${"â˜…".repeat(t.rating)}</div>
+                <div class="testimonial-stars">${"★".repeat(t.rating)}</div>
                 <p class="testimonial-text">"${t.text}"</p>
                 <div class="testimonial-author">
                     <strong>${t.author}</strong>
@@ -522,7 +732,7 @@ function getNavHTML(activePage) {
     <header class="header" id="header">
         <nav class="nav container">
             <a href="index.html" class="logo">
-                <span class="logo-icon">ðŸŽ“</span>
+                <img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon" style="height:80px;width:auto;">
                 <span>BrightNest Academy</span>
             </a>
             <ul class="nav-links" id="navLinks">
@@ -530,20 +740,18 @@ function getNavHTML(activePage) {
                 <li class="nav-dropdown">
                     <a href="courses.html" class="nav-link ${activePage === "courses" ? "active" : ""}">Courses <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;vertical-align:middle"><polyline points="6 9 12 15 18 9"/></svg></a>
                     <ul class="dropdown-menu">
-                        <li><a href="courses.html">All Courses</a></li>
                         <li><a href="kannada.html">Kannada</a></li>
                         <li><a href="english.html">English</a></li>
                         <li><a href="hindi.html">Hindi</a></li>
                         <li><a href="sanskrit.html">Sanskrit</a></li>
-                        <li><a href="french.html">French</a></li>
-                        <li><a href="maths.html">Maths</a></li>
+                        <li><a href="maths.html">Mathematics</a></li>
                         <li><a href="science.html">Science</a></li>
-                        <li><a href="german.html">German</a></li>
                     </ul>
                 </li>
-                <li><a href="about.html" class="nav-link ${(activePage === "about" || activePage === "team") ? "active" : ""}">About</a></li>
+                <li><a href="about.html" class="nav-link ${activePage === "about" || activePage === "team" ? "active" : ""}">About</a></li>
                 <li><a href="faq.html" class="nav-link ${activePage === "faq" ? "active" : ""}">FAQ</a></li>
                 <li><a href="contact.html" class="nav-link ${activePage === "contact" ? "active" : ""}">Contact</a></li>
+                <li><a href="careers.html" class="nav-link ${activePage === "careers" ? "active" : ""}">Careers</a></li>
                 ${authLinks}
                 <li><a href="demo.html" class="btn btn-accent btn-sm">Book a Demo</a></li>
             </ul>
@@ -561,15 +769,15 @@ function getFooterHTML() {
             <div class="footer-grid">
                 <div class="footer-col">
                     <div class="footer-logo">
-                        <span class="logo-icon">ðŸŽ“</span>
+                        <img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon" style="height:80px;width:auto;">
                         <span>BrightNest Academy</span>
                     </div>
-                    <p class="footer-desc">Building confidence in learning through personalized education in Languages, Maths & Science.</p>
+                    <p class="footer-desc">Building confidence in learning through personalized education in Languages, Mathematics & Science.</p>
                     <div class="footer-social">
-                        <a href="https://www.facebook.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Facebook">ðŸ“˜</a>
-                        <a href="https://www.instagram.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Instagram">ðŸ“¸</a>
-                        <a href="https://www.youtube.com/@brightnestacademy" target="_blank" rel="noopener" aria-label="YouTube">â–¶ï¸</a>
-                        <a href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy" target="_blank" rel="noopener" aria-label="WhatsApp">ðŸ’¬</a>
+                        <a href="https://www.facebook.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                        <a href="https://www.instagram.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                        <a href="https://www.youtube.com/@brightnestacademy" target="_blank" rel="noopener" aria-label="YouTube"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                        <a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
                     </div>
                 </div>
                 <div class="footer-col">
@@ -579,8 +787,7 @@ function getFooterHTML() {
                         <li><a href="english.html">English</a></li>
                         <li><a href="hindi.html">Hindi</a></li>
                         <li><a href="sanskrit.html">Sanskrit</a></li>
-                        <li><a href="french.html">French</a></li>
-                        <li><a href="maths.html">Maths</a></li>
+                        <li><a href="maths.html">Mathematics</a></li>
                         <li><a href="science.html">Science</a></li>
                         <li><a href="german.html">German</a></li>
                     </ul>
@@ -593,6 +800,7 @@ function getFooterHTML() {
                         <li><a href="blog.html">Blog</a></li>
                         <li><a href="demo.html">Book a Demo</a></li>
                         <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="careers.html">Careers</a></li>
                         <li><a href="fee-payment.html">Pay Fees</a></li>
                     </ul>
                 </div>
@@ -608,9 +816,9 @@ function getFooterHTML() {
                 </div>
             </div>
             <div class="footer-contact">
-                <span>ðŸ“ž +91-7204193980</span>
-                <span>âœ‰ï¸ info@brightnest-academy.com</span>
-                <span>ðŸ“ Kumaraswamy Layout, Bengaluru â€“ 560078</span>
+                <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg> <a href="tel:+916363464005" style="color:inherit;text-decoration:none;">+91-6363464005</a></span>
+                <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> <a href="mailto:info@brightnest-academy.com" style="color:inherit;text-decoration:none;">info@brightnest-academy.com</a></span>
+                <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Kumaraswamy Layout, Bengaluru – 560078</span>
             </div>
             <div class="footer-bottom">
                 <p>&copy; ${new Date().getFullYear()} BrightNest Academy. All rights reserved.</p>
@@ -618,12 +826,56 @@ function getFooterHTML() {
         </div>
     </footer>
     <!-- WhatsApp Floating Button -->
-    <a href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy%2C%20I%20have%20a%20query" target="_blank" rel="noopener"
+    <a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy%2C%20I%20have%20a%20query" target="_blank" rel="noopener"
        style="position:fixed;bottom:24px;right:24px;z-index:9999;width:60px;height:60px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:transform .2s;text-decoration:none;"
        aria-label="Chat on WhatsApp"
        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     </a>`;
+}
+
+/* Course Detail Renderers */
+function renderCourseHighlights(info) {
+  if (!info.highlights) return "";
+  return info.highlights
+    .map(
+      (h) => `
+    <div class="highlight-badge">
+      <span class="highlight-icon">${h.icon}</span>
+      <span class="highlight-label">${h.label}</span>
+    </div>
+  `,
+    )
+    .join("");
+}
+
+function renderCourseOutcomes(info) {
+  if (!info.outcomes) return "";
+  return `<ul class="outcomes-list">
+    ${info.outcomes.map((o) => `<li><svg class="check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>${o}</span></li>`).join("")}
+  </ul>`;
+}
+
+function renderCourseCurriculum(info) {
+  if (!info.curriculum) return "";
+  return info.curriculum
+    .map(
+      (c) => `
+    <div class="curriculum-card">
+      <div class="curriculum-grade">${c.grade}</div>
+      <p class="curriculum-topics">${c.topics}</p>
+    </div>
+  `,
+    )
+    .join("");
+}
+
+function renderCourseAudience(info) {
+  if (!info.targetAudience) return "";
+  return `<div class="audience-box">
+    <div class="audience-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+    <p>${info.targetAudience}</p>
+  </div>`;
 }
 
 /* Exports */
@@ -639,4 +891,7 @@ window.toggleAccordion = toggleAccordion;
 window.renderTestimonialSlider = renderTestimonialSlider;
 window.getNavHTML = getNavHTML;
 window.getFooterHTML = getFooterHTML;
-
+window.renderCourseHighlights = renderCourseHighlights;
+window.renderCourseOutcomes = renderCourseOutcomes;
+window.renderCourseCurriculum = renderCourseCurriculum;
+window.renderCourseAudience = renderCourseAudience;

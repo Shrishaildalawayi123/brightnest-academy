@@ -15,12 +15,14 @@ import java.util.Date;
 
 /**
  * JWT Token Utility
- * Handles JWT token generation, validation, and extraction
+ * Handles JWT token generation, validation, and extraction.
+ * HS512 requires a key of at least 64 bytes (512 bits).
  */
 @Component
 public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final int MIN_SECRET_LENGTH = 64;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -33,13 +35,25 @@ public class JwtTokenProvider {
      */
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return generateTokenFromUsername(userDetails.getUsername());
+        String role = userDetails.getAuthorities().stream()
+                .findFirst()
+                .map(a -> a.getAuthority())
+                .orElse("ROLE_STUDENT");
+        return generateTokenFromUsername(userDetails.getUsername(), role);
     }
 
     /**
-     * Generate JWT token from username
+     * Generate JWT token from username (defaults to ROLE_STUDENT).
      */
     public String generateTokenFromUsername(String username) {
+        return generateTokenFromUsername(username, "ROLE_STUDENT");
+    }
+
+    /**
+     * Generate JWT token with role claim.
+     */
+    public String generateTokenFromUsername(String username, String role) {
+        validateSecret();
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
@@ -47,6 +61,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role)
                 .setIssuer("brightnest-academy")
                 .setAudience("brightnest-api")
                 .setIssuedAt(now)
@@ -59,6 +74,7 @@ public class JwtTokenProvider {
      * Get username from JWT token
      */
     public String getUsernameFromToken(String token) {
+        validateSecret();
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
         Claims claims = Jwts.parserBuilder()
@@ -77,6 +93,7 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(String token) {
         try {
+            validateSecret();
             SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
             Jwts.parserBuilder()
@@ -99,5 +116,17 @@ public class JwtTokenProvider {
             logger.error("JWT claims string is empty");
         }
         return false;
+    }
+
+    /**
+     * Validates that the JWT secret meets the minimum length for HS512 (64 bytes /
+     * 512 bits).
+     */
+    private void validateSecret() {
+        if (jwtSecret == null || jwtSecret.length() < MIN_SECRET_LENGTH) {
+            throw new IllegalStateException(
+                    "JWT secret must be at least " + MIN_SECRET_LENGTH + " characters for HS512. Current length: "
+                            + (jwtSecret == null ? 0 : jwtSecret.length()));
+        }
     }
 }

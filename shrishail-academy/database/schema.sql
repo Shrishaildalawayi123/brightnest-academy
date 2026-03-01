@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     role VARCHAR(20) NOT NULL DEFAULT 'STUDENT',
+    refresh_token VARCHAR(255),
+    refresh_token_expiry TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
@@ -296,8 +298,13 @@ CREATE TABLE IF NOT EXISTS teacher_applications (
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     subject_expertise VARCHAR(200) NOT NULL,
+    qualification VARCHAR(200),
+    city VARCHAR(100),
+    teaching_mode VARCHAR(20),
     experience VARCHAR(500),
     motivation VARCHAR(1000),
+    resume_file_name VARCHAR(255),
+    resume_file_path VARCHAR(500),
     status VARCHAR(20) NOT NULL DEFAULT 'NEW',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_teacher_app_status (status),
@@ -369,6 +376,60 @@ INSERT INTO blog_posts (title, slug, excerpt, content, category, author, publish
     '2026-01-15 10:30:00'
 )
 ON DUPLICATE KEY UPDATE title=title;
+
+-- =====================================================
+-- Useful Queries for Testing
+-- =====================================================
+
+-- =====================================================
+-- Table: audit_log
+-- Tracks security-relevant user actions for compliance
+-- =====================================================
+CREATE TABLE IF NOT EXISTS audit_log (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    action VARCHAR(100) NOT NULL,
+    details VARCHAR(500),
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(500),
+    INDEX idx_audit_user_id (user_id),
+    INDEX idx_audit_action (action),
+    INDEX idx_audit_timestamp (timestamp)
+);
+
+-- =====================================================
+-- Table: site_visits
+-- Tracks visitor analytics for conversion metrics
+-- =====================================================
+CREATE TABLE IF NOT EXISTS site_visits (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    session_id VARCHAR(100) NOT NULL,
+    page_url VARCHAR(500) NOT NULL,
+    referrer VARCHAR(500),
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(500),
+    visited_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_visit_session (session_id),
+    INDEX idx_visit_page (page_url),
+    INDEX idx_visit_date (visited_at)
+);
+
+-- =====================================================
+-- Table: counseling_requests
+-- Free counseling callback requests from the home page
+-- =====================================================
+CREATE TABLE IF NOT EXISTS counseling_requests (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_name VARCHAR(100) NOT NULL,
+    student_class VARCHAR(30) NOT NULL,
+    board VARCHAR(50) NOT NULL,
+    parent_phone VARCHAR(20) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'NEW',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_counseling_status (status),
+    INDEX idx_counseling_date (created_at)
+);
 
 -- =====================================================
 -- Useful Queries for Testing

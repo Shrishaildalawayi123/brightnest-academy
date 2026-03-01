@@ -24,6 +24,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     /**
+     * Find user by refresh token (for token rotation)
+     */
+    Optional<User> findByRefreshToken(String refreshToken);
+
+    /**
      * Find all users by role
      */
     List<User> findByRole(User.Role role);

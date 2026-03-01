@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +55,8 @@ class PaymentServiceTest {
     @Test
     void initiatePaymentShouldThrowWhenAmountDoesNotMatchCourseFee() {
         User user = user(1L);
-        Course course = course(7L, "Mathematics", 3000.0);
-        PaymentRequest request = new PaymentRequest(7L, 2500.0, "UPI", "TXN-1", null);
+        Course course = course(7L, "Mathematics", new BigDecimal("3000.00"));
+        PaymentRequest request = new PaymentRequest(7L, new BigDecimal("2500.00"), "UPI", "TXN-1", null);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(courseRepository.findById(7L)).thenReturn(Optional.of(course));
@@ -70,8 +71,8 @@ class PaymentServiceTest {
     @Test
     void initiatePaymentShouldDefaultToUpiWhenPaymentMethodIsInvalid() {
         User user = user(1L);
-        Course course = course(7L, "Mathematics", 3000.0);
-        PaymentRequest request = new PaymentRequest(7L, 3000.0, "invalid_method", "TXN-2", "test");
+        Course course = course(7L, "Mathematics", new BigDecimal("3000.00"));
+        PaymentRequest request = new PaymentRequest(7L, new BigDecimal("3000.00"), "invalid_method", "TXN-2", "test");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(courseRepository.findById(7L)).thenReturn(Optional.of(course));
@@ -88,7 +89,7 @@ class PaymentServiceTest {
         assertEquals(101L, payment.getId());
         assertEquals(Payment.PaymentMethod.UPI, payment.getPaymentMethod());
         assertEquals(Payment.Status.PENDING, payment.getStatus());
-        assertEquals(3000.0, payment.getAmount());
+        assertEquals(new BigDecimal("3000.00"), payment.getAmount());
         assertNull(payment.getEnrollment());
         assertNotNull(payment.getReceiptNumber());
         assertTrue(payment.getReceiptNumber().startsWith("BNA-"));
@@ -97,13 +98,13 @@ class PaymentServiceTest {
     @Test
     void confirmPaymentShouldCreateEnrollmentWhenMissing() {
         User user = user(1L);
-        Course course = course(2L, "Science", 3500.0);
+        Course course = course(2L, "Science", new BigDecimal("3500.00"));
 
         Payment pending = new Payment();
         pending.setId(5L);
         pending.setUser(user);
         pending.setCourse(course);
-        pending.setAmount(3500.0);
+        pending.setAmount(new BigDecimal("3500.00"));
         pending.setStatus(Payment.Status.PENDING);
         pending.setEnrollment(null);
         pending.setReceiptNumber("BNA-20260226143000-000001");
@@ -160,9 +161,10 @@ class PaymentServiceTest {
 
     @Test
     void getRevenueStatsShouldReturnAggregatedValues() {
-        List<Object[]> methodBreakdown = Collections.singletonList(new Object[] { Payment.PaymentMethod.UPI, 2L, 6000.0 });
+        List<Object[]> methodBreakdown = Collections
+                .singletonList(new Object[] { Payment.PaymentMethod.UPI, 2L, 6000.0 });
 
-        when(paymentRepository.getTotalRevenue()).thenReturn(10000.0);
+        when(paymentRepository.getTotalRevenue()).thenReturn(new BigDecimal("10000.00"));
         when(paymentRepository.countByStatus(Payment.Status.SUCCESS)).thenReturn(3L);
         when(paymentRepository.countByStatus(Payment.Status.PENDING)).thenReturn(1L);
         when(paymentRepository.countByStatus(Payment.Status.FAILED)).thenReturn(2L);
@@ -170,7 +172,7 @@ class PaymentServiceTest {
 
         Map<String, Object> stats = paymentService.getRevenueStats();
 
-        assertEquals(10000.0, stats.get("totalRevenue"));
+        assertEquals(new BigDecimal("10000.00"), stats.get("totalRevenue"));
         assertEquals(3L, stats.get("successCount"));
         assertEquals(1L, stats.get("pendingCount"));
         assertEquals(2L, stats.get("failedCount"));
@@ -187,7 +189,7 @@ class PaymentServiceTest {
         return user;
     }
 
-    private Course course(Long id, String title, Double fee) {
+    private Course course(Long id, String title, BigDecimal fee) {
         Course course = new Course();
         course.setId(id);
         course.setTitle(title);

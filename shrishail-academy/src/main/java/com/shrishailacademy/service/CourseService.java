@@ -1,8 +1,15 @@
 package com.shrishailacademy.service;
 
+import com.shrishailacademy.exception.DuplicateResourceException;
+import com.shrishailacademy.exception.ResourceNotFoundException;
 import com.shrishailacademy.model.Course;
 import com.shrishailacademy.repository.CourseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,25 +17,40 @@ import java.util.List;
 @Service
 public class CourseService {
 
-    @Autowired
-    private CourseRepository courseRepository;
+    private static final Logger log = LoggerFactory.getLogger(CourseService.class);
 
+    private final CourseRepository courseRepository;
+
+    public CourseService(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
+
+    @Cacheable(value = "courses")
     public List<Course> getAllCourses() {
         return courseRepository.findAll();
     }
 
+    public Page<Course> getAllCourses(Pageable pageable) {
+        return courseRepository.findAll(pageable);
+    }
+
+    @Cacheable(value = "courses", key = "#id")
     public Course getCourseById(Long id) {
         return courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", id));
     }
 
+    @CacheEvict(value = "courses", allEntries = true)
     public Course createCourse(Course course) {
         if (courseRepository.existsByTitle(course.getTitle())) {
-            throw new RuntimeException("Course with this title already exists");
+            throw new DuplicateResourceException("Course", "title", course.getTitle());
         }
-        return courseRepository.save(course);
+        Course saved = courseRepository.save(course);
+        log.info("Course created: id={} title='{}'", saved.getId(), saved.getTitle());
+        return saved;
     }
 
+    @CacheEvict(value = "courses", allEntries = true)
     public Course updateCourse(Long id, Course courseDetails) {
         Course course = getCourseById(id);
 
@@ -51,11 +73,15 @@ public class CourseService {
             course.setFee(courseDetails.getFee());
         }
 
-        return courseRepository.save(course);
+        Course updated = courseRepository.save(course);
+        log.info("Course updated: id={} title='{}'", updated.getId(), updated.getTitle());
+        return updated;
     }
 
+    @CacheEvict(value = "courses", allEntries = true)
     public void deleteCourse(Long id) {
         Course course = getCourseById(id);
         courseRepository.delete(course);
+        log.info("Course deleted: id={} title='{}'", id, course.getTitle());
     }
 }

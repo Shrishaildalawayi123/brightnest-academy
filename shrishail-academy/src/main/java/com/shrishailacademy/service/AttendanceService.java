@@ -1,6 +1,8 @@
 package com.shrishailacademy.service;
 
 import com.shrishailacademy.dto.AttendanceRequest;
+import com.shrishailacademy.exception.BusinessException;
+import com.shrishailacademy.exception.ResourceNotFoundException;
 import com.shrishailacademy.model.Attendance;
 import com.shrishailacademy.model.Course;
 import com.shrishailacademy.model.User;
@@ -10,8 +12,8 @@ import com.shrishailacademy.repository.EnrollmentRepository;
 import com.shrishailacademy.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -21,34 +23,38 @@ public class AttendanceService {
 
     private static final Logger log = LoggerFactory.getLogger(AttendanceService.class);
 
-    @Autowired
-    private AttendanceRepository attendanceRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CourseRepository courseRepository;
-
-    @Autowired
-    private EnrollmentRepository enrollmentRepository;
+    public AttendanceService(AttendanceRepository attendanceRepository,
+            UserRepository userRepository,
+            CourseRepository courseRepository,
+            EnrollmentRepository enrollmentRepository) {
+        this.attendanceRepository = attendanceRepository;
+        this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
+        this.enrollmentRepository = enrollmentRepository;
+    }
 
     /**
      * Mark attendance for multiple students in a course for a given date (Admin
-     * only)
+     * only).
      */
+    @Transactional
     public List<Attendance> markAttendance(AttendanceRequest request, Long adminId) {
         Course course = courseRepository.findById(request.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", request.getCourseId()));
 
         User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", adminId));
 
         List<Attendance> savedRecords = new ArrayList<>();
 
         for (AttendanceRequest.StudentAttendance record : request.getRecords()) {
             User student = userRepository.findById(record.getStudentId())
-                    .orElseThrow(() -> new RuntimeException("Student not found: ID " + record.getStudentId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Student", "id", record.getStudentId()));
 
             // Verify student is enrolled in the course
             if (!enrollmentRepository.existsByUserIdAndCourseIdAndStatusNot(
@@ -62,10 +68,10 @@ public class AttendanceService {
             try {
                 status = Attendance.Status.valueOf(record.getStatus().toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid attendance status: " + record.getStatus());
+                throw new BusinessException("Invalid attendance status: " + record.getStatus());
             }
 
-            // Update existing or create new
+            // Update existing or create new attendance record
             Optional<Attendance> existing = attendanceRepository
                     .findByUserIdAndCourseIdAndAttendanceDate(student.getId(), course.getId(), request.getDate());
 
@@ -88,52 +94,34 @@ public class AttendanceService {
             savedRecords.add(attendanceRepository.save(attendance));
         }
 
-        log.info("Attendance marked for course {} on {}: {} records", course.getTitle(), request.getDate(),
+        log.info("ATTENDANCE_MARKED: course='{}' date={} records={}", course.getTitle(), request.getDate(),
                 savedRecords.size());
         return savedRecords;
     }
 
-    /**
-     * Get attendance records for a student in a specific course
-     */
     public List<Attendance> getStudentCourseAttendance(Long userId, Long courseId) {
         return attendanceRepository.findByUserIdAndCourseId(userId, courseId);
     }
 
-    /**
-     * Get all attendance records for a student
-     */
     public List<Attendance> getStudentAttendance(Long userId) {
         return attendanceRepository.findByUserId(userId);
     }
 
-    /**
-     * Get attendance for a course on a specific date
-     */
     public List<Attendance> getCourseAttendanceByDate(Long courseId, LocalDate date) {
         return attendanceRepository.findByCourseIdAndAttendanceDate(courseId, date);
     }
 
-    /**
-     * Get all attendance records for a course
-     */
     public List<Attendance> getCourseAttendance(Long courseId) {
         return attendanceRepository.findByCourseId(courseId);
     }
 
-    /**
-     * Get all attendance records (admin)
-     */
     public List<Attendance> getAllAttendance() {
         return attendanceRepository.findAll();
     }
 
-    /**
-     * Get attendance summary (present/absent/late counts) for a student in a course
-     */
     public Map<String, Object> getAttendanceSummary(Long userId, Long courseId) {
         List<Object[]> rawSummary = attendanceRepository.getAttendanceSummary(userId, courseId);
-        Map<String, Object> summary = new HashMap<>();
+        Map<String, Object> summary = new LinkedHashMap<>();
         long total = 0;
         long present = 0;
 
@@ -152,9 +140,6 @@ public class AttendanceService {
         return summary;
     }
 
-    /**
-     * Get attendance for a date range
-     */
     public List<Attendance> getAttendanceByDateRange(Long courseId, LocalDate start, LocalDate end) {
         return attendanceRepository.findByCourseIdAndAttendanceDateBetween(courseId, start, end);
     }

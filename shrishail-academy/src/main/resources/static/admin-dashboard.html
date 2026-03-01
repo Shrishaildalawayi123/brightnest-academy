@@ -530,6 +530,32 @@
             .sidebar-overlay {
                 display: block;
             }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            .main-content {
+                padding: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -538,34 +564,34 @@
     <div class="dashboard-layout">
         <aside class="sidebar">
             <div class="sidebar-logo">
-                <span>ðŸŽ“</span>
+                <span>🎓</span>
                 <h2>BrightNest Academy</h2>
                 <p>Admin Panel</p>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-section-title">Dashboard</div>
-                <button class="sidebar-link active" onclick="showSection('overview')"><span class="icon">ðŸ“Š</span>
+                <button class="sidebar-link active" onclick="showSection('overview')"><span class="icon">📊</span>
                     Overview</button>
                 <div class="nav-section-title" style="margin-top:1rem;">Manage</div>
-                <button class="sidebar-link" onclick="showSection('courses')"><span class="icon">ðŸ“š</span>
+                <button class="sidebar-link" onclick="showSection('courses')"><span class="icon">📚</span>
                     Courses</button>
-                <button class="sidebar-link" onclick="showSection('students')"><span class="icon">ðŸ‘¥</span>
+                <button class="sidebar-link" onclick="showSection('students')"><span class="icon">👥</span>
                     Students</button>
-                <button class="sidebar-link" onclick="showSection('enrollments')"><span class="icon">ðŸ“‹</span>
+                <button class="sidebar-link" onclick="showSection('enrollments')"><span class="icon">📋</span>
                     Enrollments</button>
-                <button class="sidebar-link" onclick="showSection('attendance')"><span class="icon">âœ…</span>
+                <button class="sidebar-link" onclick="showSection('attendance')"><span class="icon">✅</span>
                     Attendance</button>
-                <button class="sidebar-link" onclick="showSection('payments')"><span class="icon">ðŸ’°</span>
+                <button class="sidebar-link" onclick="showSection('payments')"><span class="icon">💰</span>
                     Payments</button>
                 <div class="nav-section-title" style="margin-top:1rem;">Content</div>
-                <button class="sidebar-link" onclick="showSection('blog')"><span class="icon">ðŸ“</span>
+                <button class="sidebar-link" onclick="showSection('blog')"><span class="icon">📝</span>
                     Blog Posts</button>
-                <button class="sidebar-link" onclick="showSection('demos')"><span class="icon">ðŸŽ¯</span>
+                <button class="sidebar-link" onclick="showSection('demos')"><span class="icon">🎯</span>
                     Demo Bookings</button>
-                <button class="sidebar-link" onclick="showSection('teachers')"><span class="icon">ðŸ§‘â€ðŸ«</span>
+                <button class="sidebar-link" onclick="showSection('teachers')"><span class="icon">🧑‍🏫</span>
                     Teacher Apps</button>
                 <div class="nav-section-title" style="margin-top:1rem;">System</div>
-                <button class="sidebar-link" onclick="Auth.logout()"><span class="icon">ðŸšª</span> Logout</button>
+                <button class="sidebar-link" onclick="Auth.logout()"><span class="icon">🚪</span> Logout</button>
             </nav>
             <div class="sidebar-footer">
                 <div class="user-info">
@@ -581,8 +607,8 @@
         <main class="main-content">
             <div class="top-bar">
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                    <button class="mobile-toggle" onclick="toggleSidebar()" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:var(--neutral-100);border-radius:8px;cursor:pointer;font-size:1.25rem;">â˜°</button>
-                    <h1 id="pageTitle">ðŸ“Š Overview</h1>
+                    <button class="mobile-toggle" onclick="toggleSidebar()" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:var(--neutral-100);border-radius:8px;cursor:pointer;font-size:1.25rem;">☰</button>
+                    <h1 id="pageTitle">📊 Overview</h1>
                 </div>
                 <div style="display:flex;gap:1rem;align-items:center;">
                     <span style="color:var(--neutral-400);font-size:0.85rem;" id="dateDisplay"></span>
@@ -594,19 +620,19 @@
             <!-- Overview -->
             <div id="section-overview" class="page-section active">
                 <div class="stats-row">
-                    <div class="stat-card blue"><span class="stat-icon">ðŸ‘¥</span>
+                    <div class="stat-card blue"><span class="stat-icon">👥</span>
                         <div class="stat-number" id="totalStudents">-</div>
                         <div class="stat-label">Total Students</div>
                     </div>
-                    <div class="stat-card green"><span class="stat-icon">ðŸ“š</span>
+                    <div class="stat-card green"><span class="stat-icon">📚</span>
                         <div class="stat-number" id="totalCourses">-</div>
                         <div class="stat-label">Total Courses</div>
                     </div>
-                    <div class="stat-card purple"><span class="stat-icon">ðŸ“‹</span>
+                    <div class="stat-card purple"><span class="stat-icon">📋</span>
                         <div class="stat-number" id="totalEnrollments">-</div>
                         <div class="stat-label">Total Enrollments</div>
                     </div>
-                    <div class="stat-card orange"><span class="stat-icon">âœ…</span>
+                    <div class="stat-card orange"><span class="stat-icon">✅</span>
                         <div class="stat-number" id="activeEnrollments">-</div>
                         <div class="stat-label">Active Enrollments</div>
                     </div>
@@ -635,7 +661,7 @@
             <div id="section-courses" class="page-section">
                 <div class="section-header">
                     <div class="section-title">Manage Courses</div>
-                    <button class="btn-add" onclick="openCourseModal()">âž• Add Course</button>
+                    <button class="btn-add" onclick="openCourseModal()">➕ Add Course</button>
                 </div>
                 <table class="data-table" id="coursesTable">
                     <thead>
@@ -716,7 +742,7 @@
                             <label class="form-label">Date</label>
                             <input type="date" id="attDate" class="form-input" value="">
                         </div>
-                        <button class="btn-add" onclick="loadCourseStudents()" style="margin-bottom:0;">ðŸ”„ Load Students</button>
+                        <button class="btn-add" onclick="loadCourseStudents()" style="margin-bottom:0;">🔄 Load Students</button>
                     </div>
                 </div>
                 <div id="attendanceForm" style="display:none;">
@@ -731,7 +757,7 @@
                         <tbody></tbody>
                     </table>
                     <div style="margin-top:1rem;text-align:right;">
-                        <button class="btn-add" onclick="submitAttendance()">âœ… Submit Attendance</button>
+                        <button class="btn-add" onclick="submitAttendance()">✅ Submit Attendance</button>
                     </div>
                 </div>
                 <div style="margin-top:2rem;">
@@ -758,19 +784,19 @@
             <!-- Payments -->
             <div id="section-payments" class="page-section">
                 <div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
-                    <div class="stat-card green"><span class="stat-icon">ðŸ’°</span>
+                    <div class="stat-card green"><span class="stat-icon">💰</span>
                         <div class="stat-number" id="totalRevenue">-</div>
                         <div class="stat-label">Total Revenue</div>
                     </div>
-                    <div class="stat-card blue"><span class="stat-icon">âœ…</span>
+                    <div class="stat-card blue"><span class="stat-icon">✅</span>
                         <div class="stat-number" id="successPayments">-</div>
                         <div class="stat-label">Successful</div>
                     </div>
-                    <div class="stat-card orange"><span class="stat-icon">â³</span>
+                    <div class="stat-card orange"><span class="stat-icon">⏳</span>
                         <div class="stat-number" id="pendingPayments">-</div>
                         <div class="stat-label">Pending</div>
                     </div>
-                    <div class="stat-card purple"><span class="stat-icon">âŒ</span>
+                    <div class="stat-card purple"><span class="stat-icon">❌</span>
                         <div class="stat-number" id="failedPayments">-</div>
                         <div class="stat-label">Failed</div>
                     </div>
@@ -793,7 +819,7 @@
                             </select>
                         </div>
                         <div class="form-group" style="width:130px;margin-bottom:0;">
-                            <label class="form-label">Amount (â‚¹)</label>
+                            <label class="form-label">Amount (₹)</label>
                             <input type="number" id="payAmount" class="form-input" placeholder="3000" min="0">
                         </div>
                         <div class="form-group" style="width:160px;margin-bottom:0;">
@@ -805,7 +831,7 @@
                                 <option value="CARD">Card</option>
                             </select>
                         </div>
-                        <button class="btn-add" onclick="recordManualPayment()" style="margin-bottom:0;">ðŸ’° Record Payment</button>
+                        <button class="btn-add" onclick="recordManualPayment()" style="margin-bottom:0;">💰 Record Payment</button>
                     </div>
                 </div>
                 <div class="section-header">
@@ -834,7 +860,7 @@
             <div id="section-blog" class="page-section">
                 <div class="section-header">
                     <div class="section-title">Blog Posts</div>
-                    <button class="btn-add" onclick="openBlogModal()">âž• New Post</button>
+                    <button class="btn-add" onclick="openBlogModal()">➕ New Post</button>
                 </div>
                 <table class="data-table" id="blogTable">
                     <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Published</th><th>Actions</th></tr></thead>
@@ -845,16 +871,16 @@
             <!-- Demo Bookings Management -->
             <div id="section-demos" class="page-section">
                 <div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
-                    <div class="stat-card blue"><span class="stat-icon">ðŸŽ¯</span>
+                    <div class="stat-card blue"><span class="stat-icon">🎯</span>
                         <div class="stat-number" id="totalDemos">-</div><div class="stat-label">Total Bookings</div>
                     </div>
-                    <div class="stat-card orange"><span class="stat-icon">â³</span>
+                    <div class="stat-card orange"><span class="stat-icon">⏳</span>
                         <div class="stat-number" id="pendingDemos">-</div><div class="stat-label">Pending</div>
                     </div>
-                    <div class="stat-card green"><span class="stat-icon">ðŸ“…</span>
+                    <div class="stat-card green"><span class="stat-icon">📅</span>
                         <div class="stat-number" id="scheduledDemos">-</div><div class="stat-label">Scheduled</div>
                     </div>
-                    <div class="stat-card purple"><span class="stat-icon">âœ…</span>
+                    <div class="stat-card purple"><span class="stat-icon">✅</span>
                         <div class="stat-number" id="completedDemos">-</div><div class="stat-label">Completed</div>
                     </div>
                 </div>
@@ -868,13 +894,13 @@
             <!-- Teacher Applications Management -->
             <div id="section-teachers" class="page-section">
                 <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
-                    <div class="stat-card blue"><span class="stat-icon">ðŸ§‘â€ðŸ«</span>
+                    <div class="stat-card blue"><span class="stat-icon">🧑‍🏫</span>
                         <div class="stat-number" id="totalTeacherApps">-</div><div class="stat-label">Total Applications</div>
                     </div>
-                    <div class="stat-card orange"><span class="stat-icon">ðŸ†•</span>
+                    <div class="stat-card orange"><span class="stat-icon">🆕</span>
                         <div class="stat-number" id="newTeacherApps">-</div><div class="stat-label">New</div>
                     </div>
-                    <div class="stat-card green"><span class="stat-icon">âœ…</span>
+                    <div class="stat-card green"><span class="stat-icon">✅</span>
                         <div class="stat-number" id="hiredTeacherApps">-</div><div class="stat-label">Hired</div>
                     </div>
                 </div>
@@ -893,7 +919,7 @@
         <div class="modal">
             <div class="modal-header">
                 <div class="modal-title" id="modalTitle">Add New Course</div>
-                <button class="modal-close" onclick="closeModal()">Ã—</button>
+                <button class="modal-close" onclick="closeModal()">×</button>
             </div>
             <div class="alert-msg" id="modalAlert"></div>
             <form id="courseForm">
@@ -914,7 +940,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Icon (emoji)</label>
-                        <input type="text" id="courseIcon" class="form-input" placeholder="ðŸ“š">
+                        <input type="text" id="courseIcon" class="form-input" placeholder="📚">
                     </div>
                 </div>
                 <div class="form-group">
@@ -923,7 +949,7 @@
                         style="height:45px;padding:0.25rem;">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Fee (â‚¹)</label>
+                    <label class="form-label">Fee (₹)</label>
                     <input type="number" id="courseFee" class="form-input" placeholder="e.g. 3000" min="0" step="100">
                 </div>
                 <button type="submit" class="btn-submit" id="saveBtn">Save Course</button>
@@ -934,7 +960,7 @@
     <!-- Delete Confirmation Modal -->
     <div class="modal-overlay" id="deleteModal">
         <div class="modal" style="max-width:380px;text-align:center;">
-            <div style="font-size:3rem;margin-bottom:1rem;">ðŸ—‘ï¸</div>
+            <div style="font-size:3rem;margin-bottom:1rem;">🗑️</div>
             <h3 style="margin-bottom:0.5rem;">Delete Course?</h3>
             <p style="color:var(--neutral-500);margin-bottom:2rem;" id="deleteCourseName">This action cannot be undone.
             </p>

@@ -45,6 +45,17 @@ public class TeacherApplication {
     @Column(name = "subject_expertise", nullable = false, length = 200)
     private String subjectExpertise;
 
+    @Size(max = 200)
+    @Column(length = 200)
+    private String qualification;
+
+    @Size(max = 100)
+    @Column(length = 100)
+    private String city;
+
+    @Column(name = "teaching_mode", length = 20)
+    private String teachingMode;
+
     @Size(max = 500)
     @Column(length = 500)
     private String experience;
@@ -52,6 +63,14 @@ public class TeacherApplication {
     @Size(max = 1000)
     @Column(length = 1000)
     private String motivation;
+
+    @Size(max = 255)
+    @Column(name = "resume_file_name", length = 255)
+    private String resumeFileName;
+
+    @Size(max = 500)
+    @Column(name = "resume_file_path", length = 500)
+    private String resumeFilePath;
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)

@@ -31,6 +31,15 @@ public class TeacherApplicationRequest {
     @Size(max = 200)
     private String subjectExpertise;
 
+    @Size(max = 200)
+    private String qualification;
+
+    @Size(max = 100)
+    private String city;
+
+    @Size(max = 20)
+    private String teachingMode;
+
     @Size(max = 500)
     private String experience;
 

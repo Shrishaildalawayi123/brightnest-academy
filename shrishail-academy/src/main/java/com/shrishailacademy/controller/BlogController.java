@@ -1,15 +1,16 @@
 package com.shrishailacademy.controller;
 
+import com.shrishailacademy.dto.response.BlogPostResponse;
 import com.shrishailacademy.model.BlogPost;
-import com.shrishailacademy.repository.BlogPostRepository;
+import com.shrishailacademy.service.BlogService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,156 +24,73 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/blog")
 public class BlogController {
 
-    @Autowired
-    private BlogPostRepository blogPostRepository;
+    private final BlogService blogService;
+
+    public BlogController(BlogService blogService) {
+        this.blogService = blogService;
+    }
 
     // ========== PUBLIC ENDPOINTS ==========
 
-    /**
-     * GET /api/blog - List published blog posts, optionally filtered by category
-     */
     @GetMapping
-    public ResponseEntity<?> getPublishedPosts(@RequestParam(required = false) String category) {
-        List<BlogPost> posts;
-        if (category != null && !category.isEmpty()) {
-            try {
-                BlogPost.Category cat = BlogPost.Category.valueOf(category.toUpperCase());
-                posts = blogPostRepository.findByPublishedTrueAndCategoryOrderByPublishedAtDesc(cat);
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Invalid category: " + category));
-            }
-        } else {
-            posts = blogPostRepository.findByPublishedTrueOrderByPublishedAtDesc();
-        }
+    public ResponseEntity<Page<BlogPostResponse>> getPublishedPosts(
+            @RequestParam(required = false) String category,
+            @PageableDefault(size = 10, sort = "publishedAt") Pageable pageable) {
+        Page<BlogPostResponse> posts = blogService.getPublishedPosts(category, pageable)
+                .map(BlogPostResponse::fromEntity);
         return ResponseEntity.ok(posts);
     }
 
-    /**
-     * GET /api/blog/categories - List available categories
-     */
     @GetMapping("/categories")
-    public ResponseEntity<?> getCategories() {
-        List<Map<String, String>> categories = Arrays.stream(BlogPost.Category.values())
-                .map(c -> Map.of(
-                        "value", c.name(),
-                        "label", formatCategoryLabel(c.name())))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(categories);
+    public ResponseEntity<List<Map<String, String>>> getCategories() {
+        return ResponseEntity.ok(blogService.getCategories());
     }
 
-    /**
-     * GET /api/blog/{slug} - Read a single published blog post by slug
-     */
     @GetMapping("/{slug}")
-    public ResponseEntity<?> getPostBySlug(@PathVariable String slug) {
-        return blogPostRepository.findBySlugAndPublishedTrue(slug)
-                .map(post -> ResponseEntity.ok((Object) post))
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<BlogPostResponse> getPostBySlug(@PathVariable String slug) {
+        return ResponseEntity.ok(BlogPostResponse.fromEntity(blogService.getPublishedPostBySlug(slug)));
     }
 
     // ========== ADMIN ENDPOINTS ==========
 
-    /**
-     * GET /api/blog/all - List all posts (including drafts) for admin
-     */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllPosts() {
-        return ResponseEntity.ok(blogPostRepository.findAllByOrderByCreatedAtDesc());
+    public ResponseEntity<Page<BlogPostResponse>> getAllPosts(
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        Page<BlogPostResponse> posts = blogService.getAllPosts(pageable)
+                .map(BlogPostResponse::fromEntity);
+        return ResponseEntity.ok(posts);
     }
 
-    /**
-     * POST /api/blog - Create a new blog post
-     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createPost(@Valid @RequestBody BlogPost post) {
-        // Auto-generate slug from title if not provided
-        if (post.getSlug() == null || post.getSlug().isBlank()) {
-            post.setSlug(generateSlug(post.getTitle()));
-        }
-        // If publishing now, set publishedAt
-        if (post.isPublished() && post.getPublishedAt() == null) {
-            post.setPublishedAt(LocalDateTime.now());
-        }
-        BlogPost saved = blogPostRepository.save(post);
-        return ResponseEntity.ok(Map.of("message", "Blog post created successfully", "post", saved));
+    public ResponseEntity<Map<String, Object>> createPost(@Valid @RequestBody BlogPost post) {
+        BlogPost saved = blogService.createPost(post);
+        return ResponseEntity.ok(Map.of(
+                "message", "Blog post created successfully",
+                "post", BlogPostResponse.fromEntity(saved)));
     }
 
-    /**
-     * PUT /api/blog/{id} - Update a blog post
-     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updatePost(@PathVariable Long id, @Valid @RequestBody BlogPost updated) {
-        return blogPostRepository.findById(id)
-                .map(post -> {
-                    post.setTitle(updated.getTitle());
-                    post.setSlug(updated.getSlug() != null ? updated.getSlug() : generateSlug(updated.getTitle()));
-                    post.setExcerpt(updated.getExcerpt());
-                    post.setContent(updated.getContent());
-                    post.setCategory(updated.getCategory());
-                    post.setCoverImageUrl(updated.getCoverImageUrl());
-                    post.setAuthor(updated.getAuthor());
-
-                    // Handle publish state change
-                    boolean wasPublished = post.isPublished();
-                    post.setPublished(updated.isPublished());
-                    if (!wasPublished && updated.isPublished()) {
-                        post.setPublishedAt(LocalDateTime.now());
-                    }
-
-                    BlogPost saved = blogPostRepository.save(post);
-                    return ResponseEntity.ok(Map.of("message", "Blog post updated", "post", saved));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Map<String, Object>> updatePost(@PathVariable Long id, @Valid @RequestBody BlogPost updated) {
+        BlogPost saved = blogService.updatePost(id, updated);
+        return ResponseEntity.ok(Map.of(
+                "message", "Blog post updated",
+                "post", BlogPostResponse.fromEntity(saved)));
     }
 
-    /**
-     * PUT /api/blog/{id}/publish - Toggle publish status
-     */
     @PutMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> togglePublish(@PathVariable Long id) {
-        return blogPostRepository.findById(id)
-                .map(post -> {
-                    post.setPublished(!post.isPublished());
-                    if (post.isPublished() && post.getPublishedAt() == null) {
-                        post.setPublishedAt(LocalDateTime.now());
-                    }
-                    blogPostRepository.save(post);
-                    String action = post.isPublished() ? "published" : "unpublished";
-                    return ResponseEntity.ok(Map.of("message", "Post " + action + " successfully"));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Map<String, String>> togglePublish(@PathVariable Long id) {
+        blogService.togglePublish(id);
+        return ResponseEntity.ok(Map.of("message", "Post publish status toggled successfully"));
     }
 
-    /**
-     * DELETE /api/blog/{id} - Delete a blog post
-     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deletePost(@PathVariable Long id) {
-        if (!blogPostRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        blogPostRepository.deleteById(id);
+    public ResponseEntity<Map<String, String>> deletePost(@PathVariable Long id) {
+        blogService.deletePost(id);
         return ResponseEntity.ok(Map.of("message", "Blog post deleted successfully"));
-    }
-
-    // ========== HELPERS ==========
-
-    private String generateSlug(String title) {
-        return title.toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .replaceAll("\\s+", "-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-    }
-
-    private String formatCategoryLabel(String name) {
-        return Arrays.stream(name.split("_"))
-                .map(word -> word.charAt(0) + word.substring(1).toLowerCase())
-                .collect(Collectors.joining(" "));
     }
 }

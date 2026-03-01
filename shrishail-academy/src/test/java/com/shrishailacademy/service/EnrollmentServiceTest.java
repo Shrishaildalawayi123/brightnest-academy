@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -132,7 +133,7 @@ class EnrollmentServiceTest {
         Course course = new Course();
         course.setId(id);
         course.setTitle(title);
-        course.setFee(2500.0);
+        course.setFee(new BigDecimal("2500.00"));
         return course;
     }
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BrightNest Academy | Premium Tuition for CBSE, ICSE &amp; State Board</title>
-    <meta name="description" content="BrightNest Academy provides personalized tuition for CBSE, ICSE and Karnataka State Board students in Bengaluru. Online and offline classes in Kannada, English, Hindi, Maths, Science and German.">
+    <meta name="description" content="BrightNest Academy provides personalized tuition for CBSE, ICSE and Karnataka State Board students in Bengaluru. Online and offline classes in Kannada, English, Hindi, Mathematics and Science.">
     <meta name="robots" content="index, follow">
     <meta name="author" content="BrightNest Academy">
     <link rel="canonical" href="https://brightnest-academy.com/">
@@ -12,19 +12,19 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://brightnest-academy.com/">
     <meta property="og:title" content="BrightNest Academy | Premium Tuition for CBSE, ICSE &amp; State Board">
-    <meta property="og:description" content="Personalized tuition in Kannada, English, Hindi, Maths, Science &amp; German with experienced educators for grades I-XII.">
+    <meta property="og:description" content="Personalized tuition in Kannada, English, Hindi, German, Mathematics &amp; Science for school students from grades 1-10.">
     <meta property="og:site_name" content="BrightNest Academy">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BrightNest Academy | Premium Tuition for CBSE, ICSE &amp; State Board">
-    <meta name="twitter:description" content="Personalized tuition in Kannada, English, Hindi, Maths, Science &amp; German. Bengaluru trusted academy for grades I-XII.">
+    <meta name="twitter:description" content="Personalized tuition in Kannada, English, Hindi, German, Mathematics &amp; Science. Bengaluru trusted academy for grades 1-10.">
     <!-- JSON-LD Schema -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "EducationalOrganization",
       "name": "BrightNest Academy",
-      "telephone": "+91-7204193980",
+      "telephone": "+91-6363464005",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Bengaluru",
@@ -36,7 +36,7 @@
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
         "name": "Tuition Courses",
-        "itemListElement": ["Kannada", "English", "Hindi", "Sanskrit", "French", "Maths", "Science", "German"]
+        "itemListElement": ["Kannada", "English", "Hindi", "Sanskrit", "Mathematics", "Science"]
       }
     }
     </script>
@@ -67,10 +67,11 @@
         .skip-link:focus { left: 1rem; }
 
         /* ─── Hero 2-column grid ─── */
-        .hero-grid { display: grid; grid-template-columns: 55% 45%; gap: 2.5rem; align-items: center; }
+        .hero-grid { display: grid; grid-template-columns: 11fr 9fr; gap: 2.5rem; align-items: center; }
+        .hero-grid .hero-content { max-width: none; margin: 0; }
         .hero-copy { text-align: left; }
         .hero-copy .hero-title { margin-left: 0; }
-        .hero-copy .hero-tagline { margin-left: 0; margin-right: 0; max-width: 520px; }
+        .hero-copy .hero-tagline { margin-left: 0; margin-right: 0; max-width: 540px; }
         .hero-copy .hero-buttons { justify-content: flex-start; }
 
         /* ─── Hero bullet points ─── */
@@ -134,18 +135,38 @@
         .about-stat small { font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; display: block; font-weight: 500; }
 
         /* ─── Responsive overrides ─── */
-        @media (max-width: 900px) {
-            .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+        @media (max-width: 1024px) {
+            .hero-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+        }
+        @media (max-width: 768px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 1.5rem; }
             .hero-form-card { order: -1; }
             .hero-copy { text-align: center; }
             .hero-copy .hero-buttons { justify-content: center; }
             .hero-copy .hero-tagline { max-width: 100%; margin: 0 auto 1.5rem; }
+            .hero-points { align-items: center; }
+            section.hero { padding-top: calc(var(--header-height) + 2.125rem + 2rem) !important; padding-bottom: 2rem !important; }
+            .top-strip { font-size: 0.7rem; padding: 0.35rem 0; }
+            .top-strip a { font-size: 0.75rem; }
+            .about-stats-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+            .about-stat-panel { padding: 1.5rem; }
+            .about-stat-panel h3 { font-size: 1.2rem; }
+            .about-stat-panel .panel-icon { font-size: 2.5rem; }
         }
         @media (max-width: 600px) {
             .trust-grid { grid-template-columns: repeat(2, 1fr); }
             .trust-grid article { border-right: none; border-bottom: 1px solid rgba(99,102,241,0.1); padding: 0.75rem; }
             .trust-grid article:nth-child(3), .trust-grid article:last-child { border-bottom: none; }
             .top-strip-inner { flex-direction: column; gap: 0.25rem; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .hero-form-card { padding: 1.25rem; }
+            .hero-form-card h2 { font-size: 1rem; }
+            .inquiry-form label { font-size: 0.72rem; }
+            .inquiry-form input, .inquiry-form select { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+            .trust-grid article h3 { font-size: 1.3rem; }
+            .about-stat strong { font-size: 1.15rem; }
+            .about-stat small { font-size: 0.68rem; }
         }
     </style>
 </head>
@@ -155,33 +176,32 @@
     <!-- Top info strip -->
     <div class="top-strip">
         <div class="container top-strip-inner">
-            <p>CBSE | ICSE | Karnataka State Board | Grades I-XII</p>
-            <a href="tel:+917204193980" aria-label="Call BrightNest Academy">&#128222; +91 72041 93980</a>
+            <p>CBSE | ICSE | Karnataka State Board | Grades 1-10</p>
+            <a href="tel:+916363464005" aria-label="Call BrightNest Academy">&#128222; +91 63634 64005</a>
         </div>
     </div>
 
     <!-- Navigation -->
     <header class="header" id="header">
         <nav class="nav container" aria-label="Primary navigation">
-            <a href="index.html" class="logo" aria-label="BrightNest Academy Home"><span class="logo-icon"></span><span>BrightNest Academy</span></a>
+            <a href="index.html" class="logo" aria-label="BrightNest Academy Home"><img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon" style="height:80px;width:auto;"><span>BrightNest Academy</span></a>
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html" class="nav-link active">Home</a></li>
                 <li class="nav-dropdown">
                     <a href="courses.html" class="nav-link">Courses <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;vertical-align:middle"><polyline points="6 9 12 15 18 9"/></svg></a>                    <ul class="dropdown-menu">
-                        <li><a href="courses.html">All Courses</a></li>
                         <li><a href="kannada.html">Kannada</a></li>
                         <li><a href="english.html">English</a></li>
                         <li><a href="hindi.html">Hindi</a></li>
                         <li><a href="sanskrit.html">Sanskrit</a></li>
-                        <li><a href="french.html">French</a></li>
-                        <li><a href="maths.html">Maths</a></li>
+                        <li><a href="maths.html">Mathematics</a></li>
                         <li><a href="science.html">Science</a></li>
-                        <li><a href="german.html">German</a></li>
+                                            <li><a href="german.html">German</a></li>
                     </ul>
                 </li>
                 <li><a href="about.html" class="nav-link">About</a></li>
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
                 <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="careers.html" class="nav-link">Careers</a></li>
                 <li><a href="login.html" class="nav-link">Login</a></li>
                 <li><a href="demo.html" class="btn btn-accent btn-sm">Book a Demo</a></li>
             </ul>
@@ -197,9 +217,9 @@
                 <div class="hero-copy hero-content">
                     <p class="eyebrow">Trusted by 500+ Families in Bengaluru</p>
                     <h1 class="hero-title">Building <span class="highlight">Confidence</span> in Learning</h1>
-                    <p class="hero-tagline">Personalized tuition in Kannada, English, Hindi, Maths, Science &amp; German. Online and offline classes for grades I-XII across all major boards.</p>
+                    <p class="hero-tagline">Personalized tuition in Kannada, English, Hindi, German, Mathematics &amp; Science. Online and offline classes for school students from grades 1 to 10.</p>
                     <div class="hero-buttons">
-                        <a href="demo.html" class="btn btn-accent btn-lg">Book a Demo - ₹100</a>
+                        <a href="demo.html" class="btn btn-accent btn-lg">Book a Demo</a>
                         <a href="courses.html" class="btn btn-secondary btn-lg">Explore Courses</a>
                     </div>
                     <ul class="hero-points" aria-label="Key benefits">
@@ -211,12 +231,13 @@
                 <aside class="hero-form-card" aria-label="Quick counseling inquiry">
                     <h2>Get a Free Counseling Call</h2>
                     <p>Share your details and our academic advisor will reach out to you.</p>
-                    <form class="inquiry-form" action="contact.html" method="get">
+                    <form class="inquiry-form" id="counselingForm">
                         <div><label for="studentName">Student Name</label><input id="studentName" name="studentName" type="text" placeholder="Your child's name" required></div>
                         <div><label for="studentClass">Class / Grade</label><input id="studentClass" name="studentClass" type="text" placeholder="Eg: Grade 8" required></div>
                         <div><label for="board">Board</label><select id="board" name="board" required><option value="">Select board</option><option>CBSE</option><option>ICSE</option><option>Karnataka State Board</option></select></div>
-                        <div><label for="phone">Parent Phone Number</label><input id="phone" name="phone" type="tel" placeholder="+91 XXXXX XXXXX" required></div>
-                        <button class="btn btn-primary btn-block" type="submit">Request Callback</button>
+                        <div><label for="phone">Parent Phone Number</label><input id="phone" name="phone" type="tel" placeholder="+91 XXXXX XXXXX" required pattern="[+]?[0-9\s-]{7,20}"></div>
+                        <div id="counselingMsg" style="display:none;padding:0.75rem;border-radius:8px;text-align:center;font-size:0.9rem;font-weight:500;"></div>
+                        <button class="btn btn-primary btn-block" type="submit" id="counselingBtn">Request Callback</button>
                     </form>
                 </aside>
             </div>
@@ -239,8 +260,8 @@
                     <div class="about-preview-text">
                         <p class="eyebrow">About Us</p>
                         <h2>Who We Are</h2>
-                        <p>BrightNest Academy is a premier tutoring center based in Bengaluru. We specialize in teaching Kannada, English, Hindi, Maths, Science, and German with a personalized approach that builds confidence and delivers results.</p>
-                        <p>Our team of 11+ experienced educators supports students from grades I to XII across CBSE, ICSE, and Karnataka State Board curricula - both online and offline.</p>
+                        <p>BrightNest Academy is a premier tutoring center based in Bengaluru. We specialize in teaching Kannada, English, Hindi, Mathematics and Science with a personalized approach that builds confidence and delivers results.</p>
+                        <p>Our team of 11+ experienced educators supports school students from grades 1 to 10 across CBSE, ICSE, and Karnataka State Board curricula — both online and offline.</p>
                         <div class="about-preview-features">
                             <div class="about-feature"><div class="about-feature-icon"></div><div><h4>Personalized Learning</h4><p>Tailored to each student's pace</p></div></div>
                             <div class="about-feature"><div class="about-feature-icon"></div><div><h4>All Major Boards</h4><p>CBSE, ICSE, State Board</p></div></div>
@@ -271,15 +292,15 @@
                 <div class="section-header">
                     <p class="eyebrow">Our Subjects</p>
                     <h2 class="section-title">Courses Designed for Results</h2>
-                    <p class="section-subtitle">Comprehensive courses in languages, Maths and Science designed to build fluency, problem-solving skills, and academic excellence.</p>
+                    <p class="section-subtitle">Comprehensive courses in languages, Mathematics and Science designed to build fluency, problem-solving skills, and academic excellence.</p>
                 </div>
                 <div class="grid grid-3">
-                    <a href="kannada.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#127963;</span><h3 class="card-title">Kannada</h3><p class="card-description">School curriculum, spoken Kannada, reading &amp; writing for Karnataka State Board and beyond.</p><span class="btn btn-outline btn-sm">Learn More</span></a>
-                    <a href="english.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128221;</span><h3 class="card-title">English</h3><p class="card-description">Grammar, literature, spoken fluency and creative writing for academic and real-world success.</p><span class="btn btn-outline btn-sm">Learn More</span></a>
-                    <a href="hindi.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128214;</span><h3 class="card-title">Hindi</h3><p class="card-description">Board preparation with spoken and written mastery in India's national language.</p><span class="btn btn-outline btn-sm">Learn More</span></a>
-                    <a href="maths.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128208;</span><h3 class="card-title">Maths</h3><p class="card-description">Concept building, problem practice and exam readiness from basics to advanced topics.</p><span class="btn btn-outline btn-sm">Learn More</span></a>
-                    <a href="science.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128300;</span><h3 class="card-title">Science</h3><p class="card-description">Physics, Chemistry and Biology through clear conceptual teaching and practical preparation.</p><span class="btn btn-outline btn-sm">Learn More</span></a>
-                    <a href="german.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#127465;&#127466;</span><h3 class="card-title">German</h3><p class="card-description">Structured language learning for school board and spoken confidence in Europe's top language.</p><span class="btn btn-outline btn-sm">Learn More</span></a>
+                    <a href="kannada.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#127963;</span><h3 class="card-title">Kannada</h3><p class="card-description">School curriculum, spoken Kannada, reading &amp; writing for Karnataka State Board and beyond.</p><span class="btn btn-outline btn-sm">View More</span></a>
+                    <a href="english.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128221;</span><h3 class="card-title">English</h3><p class="card-description">Grammar, literature, spoken fluency and creative writing for academic and real-world success.</p><span class="btn btn-outline btn-sm">View More</span></a>
+                    <a href="hindi.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128214;</span><h3 class="card-title">Hindi</h3><p class="card-description">Board preparation with spoken and written mastery in India's national language.</p><span class="btn btn-outline btn-sm">View More</span></a>
+                    <a href="maths.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128208;</span><h3 class="card-title">Mathematics</h3><p class="card-description">Concept building, problem practice and exam readiness from basics to advanced topics.</p><span class="btn btn-outline btn-sm">View More</span></a>
+                    <a href="science.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#128300;</span><h3 class="card-title">Science</h3><p class="card-description">Physics, Chemistry and Biology through clear conceptual teaching and practical preparation.</p><span class="btn btn-outline btn-sm">View More</span></a>
+                    <a href="german.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#127465;&#127466;</span><h3 class="card-title">German</h3><p class="card-description">Learn one of Europe's most spoken languages with interactive grammar, speaking and writing sessions.</p><span class="btn btn-outline btn-sm">View More</span></a>
                 </div>
                 <div style="text-align:center;margin-top:var(--space-2xl);"><a href="courses.html" class="btn btn-primary">View All Courses</a></div>
             </div>
@@ -344,7 +365,7 @@
                 <h2>Ready to Start Your Child's Progress Journey?</h2>
                 <p>Book a demo class today and experience personalized education that builds confidence and delivers results.</p>
                 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-                    <a href="demo.html" class="btn btn-accent btn-lg">Book a Demo - ₹100</a>
+                    <a href="demo.html" class="btn btn-accent btn-lg">Book a Demo</a>
                     <a href="contact.html" class="btn btn-secondary btn-lg">Talk to an Advisor</a>
                 </div>
             </div>
@@ -358,7 +379,7 @@
     <script src="js/app.js"></script>
     <script>
         const teamPreview = document.getElementById('teamPreview');
-        if (teamPreview && window.TEAM_DATA) { teamPreview.innerHTML = TEAM_DATA.slice(0, 4).map(m => renderTeamCard(m)).join(''); }
+        if (teamPreview && window.TEAM_DATA) { teamPreview.innerHTML = TEAM_DATA.map(m => renderTeamCard(m)).join(''); }
         const faqPreview = document.getElementById('faqPreview');
         if (faqPreview && window.FAQ_DATA) { faqPreview.innerHTML = renderFaqAccordion(FAQ_DATA.general); }
         if (window.renderTestimonialSlider) { renderTestimonialSlider('testimonialSlider'); }
@@ -366,6 +387,55 @@
         if (footerEl && window.getFooterHTML) { footerEl.innerHTML = getFooterHTML(); }
         const menuToggle = document.getElementById('menuToggle');
         if (menuToggle) { menuToggle.addEventListener('click', function() { const expanded = this.getAttribute('aria-expanded') === 'true'; this.setAttribute('aria-expanded', String(!expanded)); }); }
+
+        // Counseling form AJAX submission
+        const counselingForm = document.getElementById('counselingForm');
+        if (counselingForm) {
+            counselingForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('counselingBtn');
+                const msgDiv = document.getElementById('counselingMsg');
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Submitting...';
+                msgDiv.style.display = 'none';
+
+                const payload = {
+                    studentName: document.getElementById('studentName').value.trim(),
+                    studentClass: document.getElementById('studentClass').value.trim(),
+                    board: document.getElementById('board').value,
+                    parentPhone: document.getElementById('phone').value.trim()
+                };
+
+                try {
+                    const res = await fetch('/api/counseling', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        msgDiv.style.background = '#f0fdf4';
+                        msgDiv.style.color = '#16a34a';
+                        msgDiv.style.border = '1px solid #bbf7d0';
+                        msgDiv.textContent = data.message;
+                        msgDiv.style.display = 'block';
+                        counselingForm.reset();
+                    } else {
+                        throw new Error(data.message || 'Something went wrong. Please try again.');
+                    }
+                } catch (err) {
+                    msgDiv.style.background = '#fef2f2';
+                    msgDiv.style.color = '#dc2626';
+                    msgDiv.style.border = '1px solid #fecaca';
+                    msgDiv.textContent = err.message || 'Network error. Please try again.';
+                    msgDiv.style.display = 'block';
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            });
+        }
     </script>
 </body>
 </html>

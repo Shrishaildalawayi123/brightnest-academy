@@ -1,99 +1,108 @@
 package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.TeacherApplicationRequest;
-import com.shrishailacademy.model.TeacherApplication;
-import com.shrishailacademy.repository.TeacherApplicationRepository;
+import com.shrishailacademy.service.ResumeStorageService;
+import com.shrishailacademy.service.TeacherApplicationService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
 /**
  * Teacher Application Controller
- * Public: submit educator recruitment application
+ * Public: submit educator recruitment application (with optional resume upload)
  * Admin: view applications, update status
  */
 @RestController
 @RequestMapping("/api/teacher-applications")
 public class TeacherApplicationController {
 
-    @Autowired
-    private TeacherApplicationRepository teacherApplicationRepository;
+    private final TeacherApplicationService teacherApplicationService;
+    private final ResumeStorageService resumeStorageService;
+
+    public TeacherApplicationController(TeacherApplicationService teacherApplicationService,
+            ResumeStorageService resumeStorageService) {
+        this.teacherApplicationService = teacherApplicationService;
+        this.resumeStorageService = resumeStorageService;
+    }
 
     /**
-     * POST /api/teacher-applications - Public educator application form
+     * Submit via JSON (no resume) — backward compatible with team.html form.
      */
-    @PostMapping
-    public ResponseEntity<?> submitApplication(@Valid @RequestBody TeacherApplicationRequest request) {
-        TeacherApplication application = new TeacherApplication();
-        application.setFullName(request.getFullName());
-        application.setEmail(request.getEmail());
-        application.setPhone(request.getPhone());
-        application.setSubjectExpertise(request.getSubjectExpertise());
-        application.setExperience(request.getExperience());
-        application.setMotivation(request.getMotivation());
-        application.setStatus(TeacherApplication.Status.NEW);
-
-        teacherApplicationRepository.save(application);
-
-        return ResponseEntity.ok(Map.of(
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> submitApplication(
+            @Valid @RequestBody TeacherApplicationRequest request) {
+        teacherApplicationService.submitApplication(request);
+        return ResponseEntity.ok(Map.of("success", "true",
                 "message",
                 "Thank you for your interest in joining BrightNest Academy! We've received your application and will get back to you within 5 business days."));
     }
 
     /**
-     * GET /api/teacher-applications - Admin: list all applications
+     * Submit via multipart form (with optional resume file) — careers.html form.
      */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> submitApplicationWithResume(
+            @RequestParam String fullName,
+            @RequestParam String email,
+            @RequestParam String phone,
+            @RequestParam String subjectExpertise,
+            @RequestParam(required = false) String qualification,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String teachingMode,
+            @RequestParam(required = false) String experience,
+            @RequestParam(required = false) String motivation,
+            @RequestParam(required = false) MultipartFile resume) {
+
+        TeacherApplicationRequest request = new TeacherApplicationRequest();
+        request.setFullName(fullName);
+        request.setEmail(email);
+        request.setPhone(phone);
+        request.setSubjectExpertise(subjectExpertise);
+        request.setQualification(qualification);
+        request.setCity(city);
+        request.setTeachingMode(teachingMode);
+        request.setExperience(experience);
+        request.setMotivation(motivation);
+
+        String resumeFileName = null;
+        String resumeFilePath = null;
+        if (resume != null && !resume.isEmpty()) {
+            String[] result = resumeStorageService.storeResume(resume);
+            if (result != null) {
+                resumeFileName = result[0];
+                resumeFilePath = result[1];
+            }
+        }
+
+        teacherApplicationService.submitApplication(request, resumeFileName, resumeFilePath);
+        return ResponseEntity.ok(Map.of("success", "true",
+                "message",
+                "Thank you for applying! We've received your application and resume. Our team will review it and contact you within 5 business days."));
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllApplications(@RequestParam(required = false) String status) {
-        if (status != null && !status.isEmpty()) {
-            try {
-                TeacherApplication.Status s = TeacherApplication.Status.valueOf(status.toUpperCase());
-                return ResponseEntity.ok(teacherApplicationRepository.findByStatusOrderByCreatedAtDesc(s));
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Invalid status"));
-            }
-        }
-        return ResponseEntity.ok(teacherApplicationRepository.findAllByOrderByCreatedAtDesc());
+        return ResponseEntity.ok(teacherApplicationService.getAllApplications(status));
     }
 
-    /**
-     * PUT /api/teacher-applications/{id}/status - Admin: update application status
-     */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        return teacherApplicationRepository.findById(id)
-                .map(app -> {
-                    try {
-                        TeacherApplication.Status newStatus = TeacherApplication.Status.valueOf(
-                                body.getOrDefault("status", "NEW").toUpperCase());
-                        app.setStatus(newStatus);
-                        teacherApplicationRepository.save(app);
-                        return ResponseEntity
-                                .ok(Map.of("message", "Application status updated to " + newStatus));
-                    } catch (IllegalArgumentException e) {
-                        return ResponseEntity.badRequest().body(Map.of("error", "Invalid status value"));
-                    }
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Map<String, String>> updateStatus(@PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String status = body.getOrDefault("status", "NEW");
+        teacherApplicationService.updateStatus(id, status);
+        return ResponseEntity.ok(Map.of("message", "Application status updated to " + status.toUpperCase()));
     }
 
-    /**
-     * GET /api/teacher-applications/stats - Admin: application statistics
-     */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getStats() {
-        return ResponseEntity.ok(Map.of(
-                "total", teacherApplicationRepository.count(),
-                "new", teacherApplicationRepository.countByStatus(TeacherApplication.Status.NEW),
-                "reviewed", teacherApplicationRepository.countByStatus(TeacherApplication.Status.REVIEWED),
-                "contacted", teacherApplicationRepository.countByStatus(TeacherApplication.Status.CONTACTED),
-                "hired", teacherApplicationRepository.countByStatus(TeacherApplication.Status.HIRED)));
+    public ResponseEntity<Map<String, Object>> getStats() {
+        return ResponseEntity.ok(teacherApplicationService.getStats());
     }
 }

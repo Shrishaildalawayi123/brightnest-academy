@@ -27,7 +27,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User extends BaseAuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,13 +55,13 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role = Role.STUDENT;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @JsonIgnore
+    @Column(name = "refresh_token", length = 255)
+    private String refreshToken;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @JsonIgnore
+    @Column(name = "refresh_token_expiry")
+    private LocalDateTime refreshTokenExpiry;
 
     // Relationships - @JsonIgnore prevents circular serialization
     @JsonIgnore

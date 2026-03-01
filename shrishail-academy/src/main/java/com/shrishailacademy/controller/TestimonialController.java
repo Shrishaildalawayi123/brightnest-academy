@@ -2,9 +2,8 @@ package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ApiResponse;
 import com.shrishailacademy.model.Testimonial;
-import com.shrishailacademy.repository.TestimonialRepository;
+import com.shrishailacademy.service.TestimonialService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,74 +14,42 @@ import java.util.List;
 @RequestMapping("/api/testimonials")
 public class TestimonialController {
 
-    @Autowired
-    private TestimonialRepository testimonialRepo;
+    private final TestimonialService testimonialService;
 
-    /**
-     * Public: Get all approved testimonials (shown on website)
-     * GET /api/testimonials
-     */
-    @GetMapping
-    public ResponseEntity<List<Testimonial>> getApprovedTestimonials() {
-        return ResponseEntity.ok(testimonialRepo.findByApprovedTrueOrderByCreatedAtDesc());
+    public TestimonialController(TestimonialService testimonialService) {
+        this.testimonialService = testimonialService;
     }
 
-    /**
-     * Admin: Get ALL testimonials (including unapproved)
-     * GET /api/testimonials/all
-     */
+    @GetMapping
+    public ResponseEntity<List<Testimonial>> getApprovedTestimonials() {
+        return ResponseEntity.ok(testimonialService.getApprovedTestimonials());
+    }
+
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Testimonial>> getAllTestimonials() {
-        return ResponseEntity.ok(testimonialRepo.findAllByOrderByCreatedAtDesc());
+        return ResponseEntity.ok(testimonialService.getAllTestimonials());
     }
 
-    /**
-     * Admin: Add a new testimonial
-     * POST /api/testimonials
-     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> addTestimonial(@Valid @RequestBody Testimonial testimonial) {
-        try {
-            Testimonial saved = testimonialRepo.save(testimonial);
-            return ResponseEntity.ok(ApiResponse.success("Testimonial added", saved));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse> addTestimonial(@Valid @RequestBody Testimonial testimonial) {
+        Testimonial saved = testimonialService.addTestimonial(testimonial);
+        return ResponseEntity.ok(ApiResponse.success("Testimonial added", saved));
     }
 
-    /**
-     * Admin: Approve/unapprove a testimonial
-     * PUT /api/testimonials/{id}/approve
-     */
     @PutMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> toggleApproval(@PathVariable Long id) {
-        try {
-            Testimonial t = testimonialRepo.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Testimonial not found"));
-            t.setApproved(!t.isApproved());
-            testimonialRepo.save(t);
-            return ResponseEntity.ok(ApiResponse.success(
-                    t.isApproved() ? "Testimonial approved" : "Testimonial unapproved"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse> toggleApproval(@PathVariable Long id) {
+        Testimonial t = testimonialService.toggleApproval(id);
+        return ResponseEntity.ok(ApiResponse.success(
+                t.isApproved() ? "Testimonial approved" : "Testimonial unapproved"));
     }
 
-    /**
-     * Admin: Delete a testimonial
-     * DELETE /api/testimonials/{id}
-     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteTestimonial(@PathVariable Long id) {
-        try {
-            testimonialRepo.deleteById(id);
-            return ResponseEntity.ok(ApiResponse.success("Testimonial deleted"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse> deleteTestimonial(@PathVariable Long id) {
+        testimonialService.deleteTestimonial(id);
+        return ResponseEntity.ok(ApiResponse.success("Testimonial deleted"));
     }
 }

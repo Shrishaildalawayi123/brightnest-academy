@@ -26,12 +26,12 @@ public class Attendance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnoreProperties({ "enrollments", "password", "hibernateLazyInitializer" })
     private User user;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     @JsonIgnoreProperties({ "enrollments", "hibernateLazyInitializer" })
     private Course course;
@@ -46,7 +46,7 @@ public class Attendance {
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "marked_by")
     @JsonIgnoreProperties({ "enrollments", "password", "hibernateLazyInitializer" })
     private User markedBy;

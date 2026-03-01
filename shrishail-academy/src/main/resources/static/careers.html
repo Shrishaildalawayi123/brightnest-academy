@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Careers - Teach With Us | BrightNest Academy</title>
+    <meta name="description" content="Join BrightNest Academy as a tutor. Apply for online or offline teaching positions. Upload your resume and start your teaching career today.">
+    <link rel="canonical" href="https://brightnest-academy.com/careers.html">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://brightnest-academy.com/careers.html">
+    <meta property="og:title" content="Careers - Teach With Us | BrightNest Academy">
+    <meta property="og:description" content="Join BrightNest Academy as a tutor. Apply for online or offline teaching positions.">
+    <meta property="og:site_name" content="BrightNest Academy">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .careers-hero { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; padding: calc(var(--header-height) + 3rem) 0 3rem; text-align: center; }
+        .careers-hero h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .careers-hero p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+
+        .why-join { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin: 2.5rem 0; }
+        .why-card { background: white; border-radius: 14px; padding: 1.8rem; box-shadow: 0 2px 16px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; text-align: center; transition: transform 0.2s; }
+        .why-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .why-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; color: white; }
+        .why-card h3 { font-size: 1.05rem; margin-bottom: 0.4rem; color: #1e293b; }
+        .why-card p { font-size: 0.88rem; color: #64748b; margin: 0; line-height: 1.5; }
+
+        .apply-section { max-width: 720px; margin: 0 auto; }
+        .apply-card { background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.07); border: 1px solid #e5e7eb; }
+        .apply-card h2 { font-size: 1.5rem; margin-bottom: 0.3rem; color: #1e293b; }
+        .apply-card > p { color: #64748b; margin-bottom: 1.8rem; font-size: 0.92rem; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .fg { margin-bottom: 1rem; }
+        .fg label { display: block; font-weight: 600; font-size: 0.88rem; color: #334155; margin-bottom: 0.3rem; }
+        .fg label .req { color: #ef4444; }
+        .fg input, .fg select, .fg textarea {
+            width: 100%; padding: 0.7rem 0.9rem; border: 1.5px solid #d1d5db; border-radius: 10px;
+            font-size: 0.92rem; font-family: inherit; background: #f8fafc; transition: border 0.2s;
+        }
+        .fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: #2563eb; background: white; }
+        .fg textarea { resize: vertical; min-height: 80px; }
+
+        .resume-upload { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; }
+        .resume-upload:hover, .resume-upload.dragover { border-color: #2563eb; background: #eff6ff; }
+        .resume-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .resume-upload .upload-icon { font-size: 2rem; margin-bottom: 0.3rem; }
+        .resume-upload .upload-text { font-size: 0.9rem; color: #64748b; }
+        .resume-upload .upload-text strong { color: #2563eb; }
+        .resume-upload .file-info { font-size: 0.82rem; color: #10b981; font-weight: 600; margin-top: 0.4rem; display: none; }
+
+        .mode-toggle { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .mode-btn { padding: 0.55rem 1.2rem; border: 1.5px solid #d1d5db; border-radius: 10px; background: #f8fafc; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: #475569; transition: all 0.2s; }
+        .mode-btn:hover { border-color: #2563eb; color: #2563eb; }
+        .mode-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+        #applyMsg { display: none; padding: 0.85rem 1rem; border-radius: 10px; text-align: center; font-size: 0.92rem; font-weight: 500; margin-top: 1rem; }
+
+        .openings { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; margin: 2rem 0; }
+        .opening-card { background: white; border-radius: 14px; padding: 1.5rem; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .opening-card h3 { font-size: 1.05rem; color: #1e293b; margin-bottom: 0.3rem; }
+        .opening-card .meta { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+        .opening-card .tag { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 500; }
+        .tag-online { background: #dbeafe; color: #1d4ed8; }
+        .tag-offline { background: #fef3c7; color: #b45309; }
+        .tag-both { background: #d1fae5; color: #065f46; }
+        .opening-card p { font-size: 0.85rem; color: #64748b; line-height: 1.5; margin: 0; }
+    </style>
+</head>
+<body>
+    <header class="header" id="header">
+        <nav class="nav container">
+            <a href="index.html" class="logo"><img src="images/logo.png" alt="BrightNest Academy" class="logo-icon"><span>BrightNest Academy</span></a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li class="nav-dropdown">
+                    <a href="courses.html" class="nav-link">Courses <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;vertical-align:middle"><polyline points="6 9 12 15 18 9"/></svg></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="kannada.html">Kannada</a></li>
+                        <li><a href="english.html">English</a></li>
+                        <li><a href="hindi.html">Hindi</a></li>
+                        <li><a href="sanskrit.html">Sanskrit</a></li>
+                        <li><a href="Mathematics.html">Mathematics</a></li>
+                        <li><a href="science.html">Science</a></li>
+                        <li><a href="german.html">German</a></li>
+                    </ul>
+                </li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="careers.html" class="nav-link active">Careers</a></li>
+                <li><a href="login.html" class="nav-link">Login</a></li>
+                <li><a href="demo.html" class="btn btn-accent btn-sm">Book a Demo</a></li>
+            </ul>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="careers-hero">
+        <div class="container">
+            <h1>Teach With BrightNest Academy</h1>
+            <p>Join our team of passionate educators. Teach online, offline, or both &#8212; and shape the future of students across India.</p>
+        </div>
+    </section>
+
+    <!-- Why Join Us -->
+    <section class="section">
+        <div class="container">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <p class="eyebrow">Why Join Us</p>
+                <h2>Benefits of Teaching at BrightNest</h2>
+            </div>
+            <div class="why-join">
+                <div class="why-card">
+                    <div class="why-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);">&#128188;</div>
+                    <h3>Flexible Schedule</h3>
+                    <p>Choose your hours. Teach mornings, evenings or weekends &#8212; whatever fits your lifestyle.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon" style="background:linear-gradient(135deg,#10b981,#059669);">&#127968;</div>
+                    <h3>Work From Home</h3>
+                    <p>Teach online from anywhere in India. No commute required for online tutoring positions.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);">&#128176;</div>
+                    <h3>Competitive Pay</h3>
+                    <p>Earn attractive compensation based on your experience, qualification and student results.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">&#127891;</div>
+                    <h3>Grow Your Career</h3>
+                    <p>Regular training, mentorship from senior educators, and opportunities to lead departments.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Current Openings -->
+    <section class="section" style="background:#f8fafc;">
+        <div class="container">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <p class="eyebrow">Current Openings</p>
+                <h2>We're Hiring Passionate Educators</h2>
+            </div>
+            <div class="openings">
+                <div class="opening-card">
+                    <h3>Kannada Language Tutor</h3>
+                    <div class="meta">
+                        <span class="tag tag-both">Online + Offline</span>
+                        <span class="tag" style="background:#f1f5f9;color:#475569;">Part-time / Full-time</span>
+                    </div>
+                    <p>Teach Kannada to students from Grade 1&#8211;10 (CBSE, ICSE, State Board). Fluency in Kannada required.</p>
+                </div>
+                <div class="opening-card">
+                    <h3>English Language Tutor</h3>
+                    <div class="meta">
+                        <span class="tag tag-online">Online</span>
+                        <span class="tag" style="background:#f1f5f9;color:#475569;">Part-time / Full-time</span>
+                    </div>
+                    <p>Teach English grammar, literature, and spoken English to Grade 1&#8211;10 students across all boards.</p>
+                </div>
+                <div class="opening-card">
+                    <h3>Mathematics Tutor</h3>
+                    <div class="meta">
+                        <span class="tag tag-both">Online + Offline</span>
+                        <span class="tag" style="background:#f1f5f9;color:#475569;">Full-time</span>
+                    </div>
+                    <p>Strong foundation in Math concepts for Grade 5&#8211;10. CBSE and ICSE board experience preferred.</p>
+                </div>
+                <div class="opening-card">
+                    <h3>Science Tutor</h3>
+                    <div class="meta">
+                        <span class="tag tag-online">Online</span>
+                        <span class="tag" style="background:#f1f5f9;color:#475569;">Part-time</span>
+                    </div>
+                    <p>Teach Physics, Chemistry, Biology for Grade 6&#8211;10. Ability to explain concepts with real-world examples.</p>
+                </div>
+                <div class="opening-card">
+                    <h3>Hindi / Sanskrit Tutor</h3>
+                    <div class="meta">
+                        <span class="tag tag-offline">Offline (Bengaluru)</span>
+                        <span class="tag" style="background:#f1f5f9;color:#475569;">Part-time</span>
+                    </div>
+                    <p>Teach Hindi or Sanskrit to students in our Kumaraswamy Layout centre. Native speakers preferred.</p>
+                </div>
+                <div class="opening-card">
+                    <h3>German Language Tutor</h3>
+                    <div class="meta">
+                        <span class="tag tag-online">Online</span>
+                        <span class="tag" style="background:#f1f5f9;color:#475569;">Part-time</span>
+                    </div>
+                    <p>Teach German as a second/third language for Grade 6&#8211;10. B2+ proficiency or native German required.</p>
+                </div>
+            </div>
+            <p style="text-align:center;color:#64748b;font-size:0.9rem;">Don't see your subject? Apply anyway! We're always looking for talented educators.</p>
+        </div>
+    </section>
+
+    <!-- Application Form -->
+    <section class="section" id="applySection">
+        <div class="container apply-section">
+            <div class="apply-card">
+                <h2>Apply Now</h2>
+                <p>Fill in your details and upload your resume. We'll review your application and get back to you within 5 business days.</p>
+
+                <form id="teacherApplyForm" enctype="multipart/form-data">
+                    <div class="form-grid">
+                        <div class="fg">
+                            <label>Full Name <span class="req">*</span></label>
+                            <input type="text" id="appFullName" required placeholder="Your full name" maxlength="100">
+                        </div>
+                        <div class="fg">
+                            <label>Email Address <span class="req">*</span></label>
+                            <input type="email" id="appEmail" required placeholder="you@example.com" maxlength="100">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="fg">
+                            <label>Phone Number <span class="req">*</span></label>
+                            <input type="tel" id="appPhone" required placeholder="+91 XXXXX XXXXX" maxlength="20">
+                        </div>
+                        <div class="fg">
+                            <label>City / Location</label>
+                            <input type="text" id="appCity" placeholder="e.g., Bengaluru" maxlength="100">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="fg">
+                            <label>Subject Expertise <span class="req">*</span></label>
+                            <select id="appSubject" required>
+                                <option value="">Select subject</option>
+                                <option>Kannada</option>
+                                <option>English</option>
+                                <option>Hindi</option>
+                                <option>Sanskrit</option>
+                                <option>Mathematics</option>
+                                <option>Science</option>
+                                <option>German</option>
+                                <option>Multiple Subjects</option>
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label>Qualification</label>
+                            <input type="text" id="appQualification" placeholder="e.g., B.Ed, M.A. English" maxlength="200">
+                        </div>
+                    </div>
+                    <div class="fg">
+                        <label>Preferred Teaching Mode <span class="req">*</span></label>
+                        <div class="mode-toggle" id="modeToggle">
+                            <button type="button" class="mode-btn" data-mode="ONLINE">&#128187; Online</button>
+                            <button type="button" class="mode-btn" data-mode="OFFLINE">&#127979; Offline (In-centre)</button>
+                            <button type="button" class="mode-btn" data-mode="BOTH">&#127760; Both</button>
+                        </div>
+                        <input type="hidden" id="appTeachingMode" value="">
+                    </div>
+                    <div class="fg">
+                        <label>Years of Teaching Experience</label>
+                        <select id="appExperience">
+                            <option value="">Select experience</option>
+                            <option value="Fresher (0 years)">Fresher (0 years)</option>
+                            <option value="1-2 years">1&#8211;2 years</option>
+                            <option value="3-5 years">3&#8211;5 years</option>
+                            <option value="5-10 years">5&#8211;10 years</option>
+                            <option value="10+ years">10+ years</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>Why do you want to teach at BrightNest Academy?</label>
+                        <textarea id="appMotivation" rows="3" placeholder="Tell us about your teaching philosophy, passion for education, and why you'd be a great fit..." maxlength="1000"></textarea>
+                    </div>
+                    <div class="fg">
+                        <label>Upload Resume <span style="color:#94a3b8;font-weight:400;">(PDF or Word, max 5 MB)</span></label>
+                        <div class="resume-upload" id="resumeDropZone">
+                            <input type="file" id="appResume" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            <div class="upload-icon">&#128196;</div>
+                            <div class="upload-text"><strong>Click to upload</strong> or drag and drop your resume</div>
+                            <div class="file-info" id="fileInfo"></div>
+                        </div>
+                    </div>
+
+                    <div id="applyMsg"></div>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="applyBtn" style="margin-top:0.5rem;">Submit Application</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Have Questions About Teaching With Us?</h2>
+            <p>Reach out to our team. We'd love to hear from you.</p>
+            <a href="contact.html" class="btn btn-accent btn-lg">Contact Us</a>
+        </div>
+    </section>
+
+    <div id="footerPlaceholder"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Footer
+        const footerEl = document.getElementById('footerPlaceholder');
+        if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();
+
+        // Teaching mode toggle
+        const modeToggle = document.getElementById('modeToggle');
+        const modeInput = document.getElementById('appTeachingMode');
+        modeToggle.addEventListener('click', function(e) {
+            const btn = e.target.closest('.mode-btn');
+            if (!btn) return;
+            modeToggle.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            modeInput.value = btn.dataset.mode;
+        });
+
+        // Resume file display
+        const resumeInput = document.getElementById('appResume');
+        const fileInfo = document.getElementById('fileInfo');
+        const dropZone = document.getElementById('resumeDropZone');
+
+        resumeInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const f = this.files[0];
+                const sizeMB = (f.size / (1024 * 1024)).toFixed(2);
+                if (f.size > 5 * 1024 * 1024) {
+                    fileInfo.style.color = '#ef4444';
+                    fileInfo.textContent = 'File too large (' + sizeMB + ' MB). Max 5 MB allowed.';
+                } else {
+                    fileInfo.style.color = '#10b981';
+                    fileInfo.textContent = f.name + ' (' + sizeMB + ' MB)';
+                }
+                fileInfo.style.display = 'block';
+            }
+        });
+
+        // Drag and drop
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropZone.addEventListener(evt, function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, function(e) { e.preventDefault(); dropZone.classList.remove('dragover'); });
+        });
+        dropZone.addEventListener('drop', function(e) {
+            if (e.dataTransfer.files.length) {
+                resumeInput.files = e.dataTransfer.files;
+                resumeInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Form submission
+        document.getElementById('teacherApplyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('applyBtn');
+            const msgDiv = document.getElementById('applyMsg');
+            const originalText = btn.textContent;
+
+            // Validate teaching mode
+            if (!modeInput.value) {
+                msgDiv.style.background = '#fef2f2';
+                msgDiv.style.color = '#dc2626';
+                msgDiv.style.border = '1px solid #fecaca';
+                msgDiv.textContent = 'Please select a preferred teaching mode.';
+                msgDiv.style.display = 'block';
+                return;
+            }
+
+            // Validate resume size
+            const resumeFile = resumeInput.files[0];
+            if (resumeFile && resumeFile.size > 5 * 1024 * 1024) {
+                msgDiv.style.background = '#fef2f2';
+                msgDiv.style.color = '#dc2626';
+                msgDiv.style.border = '1px solid #fecaca';
+                msgDiv.textContent = 'Resume file must be less than 5 MB.';
+                msgDiv.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+            msgDiv.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('fullName', document.getElementById('appFullName').value.trim());
+            formData.append('email', document.getElementById('appEmail').value.trim());
+            formData.append('phone', document.getElementById('appPhone').value.trim());
+            formData.append('subjectExpertise', document.getElementById('appSubject').value);
+            formData.append('qualification', document.getElementById('appQualification').value.trim());
+            formData.append('city', document.getElementById('appCity').value.trim());
+            formData.append('teachingMode', modeInput.value);
+            formData.append('experience', document.getElementById('appExperience').value);
+            formData.append('motivation', document.getElementById('appMotivation').value.trim());
+            if (resumeFile) {
+                formData.append('resume', resumeFile);
+            }
+
+            try {
+                const res = await fetch('/api/teacher-applications', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.success === 'true') {
+                    msgDiv.style.background = '#f0fdf4';
+                    msgDiv.style.color = '#16a34a';
+                    msgDiv.style.border = '1px solid #bbf7d0';
+                    msgDiv.textContent = data.message;
+                    msgDiv.style.display = 'block';
+                    this.reset();
+                    fileInfo.style.display = 'none';
+                    modeToggle.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    modeInput.value = '';
+                } else {
+                    throw new Error(data.message || 'Something went wrong. Please try again.');
+                }
+            } catch (err) {
+                msgDiv.style.background = '#fef2f2';
+                msgDiv.style.color = '#dc2626';
+                msgDiv.style.border = '1px solid #fecaca';
+                msgDiv.textContent = err.message || 'Network error. Please try again.';
+                msgDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

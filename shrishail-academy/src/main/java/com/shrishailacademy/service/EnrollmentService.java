@@ -1,40 +1,54 @@
 package com.shrishailacademy.service;
 
+import com.shrishailacademy.exception.AccessDeniedException;
+import com.shrishailacademy.exception.BusinessException;
+import com.shrishailacademy.exception.DuplicateResourceException;
+import com.shrishailacademy.exception.ResourceNotFoundException;
 import com.shrishailacademy.model.Course;
 import com.shrishailacademy.model.Enrollment;
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.EnrollmentRepository;
 import com.shrishailacademy.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class EnrollmentService {
 
-    @Autowired
-    private EnrollmentRepository enrollmentRepository;
+    private static final Logger log = LoggerFactory.getLogger(EnrollmentService.class);
 
-    @Autowired
-    private UserRepository userRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private CourseRepository courseRepository;
+    public EnrollmentService(EnrollmentRepository enrollmentRepository,
+            UserRepository userRepository,
+            CourseRepository courseRepository,
+            NotificationService notificationService) {
+        this.enrollmentRepository = enrollmentRepository;
+        this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
+        this.notificationService = notificationService;
+    }
 
-    @Autowired
-    private NotificationService notificationService;
-
+    @Transactional
     public Enrollment enrollStudent(Long userId, Long courseId) {
         if (enrollmentRepository.existsByUserIdAndCourseIdAndStatusNot(userId, courseId, Enrollment.Status.CANCELLED)) {
-            throw new RuntimeException("Student already enrolled in this course");
+            throw new DuplicateResourceException("Enrollment", "userId+courseId", userId + "+" + courseId);
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
 
         Enrollment enrollment = new Enrollment();
         enrollment.setUser(user);
@@ -42,9 +56,13 @@ public class EnrollmentService {
         enrollment.setStatus(Enrollment.Status.ACTIVE);
 
         Enrollment saved = enrollmentRepository.save(enrollment);
+        log.info("ENROLLMENT_CREATED: user={} course='{}'", user.getEmail(), course.getTitle());
 
-        // Send WhatsApp enrollment confirmation
-        notificationService.sendEnrollmentConfirmation(saved);
+        try {
+            notificationService.sendEnrollmentConfirmation(saved);
+        } catch (Exception e) {
+            log.error("Failed to send enrollment notification for user={}: {}", user.getEmail(), e.getMessage());
+        }
 
         return saved;
     }
@@ -57,18 +75,25 @@ public class EnrollmentService {
         return enrollmentRepository.findAll();
     }
 
+    public Page<Enrollment> getAllEnrollments(Pageable pageable) {
+        return enrollmentRepository.findAll(pageable);
+    }
+
+    @Transactional
     public void cancelEnrollment(Long enrollmentId, Long userId, String role) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
-        // Already cancelled check
+                .orElseThrow(() -> new ResourceNotFoundException("Enrollment", "id", enrollmentId));
+
         if (enrollment.getStatus() == Enrollment.Status.CANCELLED) {
-            throw new RuntimeException("Enrollment is already cancelled");
+            throw new BusinessException("Enrollment is already cancelled");
         }
         // Students can only cancel their own enrollments
         if (!User.Role.ADMIN.name().equals(role) && !enrollment.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You can only cancel your own enrollment");
+            throw new AccessDeniedException("You can only cancel your own enrollment");
         }
+
         enrollment.setStatus(Enrollment.Status.CANCELLED);
         enrollmentRepository.save(enrollment);
+        log.info("ENROLLMENT_CANCELLED: id={} user={}", enrollmentId, enrollment.getUser().getEmail());
     }
 }

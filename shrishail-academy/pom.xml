@@ -21,7 +21,7 @@
     <properties>
         <java.version>21</java.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <jacoco.minimum.coverage>0.10</jacoco.minimum.coverage>
+        <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
     </properties>
     
     <dependencies>
@@ -53,6 +53,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        
+        <!-- Spring Boot Cache -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         
         <!-- MySQL Connector -->

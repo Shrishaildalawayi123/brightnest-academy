@@ -3,6 +3,7 @@
 A complete education institute management web application built with **Spring Boot** backend and **HTML/CSS/JavaScript** frontend.
 
 ## 📋 Table of Contents
+
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -18,12 +19,14 @@ A complete education institute management web application built with **Spring Bo
 ## ✨ Features
 
 ### Public Website
+
 - ✅ Home page with hero section
 - ✅ About page (mission, vision, methodology)
 - ✅ Courses page (7 courses: Math, Science, English, Kannada, Hindi, Sanskrit, French)
 - ✅ Contact page with form
 
 ### Authentication System
+
 - ✅ Student registration
 - ✅ Student/Admin login
 - ✅ JWT-based authentication
@@ -31,12 +34,14 @@ A complete education institute management web application built with **Spring Bo
 - ✅ Role-based access control (ADMIN/STUDENT)
 
 ### Student Dashboard
+
 - ✅ View enrolled courses
 - ✅ Enroll in new courses
 - ✅ View profile
 - ✅ Logout functionality
 
 ### Admin Dashboard
+
 - ✅ Add new courses
 - ✅ Edit existing courses
 - ✅ Delete courses
@@ -49,8 +54,9 @@ A complete education institute management web application built with **Spring Bo
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Java 17**
-- **Spring Boot 3.2.2**
+
+- **Java 21**
+- **Spring Boot 3.4.3**
 - **Spring Security** (JWT Authentication)
 - **Spring Data JPA**
 - **MySQL Database**
@@ -58,6 +64,7 @@ A complete education institute management web application built with **Spring Bo
 - **Lombok** (Reduce Boilerplate)
 
 ### Frontend
+
 - **HTML5**
 - **CSS3** (Modern Design System)
 - **JavaScript (ES6+)**
@@ -131,17 +138,20 @@ shrishail-academy/
 
 Before running the application, ensure you have:
 
-1. **Java JDK 17 or higher**
+1. **Java JDK 21 or higher**
+
    ```bash
    java -version
    ```
 
 2. **Maven 3.6+**
+
    ```bash
    mvn -version
    ```
 
 3. **MySQL 8.0+**
+
    ```bash
    mysql --version
    ```
@@ -163,11 +173,13 @@ cd "d:\Tuition class website\shrishail-academy"
 1. **Start MySQL Server**
 
 2. **Create Database & Tables**
+
    ```bash
    mysql -u root -p < database/schema.sql
    ```
 
    Or manually:
+
    ```sql
    mysql -u root -p
    CREATE DATABASE shrishail_academy;
@@ -235,16 +247,19 @@ java -jar target/shrishail-academy-1.0.0.jar
 ## 🌐 Access the Application
 
 ### Backend API
+
 ```
 http://localhost:8080/api
 ```
 
 ### Frontend (Open in Browser)
+
 ```
 file:///d:/Tuition%20class%20website/shrishail-academy/frontend/index.html
 ```
 
 Or use a local server:
+
 ```bash
 # Using Python
 cd frontend
@@ -261,12 +276,14 @@ npx serve frontend -p 3000
 ## 🔐 Default Credentials
 
 ### Admin Login
+
 ```
 Email: admin@academy.com
 Password: admin123
 ```
 
 ### Test Student Login
+
 ```
 Email: student@test.com
 Password: student123
@@ -279,6 +296,7 @@ Password: student123
 ### Authentication APIs
 
 #### 1. Register Student
+
 ```http
 POST /api/auth/register
 Content-Type: application/json
@@ -292,6 +310,7 @@ Content-Type: application/json
 ```
 
 #### 2. Login
+
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -315,16 +334,19 @@ Response:
 ### Course APIs
 
 #### 3. Get All Courses (Public)
+
 ```http
 GET /api/courses
 ```
 
 #### 4. Get Course by ID
+
 ```http
 GET /api/courses/{id}
 ```
 
 #### 5. Create Course (Admin Only)
+
 ```http
 POST /api/courses
 Authorization: Bearer {token}
@@ -340,6 +362,7 @@ Content-Type: application/json
 ```
 
 #### 6. Update Course (Admin Only)
+
 ```http
 PUT /api/courses/{id}
 Authorization: Bearer {token}
@@ -352,6 +375,7 @@ Content-Type: application/json
 ```
 
 #### 7. Delete Course (Admin Only)
+
 ```http
 DELETE /api/courses/{id}
 Authorization: Bearer {token}
@@ -360,18 +384,21 @@ Authorization: Bearer {token}
 ### Enrollment APIs
 
 #### 8. Enroll in Course (Student)
+
 ```http
 POST /api/enrollments/{courseId}
 Authorization: Bearer {token}
 ```
 
 #### 9. Get My Enrollments (Student)
+
 ```http
 GET /api/enrollments/my-courses
 Authorization: Bearer {token}
 ```
 
 #### 10. Get All Enrollments (Admin)
+
 ```http
 GET /api/enrollments
 Authorization: Bearer {token}
@@ -380,12 +407,14 @@ Authorization: Bearer {token}
 ### User APIs
 
 #### 11. Get All Students (Admin)
+
 ```http
 GET /api/users/students
 Authorization: Bearer {token}
 ```
 
 #### 12. Get Current User Profile
+
 ```http
 GET /api/users/me
 Authorization: Bearer {token}
@@ -398,16 +427,19 @@ Authorization: Bearer {token}
 ### Deploy to Railway
 
 1. **Install Railway CLI**
+
    ```bash
    npm install -g @railway/cli
    ```
 
 2. **Login to Railway**
+
    ```bash
    railway login
    ```
 
 3. **Initialize Project**
+
    ```bash
    railway init
    ```
@@ -418,6 +450,7 @@ Authorization: Bearer {token}
    - Copy database credentials
 
 5. **Update application.properties**
+
    ```properties
    spring.datasource.url=${DATABASE_URL}
    ```
@@ -436,6 +469,7 @@ Authorization: Bearer {token}
    - Connect your GitHub repo
 
 3. **Configuration**
+
    ```
    Build Command: mvn clean package
    Start Command: java -jar target/shrishail-academy-1.0.0.jar
@@ -450,11 +484,13 @@ Authorization: Bearer {token}
 ### Deploy to AWS / DigitalOcean VPS
 
 1. **Build JAR**
+
    ```bash
    mvn clean package
    ```
 
 2. **Upload to Server**
+
    ```bash
    scp target/shrishail-academy-1.0.0.jar user@server:/opt/app/
    ```
@@ -490,25 +526,33 @@ curl http://localhost:8080/api/courses
 ## 🐛 Troubleshooting
 
 ### MySQL Connection Error
+
 ```
 Error: Could not create connection to database server
 ```
+
 **Solution**: Check MySQL is running and credentials are correct in `application.properties`
 
 ### Port Already in Use
+
 ```
 Error: Port 8080 is already in use
 ```
+
 **Solution**: Change port in `application.properties`:
+
 ```properties
 server.port=8081
 ```
 
 ### Build Fails
+
 ```
 Error: Failed to execute goal
 ```
-**Solution**: 
+
+**Solution**:
+
 ```bash
 mvn clean
 mvn install -U
@@ -528,6 +572,7 @@ mvn install -U
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
+
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit changes (`git commit -m 'Add AmazingFeature'`)
@@ -545,6 +590,7 @@ This project is open source and available for educational purposes.
 ## 💬 Support
 
 For issues or questions:
+
 - Email: admin@shrishailacademy.com
 - GitHub Issues: [Create an issue](https://github.com/your-repo/issues)
 
