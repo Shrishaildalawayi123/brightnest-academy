@@ -32,7 +32,6 @@ import java.util.UUID;
 public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-    private static final String SAME_SITE_POLICY = "Strict";
 
     private final AuthService authService;
     private final AuditLogService auditLogService;
@@ -47,6 +46,9 @@ public class AuthController {
 
     @Value("${security.cookie.secure:false}")
     private boolean secureCookie;
+
+    @Value("${security.cookie.same-site:Lax}")
+    private String sameSitePolicy;
 
     public AuthController(AuthService authService,
             AuditLogService auditLogService,
@@ -70,7 +72,7 @@ public class AuthController {
                     "New user registered: " + request.getEmail(), httpRequest);
             // Cookie-based auth: do NOT return JWT in JSON.
             return ResponseEntity.ok(new AuthUserResponse(response.getId(), response.getName(), response.getEmail(),
-                response.getRole()));
+                    response.getRole()));
         } catch (Exception e) {
             log.warn("Registration failed for email: {}", request.getEmail());
             auditLogService.logEvent(null, "REGISTER_FAILED",
@@ -92,7 +94,7 @@ public class AuthController {
                     "User logged in: " + request.getEmail(), httpRequest);
             // Cookie-based auth: do NOT return JWT in JSON.
             return ResponseEntity.ok(new AuthUserResponse(response.getId(), response.getName(), response.getEmail(),
-                response.getRole()));
+                    response.getRole()));
         } catch (Exception e) {
             log.warn("Login failed for email: {}", request.getEmail());
             auditLogService.logEvent(null, "LOGIN_FAILED",
@@ -134,7 +136,7 @@ public class AuthController {
 
         // Cookie-based auth: do NOT return JWT in JSON.
         return ResponseEntity.ok(Map.of(
-            "message", "Token refreshed successfully"));
+                "message", "Token refreshed successfully"));
     }
 
     @PostMapping("/logout")
@@ -161,10 +163,12 @@ public class AuthController {
         long refreshMaxAge = Math.max(1, refreshTokenExpirationMs / 1000);
         String csrfToken = UUID.randomUUID().toString();
 
+        String sameSite = normalizeSameSitePolicy(sameSitePolicy);
+
         ResponseCookie authCookie = ResponseCookie.from("AUTH_TOKEN", jwtToken)
                 .httpOnly(true)
                 .secure(isSecure)
-                .sameSite(SAME_SITE_POLICY)
+            .sameSite(sameSite)
                 .path("/")
                 .maxAge(accessMaxAge)
                 .build();
@@ -172,7 +176,7 @@ public class AuthController {
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH_TOKEN", refreshToken)
                 .httpOnly(true)
                 .secure(isSecure)
-                .sameSite(SAME_SITE_POLICY)
+            .sameSite(sameSite)
                 .path("/api/auth/refresh")
                 .maxAge(refreshMaxAge)
                 .build();
@@ -180,7 +184,7 @@ public class AuthController {
         ResponseCookie csrfCookie = ResponseCookie.from("XSRF-TOKEN", csrfToken)
                 .httpOnly(false)
                 .secure(isSecure)
-                .sameSite(SAME_SITE_POLICY)
+            .sameSite(sameSite)
                 .path("/")
                 .maxAge(accessMaxAge)
                 .build();
@@ -193,10 +197,12 @@ public class AuthController {
     private void clearAuthCookies(HttpServletRequest request, HttpServletResponse response) {
         boolean isSecure = isSecureRequest(request);
 
+        String sameSite = normalizeSameSitePolicy(sameSitePolicy);
+
         ResponseCookie authCookie = ResponseCookie.from("AUTH_TOKEN", "")
                 .httpOnly(true)
                 .secure(isSecure)
-                .sameSite(SAME_SITE_POLICY)
+            .sameSite(sameSite)
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -204,7 +210,7 @@ public class AuthController {
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH_TOKEN", "")
                 .httpOnly(true)
                 .secure(isSecure)
-                .sameSite(SAME_SITE_POLICY)
+            .sameSite(sameSite)
                 .path("/api/auth/refresh")
                 .maxAge(0)
                 .build();
@@ -212,7 +218,7 @@ public class AuthController {
         ResponseCookie csrfCookie = ResponseCookie.from("XSRF-TOKEN", "")
                 .httpOnly(false)
                 .secure(isSecure)
-                .sameSite(SAME_SITE_POLICY)
+            .sameSite(sameSite)
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -238,5 +244,16 @@ public class AuthController {
         return secureCookie
                 || request.isSecure()
                 || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+    }
+
+    private String normalizeSameSitePolicy(String value) {
+        if (value == null || value.isBlank()) {
+            return "Lax";
+        }
+        String normalized = value.trim();
+        if ("Lax".equalsIgnoreCase(normalized)) return "Lax";
+        if ("Strict".equalsIgnoreCase(normalized)) return "Strict";
+        if ("None".equalsIgnoreCase(normalized)) return "None";
+        return "Lax";
     }
 }

@@ -1,5 +1,4 @@
-@echo off
-setlocal EnableExtensions EnableDelayedExpansion
+
 :: ============================================================
 :: BrightNest Academy - Deploy Script
 :: Builds (optional) and pushes to GitHub
