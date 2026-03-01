@@ -32,4 +32,8 @@ public class ApiResponse {
     public static ApiResponse error(String message) {
         return new ApiResponse(false, message);
     }
+
+    public static ApiResponse error(String message, Object data) {
+        return new ApiResponse(false, message, data);
+    }
 }

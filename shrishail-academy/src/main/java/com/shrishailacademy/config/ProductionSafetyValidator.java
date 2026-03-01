@@ -45,7 +45,8 @@ public class ProductionSafetyValidator {
         }
 
         if (DEFAULT_ADMIN_PASSWORD.equals(adminPassword)) {
-            throw new IllegalStateException("Refusing to start in prod with default admin password. Set ADMIN_PASSWORD.");
+            throw new IllegalStateException(
+                    "Refusing to start in prod with default admin password. Set ADMIN_PASSWORD.");
         }
 
         log.info("ProductionSafetyValidator: basic secret checks passed.");
