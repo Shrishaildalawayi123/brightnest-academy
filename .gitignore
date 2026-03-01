@@ -1,0 +1,12 @@
+# Repo-root ignores (workspace-level)
+
+# JVM crash logs
+hs_err_pid*.log
+
+# General logs
+*.log
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
