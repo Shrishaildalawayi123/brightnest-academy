@@ -24,56 +24,62 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class AuthFlowIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Test
-    void registerAndLoginShouldWorkWithH2BackedPersistence() throws Exception {
-        String email = "student-" + UUID.randomUUID() + "@example.com";
-        String password = "Student@123";
+        @Test
+        void registerAndLoginShouldWorkWithH2BackedPersistence() throws Exception {
+                String email = "student-" + UUID.randomUUID() + "@example.com";
+                String password = "Student@123";
 
-        String registerPayload = """
-                {
-                  "name": "Integration Student",
-                  "email": "%s",
-                  "password": "%s",
-                  "phone": "9876543210"
-                }
-                """.formatted(email, password);
+                String registerPayload = """
+                                {
+                                  "name": "Integration Student",
+                                  "email": "%s",
+                                  "password": "%s",
+                                  "phone": "9876543210"
+                                }
+                                """.formatted(email, password);
 
-        mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(registerPayload))
-                .andExpect(status().isOk())
-                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("AUTH_TOKEN="))))
-                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("REFRESH_TOKEN="))))
-                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("XSRF-TOKEN="))))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.token").doesNotExist())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.name").isString())
-                .andExpect(jsonPath("$.email").value(email))
-                .andExpect(jsonPath("$.role").value("STUDENT"));
+                mockMvc.perform(post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(registerPayload))
+                                .andExpect(status().isOk())
+                                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
+                                                hasItem(containsString("AUTH_TOKEN="))))
+                                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
+                                                hasItem(containsString("REFRESH_TOKEN="))))
+                                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
+                                                hasItem(containsString("XSRF-TOKEN="))))
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.token").doesNotExist())
+                                .andExpect(jsonPath("$.id").isNumber())
+                                .andExpect(jsonPath("$.name").isString())
+                                .andExpect(jsonPath("$.email").value(email))
+                                .andExpect(jsonPath("$.role").value("STUDENT"));
 
-        String loginPayload = """
-                {
-                  "email": "%s",
-                  "password": "%s"
-                }
-                """.formatted(email, password);
+                String loginPayload = """
+                                {
+                                  "email": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(email, password);
 
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginPayload))
-                .andExpect(status().isOk())
-                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("AUTH_TOKEN="))))
-                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("REFRESH_TOKEN="))))
-                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, hasItem(containsString("XSRF-TOKEN="))))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.token").doesNotExist())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.name").isString())
-                .andExpect(jsonPath("$.email").value(email))
-                .andExpect(jsonPath("$.role").value("STUDENT"));
-    }
+                mockMvc.perform(post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(loginPayload))
+                                .andExpect(status().isOk())
+                                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
+                                                hasItem(containsString("AUTH_TOKEN="))))
+                                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
+                                                hasItem(containsString("REFRESH_TOKEN="))))
+                                .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
+                                                hasItem(containsString("XSRF-TOKEN="))))
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.token").doesNotExist())
+                                .andExpect(jsonPath("$.id").isNumber())
+                                .andExpect(jsonPath("$.name").isString())
+                                .andExpect(jsonPath("$.email").value(email))
+                                .andExpect(jsonPath("$.role").value("STUDENT"));
+        }
 }
