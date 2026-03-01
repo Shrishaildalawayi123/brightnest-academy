@@ -1,3 +1,5 @@
+@echo off
+setlocal EnableExtensions EnableDelayedExpansion
 
 :: ============================================================
 :: BrightNest Academy - Deploy Script
@@ -57,18 +59,25 @@ set TIMESTAMP=%date:~6,4%-%date:~3,2%-%date:~0,2% %time:~0,8%
 echo [3/4] Committing changes...
 
 set "DEFAULT_MSG=Deploy: %TIMESTAMP%"
-set "COMMIT_MSG="
+set "COMMIT_MSG=%DEFAULT_MSG%"
 
+REM If a commit message is passed as args, use it.
 if not "%~1"=="" (
     set "COMMIT_MSG=%*"
-    if "!COMMIT_MSG:~0,1!"=="\"" if "!COMMIT_MSG:~-1!"=="\"" set "COMMIT_MSG=!COMMIT_MSG:~1,-1!"
-) else (
-    set /p COMMIT_MSG=Enter commit message ^(leave blank for !DEFAULT_MSG!^): 
 )
 
-if "!COMMIT_MSG!"=="" set "COMMIT_MSG=!DEFAULT_MSG!"
+REM Strip surrounding quotes (common when calling: deploy.bat "message with spaces")
+if "!COMMIT_MSG:~0,1!"=="\"" if "!COMMIT_MSG:~-1!"=="\"" set "COMMIT_MSG=!COMMIT_MSG:~1,-1!"
+
+REM Optional interactive prompt only when DEPLOY_PROMPT=1 and no args provided.
+if "%~1"=="" if /i "!DEPLOY_PROMPT!"=="1" (
+    set "COMMIT_MSG="
+    set /p COMMIT_MSG=Enter commit message ^(leave blank for !DEFAULT_MSG!^): 
+    if "!COMMIT_MSG!"=="" set "COMMIT_MSG=!DEFAULT_MSG!"
+)
 
 pushd "%REPO_ROOT%" >nul
+if /i "!DEPLOY_DEBUG!"=="1" echo Running: git commit -m "!COMMIT_MSG!"
 git commit -m "!COMMIT_MSG!"
 if errorlevel 1 (
     echo       No changes to commit ^(or commit failed^). Continuing...
@@ -94,6 +103,6 @@ echo  SUCCESS! Deployed to GitHub at %TIMESTAMP%
 echo  View at: https://github.com/Shrishaildalawayi123/brightnest-academy
 echo ====================================================
 echo.
-pause
+if /i not "!DEPLOY_NO_PAUSE!"=="1" pause
 popd >nul
 endlocal
