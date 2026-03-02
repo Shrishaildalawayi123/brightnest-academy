@@ -1,0 +1,31 @@
+# Production compose (pulls image from GHCR)
+# Intended location on server: /opt/brightnest/docker-compose.yml
+# Requires: /opt/brightnest/.env
+
+version: "3.8"
+
+services:
+  app:
+    image: ghcr.io/REPLACE_ME_OWNER/brightnest-academy:latest
+    container_name: brightnest-academy
+    env_file:
+      - /opt/brightnest/.env
+    ports:
+      # bind only to localhost; Nginx reverse-proxies to this
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'curl -fsS http://127.0.0.1:8080/actuator/health | grep -q ''"status"'' || exit 1',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s

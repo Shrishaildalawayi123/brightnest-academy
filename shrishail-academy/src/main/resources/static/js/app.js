@@ -1,3 +1,12 @@
+// Inject Tailwind CSS CDN for utility classes
+(function () {
+  if (!document.querySelector('script[src*="tailwindcss"]')) {
+    var s = document.createElement("script");
+    s.src = "https://cdn.tailwindcss.com";
+    document.head.appendChild(s);
+  }
+})();
+
 /**
  * BrightNest Academy - Main JavaScript
  * Handles UI interactions, navigation, and dynamic content

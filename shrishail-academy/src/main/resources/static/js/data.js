@@ -732,7 +732,7 @@ function getNavHTML(activePage) {
     <header class="header" id="header">
         <nav class="nav container">
             <a href="index.html" class="logo">
-                <img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon" style="height:80px;width:auto;">
+              <img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon">
                 <span>BrightNest Academy</span>
             </a>
             <ul class="nav-links" id="navLinks">
@@ -764,74 +764,169 @@ function getNavHTML(activePage) {
 
 function getFooterHTML() {
   return `
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <div class="footer-logo">
-                        <img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon" style="height:80px;width:auto;">
-                        <span>BrightNest Academy</span>
-                    </div>
-                    <p class="footer-desc">Because every bright mind deserves the right nest. Personalized education in Languages, Mathematics & Science for Grades 1–10.</p>
-                    <div class="footer-social">
-                        <a href="https://www.facebook.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-                        <a href="https://www.instagram.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-                        <a href="https://www.youtube.com/@brightnestacademy" target="_blank" rel="noopener" aria-label="YouTube"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
-                        <a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy!%20I%27d%20like%20to%20know%20more%20about%20your%20courses%20and%20enrollment." target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
-                    </div>
-                </div>
-                <div class="footer-col">
-                    <h4>Subjects</h4>
-                    <ul>
-                        <li><a href="kannada.html">Kannada</a></li>
-                        <li><a href="english.html">English</a></li>
-                        <li><a href="hindi.html">Hindi</a></li>
-                        <li><a href="sanskrit.html">Sanskrit</a></li>
-                        <li><a href="maths.html">Mathematics</a></li>
-                        <li><a href="science.html">Science</a></li>
-                        <li><a href="german.html">German</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="about.html">About</a></li>
-                        <li><a href="faq.html">FAQ</a></li>
-                        <li><a href="blog.html">Blog</a></li>
-                        <li><a href="demo.html">Book a Demo</a></li>
-                        <li><a href="contact.html">Contact Us</a></li>
-                        <li><a href="careers.html">Careers</a></li>
-                        <li><a href="fee-payment.html">Pay Fees</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Legal</h4>
-                    <ul>
-                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
-                        <li><a href="terms-conditions.html">Terms & Conditions</a></li>
-                        <li><a href="course-delivery.html">Course Delivery</a></li>
-                        <li><a href="pricing-cancellation.html">Pricing & Cancellation</a></li>
-                        <li><a href="fee-payment.html">Fee & Payment</a></li>
-                    </ul>
-                </div>
+    <footer class="bg-slate-900 text-slate-400 mt-10" style="font-family:inherit;">
+
+      <!-- Top Section -->
+      <div class="container pt-16 pb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12">
+
+          <!-- Col 1: Brand + Description + Social -->
+          <div class="lg:col-span-1 flex flex-col">
+            <!-- Logo + Name -->
+            <div class="flex items-center gap-3 mb-4">
+              <img src="images/logo.png?v=2" alt="BrightNest Academy"
+                   style="height:52px;width:auto;flex-shrink:0;">
+              <div class="leading-tight">
+                <span class="block text-white font-bold text-base tracking-tight">BrightNest</span>
+                <span class="block text-indigo-400 font-semibold text-sm tracking-wide">Academy</span>
+              </div>
             </div>
-            <div class="footer-contact">
-                <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg> <a href="tel:+916363464005" style="color:inherit;text-decoration:none;">+91-6363464005</a></span>
-                <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> <a href="mailto:info@brightnest-academy.com" style="color:inherit;text-decoration:none;">info@brightnest-academy.com</a></span>
-                <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Kumaraswamy Layout, Bengaluru – 560078</span>
+            <!-- Tagline -->
+            <p class="text-sm text-slate-400 leading-relaxed mb-6" style="max-width:260px;">
+              Because every bright mind deserves the right nest. Personalized education in Languages, Mathematics &amp; Science for Grades 1–10.
+            </p>
+            <!-- Social row -->
+            <div class="flex items-center gap-2.5 mt-auto">
+              <a href="https://www.facebook.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Facebook"
+                 class="w-9 h-9 rounded-full bg-slate-700 hover:bg-blue-600 flex items-center justify-center transition-colors duration-200 flex-shrink-0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </a>
+              <a href="https://www.instagram.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Instagram"
+                 class="w-9 h-9 rounded-full bg-slate-700 hover:bg-pink-600 flex items-center justify-center transition-colors duration-200 flex-shrink-0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              </a>
+              <a href="https://www.youtube.com/@brightnestacademy" target="_blank" rel="noopener" aria-label="YouTube"
+                 class="w-9 h-9 rounded-full bg-slate-700 hover:bg-red-600 flex items-center justify-center transition-colors duration-200 flex-shrink-0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              </a>
+              <a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy!%20I%27d%20like%20to%20know%20more%20about%20your%20courses%20and%20enrollment." target="_blank" rel="noopener" aria-label="WhatsApp"
+                 class="w-9 h-9 rounded-full bg-slate-700 hover:bg-green-500 flex items-center justify-center transition-colors duration-200 flex-shrink-0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              </a>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; ${new Date().getFullYear()} BrightNest Academy. All rights reserved.</p>
-            </div>
+          </div>
+
+          <!-- Col 2: Subjects -->
+          <div>
+            <h4 class="text-white font-semibold text-xs uppercase tracking-[0.15em] pb-3 mb-5"
+                style="border-bottom:1px solid rgba(99,102,241,0.35);">Subjects</h4>
+            <ul class="space-y-3 text-sm">
+              <li><a href="kannada.html"  class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Kannada</a></li>
+              <li><a href="english.html"  class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>English</a></li>
+              <li><a href="hindi.html"    class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Hindi</a></li>
+              <li><a href="sanskrit.html" class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Sanskrit</a></li>
+              <li><a href="maths.html"    class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Mathematics</a></li>
+              <li><a href="science.html"  class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Science</a></li>
+              <li><a href="german.html"   class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>German</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 3: Quick Links + Legal -->
+          <div>
+            <h4 class="text-white font-semibold text-xs uppercase tracking-[0.15em] pb-3 mb-5"
+                style="border-bottom:1px solid rgba(99,102,241,0.35);">Quick Links</h4>
+            <ul class="space-y-3 text-sm mb-8">
+              <li><a href="about.html"       class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>About Us</a></li>
+              <li><a href="faq.html"         class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>FAQ</a></li>
+              <li><a href="blog.html"        class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Blog</a></li>
+              <li><a href="demo.html"        class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Book a Demo</a></li>
+              <li><a href="contact.html"     class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Contact Us</a></li>
+              <li><a href="careers.html"     class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Careers</a></li>
+              <li><a href="fee-payment.html" class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Pay Fees</a></li>
+            </ul>
+            <h4 class="text-white font-semibold text-xs uppercase tracking-[0.15em] pb-3 mb-4"
+                style="border-bottom:1px solid rgba(99,102,241,0.35);">Legal</h4>
+            <ul class="space-y-3 text-sm">
+              <li><a href="privacy-policy.html"       class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Privacy Policy</a></li>
+              <li><a href="terms-conditions.html"     class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Terms &amp; Conditions</a></li>
+              <li><a href="pricing-cancellation.html" class="flex items-center gap-1.5 hover:text-white hover:gap-2.5 transition-all duration-150"><span class="text-indigo-500 text-xs">›</span>Pricing &amp; Cancellation</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 4: Contact Info -->
+          <div>
+            <h4 class="text-white font-semibold text-xs uppercase tracking-[0.15em] pb-3 mb-5"
+                style="border-bottom:1px solid rgba(99,102,241,0.35);">Get In Touch</h4>
+            <ul class="space-y-5 text-sm">
+              <!-- Phone -->
+              <li class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center flex-shrink-0 text-indigo-400">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                </span>
+                <a href="tel:+916363464005" class="hover:text-white transition-colors leading-snug">+91-6363464005</a>
+              </li>
+              <!-- Email -->
+              <li class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center flex-shrink-0 text-indigo-400">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </span>
+                <a href="mailto:info@brightnest-academy.com" class="hover:text-white transition-colors leading-snug" style="word-break:break-all;">info@brightnest-academy.com</a>
+              </li>
+              <!-- Address -->
+              <li class="flex items-start gap-3">
+                <span class="w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center flex-shrink-0 text-indigo-400 mt-0.5">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
+                <span class="leading-relaxed">Kumaraswamy Layout,<br>Bengaluru – 560078</span>
+              </li>
+              <!-- CTA -->
+              <li class="pt-1">
+                <a href="demo.html"
+                   class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors duration-200">
+                  Book a Free Demo
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+              </li>
+            </ul>
+          </div>
+
         </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="container">
+        <div class="border-t border-slate-700/50"></div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="container py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <p class="text-slate-500">© <span id="year"></span> BrightNest Academy. All rights reserved.</p>
+        <div class="flex flex-wrap justify-center items-center gap-x-5 gap-y-1">
+          <a href="privacy-policy.html"   class="hover:text-slate-300 transition-colors">Privacy</a>
+          <span class="text-slate-700">·</span>
+          <a href="terms-conditions.html" class="hover:text-slate-300 transition-colors">Terms</a>
+          <span class="text-slate-700">·</span>
+          <a href="course-delivery.html"  class="hover:text-slate-300 transition-colors">Course Delivery</a>
+          <span class="text-slate-700">·</span>
+          <a href="fee-payment.html"      class="hover:text-slate-300 transition-colors">Fee &amp; Payment</a>
+        </div>
+        <div class="flex flex-col items-center sm:items-end leading-snug">
+          <p class="text-xs text-slate-500 opacity-80 hover:opacity-100 transition duration-300">
+            <a 
+              href="https://www.linkedin.com/in/shrishail-dalawayi-sd-b42718130/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-slate-300 inline-flex items-center gap-1"
+            >
+              Designed &amp; Developed by Shrishail Dalawayi
+              <span class="text-[10px]">↗</span>
+            </a>
+          </p>
+        </div>
+      </div>
+
     </footer>
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
     <!-- WhatsApp Floating Button -->
     <a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy!%20I%27m%20interested%20in%20enrolling%20my%20child.%20Please%20share%20course%20details%2C%20schedule%20and%20fees." target="_blank" rel="noopener"
        style="position:fixed;bottom:24px;right:24px;z-index:9999;width:60px;height:60px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:transform .2s;text-decoration:none;"
        aria-label="Chat on WhatsApp"
        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-    </a>`;
+    </a>
+  `;
 }
 
 /* Course Detail Renderers */

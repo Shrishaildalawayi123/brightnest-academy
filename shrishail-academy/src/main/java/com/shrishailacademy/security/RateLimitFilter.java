@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,9 +64,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 log.warn("Rate limit exceeded for {} on {}", clientIp, path);
                 response.setStatus(429);
                 response.setContentType("application/json");
-                response.getWriter().write(
-                        "{\"success\":false,\"message\":\"Too many requests. Please wait " +
-                                windowSeconds + " seconds before trying again.\"}");
+                String body = "{"
+                        + "\"timestamp\":\"" + Instant.now().toString() + "\","
+                        + "\"status\":429,"
+                        + "\"error\":\"Too Many Requests\","
+                        + "\"message\":\"Too many requests. Please wait " + windowSeconds
+                        + " seconds before trying again.\""
+                        + "}";
+                response.getWriter().write(body);
                 return;
             }
         }

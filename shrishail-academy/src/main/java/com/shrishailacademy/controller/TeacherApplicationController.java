@@ -1,6 +1,7 @@
 package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.TeacherApplicationRequest;
+import com.shrishailacademy.dto.StatusUpdateRequest;
 import com.shrishailacademy.service.ResumeStorageService;
 import com.shrishailacademy.service.TeacherApplicationService;
 import jakarta.validation.Valid;
@@ -88,8 +89,8 @@ public class TeacherApplicationController {
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> updateStatus(@PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-        String status = body.getOrDefault("status", "NEW");
+            @Valid @RequestBody StatusUpdateRequest request) {
+        String status = request.status();
         teacherApplicationService.updateStatus(id, status);
         return ResponseEntity.ok(Map.of("message", "Application status updated to " + status.toUpperCase()));
     }

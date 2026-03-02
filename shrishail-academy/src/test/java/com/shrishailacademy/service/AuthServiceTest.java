@@ -89,7 +89,7 @@ class AuthServiceTest {
         assertEquals("jwt-token", response.getToken());
         assertEquals(10L, response.getId());
         assertEquals("student@example.com", response.getEmail());
-        assertEquals("STUDENT", response.getRole());
+        assertEquals("ROLE_STUDENT", response.getRole());
     }
 
     @Test
@@ -111,7 +111,7 @@ class AuthServiceTest {
 
         assertEquals("token-123", response.getToken());
         assertEquals(2L, response.getId());
-        assertEquals("ADMIN", response.getRole());
+        assertEquals("ROLE_ADMIN", response.getRole());
         assertSame(authentication, SecurityContextHolder.getContext().getAuthentication());
     }
 

@@ -102,7 +102,7 @@ public class AttendanceController {
         // Students can only view their own summary
         Long effectiveUserId = currentUser.isAdmin() ? userId : currentUser.getId();
         if (effectiveUserId == null) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("User ID is required"));
+            throw new IllegalArgumentException("User ID is required");
         }
 
         Map<String, Object> summary = attendanceService.getAttendanceSummary(effectiveUserId, courseId);

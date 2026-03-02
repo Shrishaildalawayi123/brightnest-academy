@@ -1,0 +1,62 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build with Maven
+        working-directory: shrishail-academy
+        run: mvn clean package -DskipTests
+
+      - name: Run Tests
+        working-directory: shrishail-academy
+        run: mvn test
+
+      - name: Build Docker Image
+        working-directory: shrishail-academy
+        run: docker build -t brightnestacademy:latest .
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Tag and Push Docker Image
+        run: |
+          docker tag brightnestacademy:latest ${{ secrets.DOCKER_USERNAME }}/brightnestacademy:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/brightnestacademy:latest
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            docker pull ${{ secrets.DOCKER_USERNAME }}/brightnestacademy:latest
+            docker stop brightnest || true
+            docker rm brightnest || true
+            docker run -d -p 8080:8080 --name brightnest \
+              --env-file /opt/brightnest-academy/.env \
+              --restart unless-stopped \
+              ${{ secrets.DOCKER_USERNAME }}/brightnestacademy:latest
+            docker image prune -f

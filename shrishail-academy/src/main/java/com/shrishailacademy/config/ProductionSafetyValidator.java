@@ -19,8 +19,9 @@ public class ProductionSafetyValidator {
 
     private static final Logger log = LoggerFactory.getLogger(ProductionSafetyValidator.class);
 
-    private static final String DEFAULT_DEV_JWT_PREFIX = "BrightNestAcademy-Dev-Secret-Key";
     private static final String DEFAULT_ADMIN_PASSWORD = "Admin@123";
+    private static final String DEFAULT_DB_USER = "root";
+    private static final String DEFAULT_DB_PASS = "root";
 
     private final Environment environment;
 
@@ -29,6 +30,12 @@ public class ProductionSafetyValidator {
 
     @Value("${admin.password:}")
     private String adminPassword;
+
+    @Value("${spring.datasource.username:}")
+    private String dbUser;
+
+    @Value("${spring.datasource.password:}")
+    private String dbPass;
 
     public ProductionSafetyValidator(Environment environment) {
         this.environment = environment;
@@ -40,13 +47,23 @@ public class ProductionSafetyValidator {
             return;
         }
 
-        if (jwtSecret == null || jwtSecret.isBlank() || jwtSecret.startsWith(DEFAULT_DEV_JWT_PREFIX)) {
-            throw new IllegalStateException("Refusing to start in prod with default/blank JWT secret. Set JWT_SECRET.");
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("Refusing to start in prod with blank JWT secret. Set JWT_SECRET.");
         }
 
         if (DEFAULT_ADMIN_PASSWORD.equals(adminPassword)) {
             throw new IllegalStateException(
                     "Refusing to start in prod with default admin password. Set ADMIN_PASSWORD.");
+        }
+
+        if (DEFAULT_DB_USER.equalsIgnoreCase(dbUser)) {
+            throw new IllegalStateException(
+                    "Refusing to start in prod with DB_USER=root. Create a least-privileged DB user and set DB_USER.");
+        }
+
+        if (DEFAULT_DB_PASS.equals(dbPass)) {
+            throw new IllegalStateException(
+                    "Refusing to start in prod with DB_PASS=root. Set a strong DB_PASS for the app DB user.");
         }
 
         log.info("ProductionSafetyValidator: basic secret checks passed.");

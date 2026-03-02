@@ -46,6 +46,9 @@ class PublicApiIntegrationTest {
         mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value("Unauthorized - please login"));
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.message").value("Unauthorized - please login"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 }

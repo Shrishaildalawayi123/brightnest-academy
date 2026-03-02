@@ -8,7 +8,8 @@ function resolveApiBaseUrl() {
   // - window.__API_BASE_URL__ = "http://localhost:8080/api"
   // - localStorage.apiBaseUrl = "http://localhost:8080/api"
   const fromWindow = window.__API_BASE_URL__;
-  if (typeof fromWindow === "string" && fromWindow.trim()) return fromWindow.trim().replace(/\/$/, "");
+  if (typeof fromWindow === "string" && fromWindow.trim())
+    return fromWindow.trim().replace(/\/$/, "");
 
   const fromStorage = localStorage.getItem("apiBaseUrl");
   if (typeof fromStorage === "string" && fromStorage.trim()) {
@@ -38,8 +39,12 @@ const API = {
 
   getHeaders(includeAuth = false) {
     const headers = { "Content-Type": "application/json" };
-    // Auth is cookie-based (HttpOnly cookies). Do not attach Authorization headers
-    // from localStorage tokens (legacy behavior) because it can override cookies.
+    if (includeAuth) {
+      const token = localStorage.getItem("token");
+      if (token && token.trim()) {
+        headers["Authorization"] = `Bearer ${token.trim()}`;
+      }
+    }
     return headers;
   },
 

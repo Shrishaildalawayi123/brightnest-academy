@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Set;
 
 /**
@@ -49,7 +50,13 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
         if (!StringUtils.hasText(csrfCookie) || !csrfCookie.equals(csrfHeader)) {
             response.setStatus(403);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Invalid CSRF token\"}");
+            String body = "{"
+                    + "\"timestamp\":\"" + Instant.now().toString() + "\","
+                    + "\"status\":403,"
+                    + "\"error\":\"Forbidden\","
+                    + "\"message\":\"Invalid CSRF token\""
+                    + "}";
+            response.getWriter().write(body);
             return;
         }
 

@@ -52,11 +52,12 @@ class AuthFlowIntegrationTest {
                                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
                                                 hasItem(containsString("XSRF-TOKEN="))))
                                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                                .andExpect(jsonPath("$.token").doesNotExist())
+                                .andExpect(jsonPath("$.token").isString())
+                                .andExpect(jsonPath("$.username").value(email))
                                 .andExpect(jsonPath("$.id").isNumber())
                                 .andExpect(jsonPath("$.name").isString())
                                 .andExpect(jsonPath("$.email").value(email))
-                                .andExpect(jsonPath("$.role").value("STUDENT"));
+                                .andExpect(jsonPath("$.role").value("ROLE_STUDENT"));
 
                 String loginPayload = """
                                 {
@@ -76,10 +77,11 @@ class AuthFlowIntegrationTest {
                                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE,
                                                 hasItem(containsString("XSRF-TOKEN="))))
                                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                                .andExpect(jsonPath("$.token").doesNotExist())
+                                .andExpect(jsonPath("$.token").isString())
+                                .andExpect(jsonPath("$.username").value(email))
                                 .andExpect(jsonPath("$.id").isNumber())
                                 .andExpect(jsonPath("$.name").isString())
                                 .andExpect(jsonPath("$.email").value(email))
-                                .andExpect(jsonPath("$.role").value("STUDENT"));
+                                .andExpect(jsonPath("$.role").value("ROLE_STUDENT"));
         }
 }

@@ -1,26 +1,26 @@
 # =============================================
 # Dockerfile - BrightNest Academy
 # Multi-stage build for production deployment
-# Hardened: non-root, minimal image, no shell access
+# Hardened: non-root, slim JRE, healthcheck
 # =============================================
 
 # Stage 1: Build
-FROM maven:3.9.5-eclipse-temurin-21-alpine AS build
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
-# Stage 2: Run (minimal attack surface)
-FROM eclipse-temurin:21-jre-alpine
+# Stage 2: Run (slim JRE)
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-# Security: remove unnecessary packages, create non-root user
-RUN apk --no-cache upgrade \
-    && apk --no-cache add --virtual .health wget \
-    && addgroup -S academy && adduser -S academy -G academy \
-    && rm -rf /var/cache/apk/* /tmp/*
+# Security: minimal packages + create non-root user
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd --system --uid 10001 --create-home --home-dir /home/academy academy
 
 # Copy artifact before switching user
 COPY --from=build --chown=academy:academy /app/target/*.jar app.jar
@@ -28,9 +28,9 @@ COPY --from=build --chown=academy:academy /app/target/*.jar app.jar
 # Drop to non-root user
 USER academy
 
-# Health check — hit the /health endpoint every 30s
+# Health check — hit the /actuator/health endpoint every 30s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+  CMD curl -fsS http://localhost:8080/actuator/health | grep -q '"status"' || exit 1
 
 # Only expose the app port
 EXPOSE 8080

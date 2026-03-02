@@ -138,10 +138,6 @@ img {
   max-width: 100%;
   height: auto;
 }
-img.logo-icon {
-  height: 95px !important;
-  max-height: 95px !important;
-}
 
 /* ========== Typography ========== */
 h1,
@@ -189,14 +185,14 @@ a:hover {
 .container {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 3rem;
+  padding: 0 clamp(var(--space-md), 3.5vw, 2.75rem);
 }
 .section {
-  padding: var(--space-4xl) 0;
+  padding: clamp(2rem, 5vw, var(--space-4xl)) 0;
 }
 .section-header {
   text-align: center;
-  margin-bottom: var(--space-2xl);
+  margin-bottom: clamp(var(--space-lg), 3vw, var(--space-2xl));
 }
 .section-title {
   font-size: clamp(1.7rem, 3.2vw, 2.4rem);
@@ -274,9 +270,9 @@ a:hover {
   white-space: nowrap;
 }
 .logo-icon {
-  height: 95px !important;
-  max-height: 95px !important;
-  width: auto !important;
+  height: calc(var(--header-height) - 10px);
+  max-height: calc(var(--header-height) - 10px);
+  width: auto;
   max-width: 220px;
   object-fit: contain;
   display: block;
@@ -314,6 +310,13 @@ a:hover {
 /* Nav Dropdown */
 .nav-dropdown {
   position: relative;
+}
+.nav-dropdown > .nav-link {
+  display: inline-flex;
+  align-items: center;
+}
+.nav-dropdown > .nav-link svg {
+  display: block;
 }
 .nav-dropdown .dropdown-menu {
   display: none;
@@ -809,6 +812,7 @@ a:hover {
   will-change: transform;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 .course-card::before {
   content: "";
@@ -833,18 +837,21 @@ a:hover {
   font-size: 2rem;
   width: 52px;
   height: 52px;
+  min-height: 52px;
   background: var(--primary-50);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 .course-card .card-title {
   font-size: 1.2rem;
   margin-bottom: 0.4rem;
   color: var(--navy-900);
   font-weight: 700;
+  min-height: 1.5em;
 }
 .course-card .card-description {
   color: var(--navy-500);
@@ -1861,6 +1868,10 @@ a:hover {
     border-radius: var(--border-radius-sm);
     color: var(--navy-700);
   }
+  .nav-dropdown > .nav-link {
+    display: flex;
+    align-items: center;
+  }
   .nav-links .nav-link:hover {
     background: var(--primary-50);
     color: var(--primary-600);
@@ -2420,6 +2431,7 @@ a:hover {
   padding: var(--space-3xl);
   max-width: 480px;
   width: 100%;
+  margin: 0 auto;
   box-shadow: var(--shadow-xl);
 }
 .auth-container h1 {

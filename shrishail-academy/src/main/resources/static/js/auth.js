@@ -24,7 +24,7 @@ const Auth = {
    */
   isAdmin() {
     const user = this.getCurrentUser();
-    return user && user.role === "ADMIN";
+    return user && (user.role === "ADMIN" || user.role === "ROLE_ADMIN");
   },
 
   /**
@@ -32,7 +32,7 @@ const Auth = {
    */
   isStudent() {
     const user = this.getCurrentUser();
-    return user && user.role === "STUDENT";
+    return user && (user.role === "STUDENT" || user.role === "ROLE_STUDENT");
   },
 
   /**
@@ -40,9 +40,14 @@ const Auth = {
    */
   async login(email, password) {
     try {
-      // Ensure legacy token-based auth state doesn't interfere with cookie auth.
-      localStorage.removeItem("token");
       const response = await API.login(email, password);
+
+      // Store JWT for Bearer-token API calls (optional; cookies still work too).
+      if (response && response.token) {
+        localStorage.setItem("token", response.token);
+      } else {
+        localStorage.removeItem("token");
+      }
 
       // Store only user profile; JWT is now managed via HttpOnly cookie.
       localStorage.setItem(
@@ -66,9 +71,13 @@ const Auth = {
    */
   async register(userData) {
     try {
-      // Ensure legacy token-based auth state doesn't interfere with cookie auth.
-      localStorage.removeItem("token");
       const response = await API.register(userData);
+
+      if (response && response.token) {
+        localStorage.setItem("token", response.token);
+      } else {
+        localStorage.removeItem("token");
+      }
 
       // Store only user profile; JWT is now managed via HttpOnly cookie.
       localStorage.setItem(

@@ -56,7 +56,7 @@ public class AuthService {
 
         String token = tokenProvider.generateTokenFromUsername(user.getEmail());
 
-        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), user.getRole().name());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), "ROLE_" + user.getRole().name());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -70,6 +70,6 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
 
         log.info("User logged in: email={}", user.getEmail());
-        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), user.getRole().name());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), "ROLE_" + user.getRole().name());
     }
 }

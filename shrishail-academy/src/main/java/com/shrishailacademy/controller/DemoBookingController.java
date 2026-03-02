@@ -1,6 +1,7 @@
 package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.DemoBookingRequest;
+import com.shrishailacademy.dto.StatusUpdateRequest;
 import com.shrishailacademy.model.DemoBooking;
 import com.shrishailacademy.service.DemoBookingService;
 import jakarta.validation.Valid;
@@ -43,8 +44,8 @@ public class DemoBookingController {
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> updateStatus(@PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-        String status = body.getOrDefault("status", "PENDING");
+            @Valid @RequestBody StatusUpdateRequest request) {
+        String status = request.status();
         demoBookingService.updateStatus(id, status);
         return ResponseEntity.ok(Map.of("message", "Booking status updated to " + status.toUpperCase()));
     }

@@ -1,8 +1,7 @@
 package com.shrishailacademy.controller;
 
-import com.shrishailacademy.dto.ApiResponse;
+import com.shrishailacademy.dto.ApiErrorResponse;
 import com.shrishailacademy.dto.AuthResponse;
-import com.shrishailacademy.dto.AuthUserResponse;
 import com.shrishailacademy.dto.LoginRequest;
 import com.shrishailacademy.dto.RegisterRequest;
 import com.shrishailacademy.model.User;
@@ -23,6 +22,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -70,15 +70,12 @@ public class AuthController {
             setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
             auditLogService.logEvent(response.getId(), "REGISTER",
                     "New user registered: " + request.getEmail(), httpRequest);
-            // Cookie-based auth: do NOT return JWT in JSON.
-            return ResponseEntity.ok(new AuthUserResponse(response.getId(), response.getName(), response.getEmail(),
-                    response.getRole()));
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.warn("Registration failed for email: {}", request.getEmail());
             auditLogService.logEvent(null, "REGISTER_FAILED",
                     "Registration attempt: " + request.getEmail(), httpRequest);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Registration failed. Please check your details and try again."));
+            throw e;
         }
     }
 
@@ -92,21 +89,18 @@ public class AuthController {
             setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
             auditLogService.logEvent(response.getId(), "LOGIN_SUCCESS",
                     "User logged in: " + request.getEmail(), httpRequest);
-            // Cookie-based auth: do NOT return JWT in JSON.
-            return ResponseEntity.ok(new AuthUserResponse(response.getId(), response.getName(), response.getEmail(),
-                    response.getRole()));
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.warn("Login failed for email: {}", request.getEmail());
             auditLogService.logEvent(null, "LOGIN_FAILED",
                     "Failed login attempt: " + request.getEmail(), httpRequest);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error("Invalid email or password."));
+            throw e;
         }
     }
 
     /**
      * Refresh token endpoint - rotates refresh token and issues new access token.
-     * Access token: 15 min (jwt.expiration), Refresh token: 7 days
+     * Access token: 1 hour (jwt.expiration), Refresh token: 7 days
      * (jwt.refresh.expiration).
      */
     @PostMapping("/refresh")
@@ -116,14 +110,22 @@ public class AuthController {
 
         if (oldRefreshToken == null || oldRefreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error("Refresh token missing"));
+                    .body(new ApiErrorResponse(
+                            Instant.now(),
+                            HttpStatus.UNAUTHORIZED.value(),
+                            "Unauthorized",
+                            "Refresh token missing"));
         }
 
         Optional<User> userOpt = refreshTokenService.rotateRefreshToken(oldRefreshToken);
         if (userOpt.isEmpty()) {
             clearAuthCookies(httpRequest, httpResponse);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error("Invalid or expired refresh token. Please login again."));
+                    .body(new ApiErrorResponse(
+                            Instant.now(),
+                            HttpStatus.UNAUTHORIZED.value(),
+                            "Unauthorized",
+                            "Invalid or expired refresh token. Please login again."));
         }
 
         User user = userOpt.get();
@@ -134,9 +136,10 @@ public class AuthController {
         auditLogService.logEvent(user.getId(), "TOKEN_REFRESH",
                 "Access token refreshed", httpRequest);
 
-        // Cookie-based auth: do NOT return JWT in JSON.
         return ResponseEntity.ok(Map.of(
-                "message", "Token refreshed successfully"));
+                "message", "Token refreshed successfully",
+                "token", newAccessToken,
+                "type", "Bearer"));
     }
 
     @PostMapping("/logout")
@@ -153,7 +156,7 @@ public class AuthController {
         }
         clearAuthCookies(request, response);
         auditLogService.logEvent(null, "LOGOUT", "User logged out", request);
-        return ResponseEntity.ok(ApiResponse.success("Logged out successfully"));
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
     private void setAuthCookies(HttpServletRequest request, HttpServletResponse response,
@@ -168,7 +171,7 @@ public class AuthController {
         ResponseCookie authCookie = ResponseCookie.from("AUTH_TOKEN", jwtToken)
                 .httpOnly(true)
                 .secure(isSecure)
-            .sameSite(sameSite)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(accessMaxAge)
                 .build();
@@ -176,7 +179,7 @@ public class AuthController {
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH_TOKEN", refreshToken)
                 .httpOnly(true)
                 .secure(isSecure)
-            .sameSite(sameSite)
+                .sameSite(sameSite)
                 .path("/api/auth/refresh")
                 .maxAge(refreshMaxAge)
                 .build();
@@ -184,7 +187,7 @@ public class AuthController {
         ResponseCookie csrfCookie = ResponseCookie.from("XSRF-TOKEN", csrfToken)
                 .httpOnly(false)
                 .secure(isSecure)
-            .sameSite(sameSite)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(accessMaxAge)
                 .build();
@@ -202,7 +205,7 @@ public class AuthController {
         ResponseCookie authCookie = ResponseCookie.from("AUTH_TOKEN", "")
                 .httpOnly(true)
                 .secure(isSecure)
-            .sameSite(sameSite)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -210,7 +213,7 @@ public class AuthController {
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH_TOKEN", "")
                 .httpOnly(true)
                 .secure(isSecure)
-            .sameSite(sameSite)
+                .sameSite(sameSite)
                 .path("/api/auth/refresh")
                 .maxAge(0)
                 .build();
@@ -218,7 +221,7 @@ public class AuthController {
         ResponseCookie csrfCookie = ResponseCookie.from("XSRF-TOKEN", "")
                 .httpOnly(false)
                 .secure(isSecure)
-            .sameSite(sameSite)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -251,9 +254,12 @@ public class AuthController {
             return "Lax";
         }
         String normalized = value.trim();
-        if ("Lax".equalsIgnoreCase(normalized)) return "Lax";
-        if ("Strict".equalsIgnoreCase(normalized)) return "Strict";
-        if ("None".equalsIgnoreCase(normalized)) return "None";
+        if ("Lax".equalsIgnoreCase(normalized))
+            return "Lax";
+        if ("Strict".equalsIgnoreCase(normalized))
+            return "Strict";
+        if ("None".equalsIgnoreCase(normalized))
+            return "None";
         return "Lax";
     }
 }
