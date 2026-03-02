@@ -21,7 +21,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -31,7 +33,6 @@ public class SecurityConfig {
         private final UserDetailsService userDetailsService;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final RateLimitFilter rateLimitFilter;
-        private final HttpsRedirectFilter httpsRedirectFilter;
         private final CsrfProtectionFilter csrfProtectionFilter;
         private final SecurityHeaderFilter securityHeaderFilter;
         private final AuthEntryPointJwt unauthorizedHandler;
@@ -39,17 +40,18 @@ public class SecurityConfig {
         @Value("${cors.allowed.origins:http://localhost:3000,http://localhost:8080}")
         private String corsAllowedOrigins;
 
+        @Value("${https.required:false}")
+        private boolean httpsRequired;
+
         public SecurityConfig(UserDetailsService userDetailsService,
                         JwtAuthenticationFilter jwtAuthenticationFilter,
                         RateLimitFilter rateLimitFilter,
-                        HttpsRedirectFilter httpsRedirectFilter,
                         CsrfProtectionFilter csrfProtectionFilter,
                         SecurityHeaderFilter securityHeaderFilter,
                         AuthEntryPointJwt unauthorizedHandler) {
                 this.userDetailsService = userDetailsService;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.rateLimitFilter = rateLimitFilter;
-                this.httpsRedirectFilter = httpsRedirectFilter;
                 this.csrfProtectionFilter = csrfProtectionFilter;
                 this.securityHeaderFilter = securityHeaderFilter;
                 this.unauthorizedHandler = unauthorizedHandler;
@@ -71,7 +73,11 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOriginPatterns(Arrays.asList(corsAllowedOrigins.split(",")));
+                List<String> allowedOriginPatterns = Arrays.stream(corsAllowedOrigins.split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isBlank())
+                                .collect(Collectors.toList());
+                configuration.setAllowedOriginPatterns(allowedOriginPatterns);
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(
                                 Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With",
@@ -92,6 +98,9 @@ public class SecurityConfig {
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .formLogin(AbstractHttpConfigurer::disable)
+                                .httpBasic(AbstractHttpConfigurer::disable)
+                                .logout(AbstractHttpConfigurer::disable)
                                 .headers(headers -> headers
                                                 .httpStrictTransportSecurity(hsts -> hsts
                                                                 .includeSubDomains(true)
@@ -110,11 +119,17 @@ public class SecurityConfig {
                                                                 .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                                                 .permissionsPolicy(permissions -> permissions
                                                                 .policy("camera=(), microphone=(), geolocation=(), payment=(self)")))
-                                .requiresChannel(channel -> channel
-                                                .requestMatchers(request -> {
+                                .requiresChannel(channel -> {
+                                        if (httpsRequired) {
+                                                channel.requestMatchers(request -> {
                                                         String proto = request.getHeader("X-Forwarded-Proto");
-                                                        return proto != null && !"https".equalsIgnoreCase(proto);
-                                                }).requiresSecure())
+                                                        if (proto != null) {
+                                                                return !"https".equalsIgnoreCase(proto);
+                                                        }
+                                                        return !request.isSecure();
+                                                }).requiresSecure();
+                                        }
+                                })
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/", "/index.html", "/index-premium.html",
                                                                 "/about.html", "/courses.html",
@@ -135,13 +150,15 @@ public class SecurityConfig {
                                                 .requestMatchers("/student-dashboard.html")
                                                 .hasAnyRole("STUDENT", "ADMIN")
                                                 .requestMatchers("/admin-dashboard.html").hasRole("ADMIN")
-                                                .requestMatchers("/health", "/api/auth/**", "/actuator/health",
-                                                                "/actuator/info")
+                                                .requestMatchers("/health", "/actuator/health", "/actuator/info")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/auth/login",
+                                                                "/api/auth/register",
+                                                                "/api/auth/refresh",
+                                                                "/api/auth/logout")
                                                 .permitAll()
                                                 .requestMatchers("/actuator/**").hasRole("ADMIN")
-                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
-                                                                "/api/auth/refresh")
-                                                .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/contact")
                                                 .permitAll()
@@ -188,7 +205,6 @@ public class SecurityConfig {
                                                 }));
 
                 http.authenticationProvider(authProvider);
-                http.addFilterBefore(httpsRedirectFilter, UsernamePasswordAuthenticationFilter.class);
                 http.addFilterBefore(securityHeaderFilter, UsernamePasswordAuthenticationFilter.class);
                 http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
                 http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -1,5 +1,7 @@
 package com.shrishailacademy.service;
 
+import com.shrishailacademy.dto.CourseCreateRequest;
+import com.shrishailacademy.dto.CourseUpdateRequest;
 import com.shrishailacademy.exception.DuplicateResourceException;
 import com.shrishailacademy.exception.ResourceNotFoundException;
 import com.shrishailacademy.model.Course;
@@ -41,36 +43,49 @@ public class CourseService {
     }
 
     @CacheEvict(value = "courses", allEntries = true)
-    public Course createCourse(Course course) {
-        if (courseRepository.existsByTitle(course.getTitle())) {
-            throw new DuplicateResourceException("Course", "title", course.getTitle());
+    public Course createCourse(CourseCreateRequest request) {
+        if (courseRepository.existsByTitle(request.getTitle())) {
+            throw new DuplicateResourceException("Course", "title", request.getTitle());
         }
+
+        Course course = new Course();
+        course.setTitle(request.getTitle());
+        course.setDescription(request.getDescription());
+        course.setDuration(request.getDuration());
+        course.setIcon(request.getIcon());
+        course.setColor(request.getColor());
+        course.setFee(request.getFee());
+
         Course saved = courseRepository.save(course);
         log.info("Course created: id={} title='{}'", saved.getId(), saved.getTitle());
         return saved;
     }
 
     @CacheEvict(value = "courses", allEntries = true)
-    public Course updateCourse(Long id, Course courseDetails) {
+    public Course updateCourse(Long id, CourseUpdateRequest request) {
         Course course = getCourseById(id);
 
-        if (courseDetails.getTitle() != null) {
-            course.setTitle(courseDetails.getTitle());
+        if (request.getTitle() != null) {
+            String newTitle = request.getTitle();
+            if (!newTitle.equals(course.getTitle()) && courseRepository.existsByTitleAndIdNot(newTitle, id)) {
+                throw new DuplicateResourceException("Course", "title", newTitle);
+            }
+            course.setTitle(newTitle);
         }
-        if (courseDetails.getDescription() != null) {
-            course.setDescription(courseDetails.getDescription());
+        if (request.getDescription() != null) {
+            course.setDescription(request.getDescription());
         }
-        if (courseDetails.getDuration() != null) {
-            course.setDuration(courseDetails.getDuration());
+        if (request.getDuration() != null) {
+            course.setDuration(request.getDuration());
         }
-        if (courseDetails.getIcon() != null) {
-            course.setIcon(courseDetails.getIcon());
+        if (request.getIcon() != null) {
+            course.setIcon(request.getIcon());
         }
-        if (courseDetails.getColor() != null) {
-            course.setColor(courseDetails.getColor());
+        if (request.getColor() != null) {
+            course.setColor(request.getColor());
         }
-        if (courseDetails.getFee() != null) {
-            course.setFee(courseDetails.getFee());
+        if (request.getFee() != null) {
+            course.setFee(request.getFee());
         }
 
         Course updated = courseRepository.save(course);

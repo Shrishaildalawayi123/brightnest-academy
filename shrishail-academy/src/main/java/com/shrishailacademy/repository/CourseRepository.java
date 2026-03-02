@@ -27,4 +27,9 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * Check if course title already exists
      */
     boolean existsByTitle(String title);
+
+    /**
+     * Check if course title already exists for a different course.
+     */
+    boolean existsByTitleAndIdNot(String title, Long id);
 }

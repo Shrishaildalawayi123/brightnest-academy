@@ -1,6 +1,8 @@
 package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ApiResponse;
+import com.shrishailacademy.dto.CourseCreateRequest;
+import com.shrishailacademy.dto.CourseUpdateRequest;
 import com.shrishailacademy.dto.response.CourseResponse;
 import com.shrishailacademy.model.Course;
 import com.shrishailacademy.service.CourseService;
@@ -41,16 +43,17 @@ public class CourseController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> createCourse(@Valid @RequestBody Course course) {
-        Course created = courseService.createCourse(course);
+    public ResponseEntity<ApiResponse> createCourse(@Valid @RequestBody CourseCreateRequest request) {
+        Course created = courseService.createCourse(request);
         return ResponseEntity
                 .ok(ApiResponse.success("Course created successfully", CourseResponse.fromEntity(created)));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> updateCourse(@PathVariable Long id, @Valid @RequestBody Course course) {
-        Course updated = courseService.updateCourse(id, course);
+    public ResponseEntity<ApiResponse> updateCourse(@PathVariable Long id,
+            @Valid @RequestBody CourseUpdateRequest request) {
+        Course updated = courseService.updateCourse(id, request);
         return ResponseEntity
                 .ok(ApiResponse.success("Course updated successfully", CourseResponse.fromEntity(updated)));
     }

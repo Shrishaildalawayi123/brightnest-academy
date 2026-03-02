@@ -5,10 +5,12 @@ import com.shrishailacademy.model.User;
 import com.shrishailacademy.model.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Enrollment Repository - Data Access Layer for Enrollment entity
@@ -45,6 +47,15 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
      * Check if user has an active (non-cancelled) enrollment in a course
      */
     boolean existsByUserIdAndCourseIdAndStatusNot(Long userId, Long courseId, Enrollment.Status status);
+
+        /**
+         * Batch lookup of active (non-cancelled) enrollments for a course.
+         */
+        @Query("SELECT e.user.id FROM Enrollment e WHERE e.course.id = :courseId AND e.status <> :excludedStatus AND e.user.id IN :userIds")
+        Set<Long> findActiveUserIdsByCourseIdAndUserIdIn(
+            @Param("courseId") Long courseId,
+            @Param("userIds") Set<Long> userIds,
+            @Param("excludedStatus") Enrollment.Status excludedStatus);
 
     /**
      * Find specific enrollment by user and course

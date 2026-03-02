@@ -233,10 +233,10 @@
                     <h2>Get a Free Counseling Call</h2>
                     <p>Share your details and our academic advisor will reach out to you.</p>
                     <form class="inquiry-form" id="counselingForm">
-                        <div><label for="studentName">Student Name</label><input id="studentName" name="studentName" type="text" placeholder="Your child's name" required></div>
+                        <div><label for="studentName">Student Name</label><input id="studentName" name="studentName" type="text" placeholder="Your child's name" required autocomplete="name"></div>
                         <div><label for="studentClass">Class / Grade</label><input id="studentClass" name="studentClass" type="text" placeholder="Eg: Grade 8" required></div>
                         <div><label for="board">Board</label><select id="board" name="board" required><option value="">Select board</option><option>CBSE</option><option>ICSE</option><option>Karnataka State Board</option></select></div>
-                        <div><label for="phone">Parent Phone Number</label><input id="phone" name="phone" type="tel" placeholder="+91 XXXXX XXXXX" required pattern="[+]?[0-9\s-]{7,20}"></div>
+                        <div><label for="phone">Parent Phone Number</label><input id="phone" name="phone" type="tel" placeholder="+91 XXXXX XXXXX" required inputmode="tel" autocomplete="tel" pattern="[+]?[0-9\s\-]{7,20}"></div>
                         <div id="counselingMsg" style="display:none;padding:0.75rem;border-radius:8px;text-align:center;font-size:0.9rem;font-weight:500;"></div>
                         <button class="btn btn-primary btn-block" type="submit" id="counselingBtn">Request Callback</button>
                     </form>
@@ -376,7 +376,7 @@
 
     <div id="footerPlaceholder"></div>
 
-    <script src="js/data.js"></script>
+    <script src="js/data.js?v=20260302"></script>
     <script src="js/app.js"></script>
     <script>
         const teamPreview = document.getElementById('teamPreview');
@@ -394,6 +394,11 @@
         if (counselingForm) {
             counselingForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                if (!counselingForm.checkValidity()) {
+                    counselingForm.reportValidity();
+                    return;
+                }
+
                 const name = document.getElementById('studentName').value.trim();
                 const grade = document.getElementById('studentClass').value.trim();
                 const board = document.getElementById('board').value;
@@ -403,9 +408,9 @@
                 counselingForm.reset();
                 const msgDiv = document.getElementById('counselingMsg');
                 if (msgDiv) {
-                    msgDiv.style.background = '#f0fdf4';
-                    msgDiv.style.color = '#16a34a';
-                    msgDiv.style.border = '1px solid #bbf7d0';
+                    msgDiv.style.background = 'var(--neutral-50)';
+                    msgDiv.style.color = 'var(--success)';
+                    msgDiv.style.border = '1px solid var(--navy-200)';
                     msgDiv.textContent = 'Opening WhatsApp\u2026 we will reply within a few minutes!';
                     msgDiv.style.display = 'block';
                 }

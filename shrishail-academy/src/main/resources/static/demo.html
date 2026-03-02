@@ -61,21 +61,21 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Student's Name *</label>
-                            <input type="text" class="form-input" id="demoStudentName" placeholder="Enter student's full name" required>
+                            <input type="text" class="form-input" id="demoStudentName" placeholder="Enter student's full name" required autocomplete="name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Parent's Name *</label>
-                            <input type="text" class="form-input" id="demoParentName" placeholder="Enter parent's full name" required>
+                            <input type="text" class="form-input" id="demoParentName" placeholder="Enter parent's full name" required autocomplete="name">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Email *</label>
-                            <input type="email" class="form-input" id="demoEmail" placeholder="your@email.com" required>
+                            <input type="email" class="form-input" id="demoEmail" placeholder="your@email.com" required autocomplete="email">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Phone Number *</label>
-                            <input type="tel" class="form-input" id="demoPhone" placeholder="+91-XXXXXXXXXX" required>
+                            <input type="tel" class="form-input" id="demoPhone" placeholder="+91-XXXXXXXXXX" required inputmode="tel" autocomplete="tel">
                         </div>
                     </div>
                     <div class="form-row">
@@ -180,7 +180,7 @@
 
     <div id="footerPlaceholder"></div>
 
-    <script src="js/data.js"></script>
+    <script src="js/data.js?v=20260302"></script>
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script>
@@ -206,6 +206,10 @@
         // Demo form → WhatsApp
         document.getElementById('demoForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return;
+            }
             const studentName = document.getElementById('demoStudentName').value.trim();
             const parentName = document.getElementById('demoParentName').value.trim();
             const email = document.getElementById('demoEmail').value.trim();

@@ -13,7 +13,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B
 
 # Stage 2: Run (slim JRE)
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Security: minimal packages + create non-root user
@@ -28,9 +28,9 @@ COPY --from=build --chown=academy:academy /app/target/*.jar app.jar
 # Drop to non-root user
 USER academy
 
-# Health check — hit the /actuator/health endpoint every 30s
+# Health check — hit the public /health endpoint every 30s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD curl -fsS http://localhost:8080/actuator/health | grep -q '"status"' || exit 1
+  CMD curl -fsS http://localhost:8080/health | grep -q '"status"' || exit 1
 
 # Only expose the app port
 EXPOSE 8080

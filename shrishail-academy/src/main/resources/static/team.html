@@ -77,7 +77,7 @@
                 <h2 class="section-title">Meet Our Educators</h2>
                 <p class="section-subtitle">Each member of our team brings unique expertise and a shared commitment to student success.</p>
             </div>
-            <div class="team-grid" id="teamGrid"></div>
+            <div id="teamGrid"></div>
         </div>
     </section>
 
@@ -106,13 +106,44 @@
 
     <div id="footerPlaceholder"></div>
 
-    <script src="js/data.js"></script>
+    <script src="js/data.js?v=20260302"></script>
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script>
         const teamGrid = document.getElementById('teamGrid');
         if (teamGrid && window.TEAM_DATA) {
-            teamGrid.innerHTML = TEAM_DATA.map(m => renderTeamCard(m)).join('');
+            const subjects = [
+                { key: 'kannada', label: 'Kannada' },
+                { key: 'english', label: 'English' },
+                { key: 'hindi', label: 'Hindi' },
+                { key: 'sanskrit', label: 'Sanskrit' },
+                { key: 'maths', label: 'Mathematics' },
+                { key: 'science', label: 'Science' },
+                { key: 'german', label: 'German' },
+                { key: 'cs', label: 'Computer Science' },
+            ];
+
+            const normalize = (s) => String(s || '').toLowerCase();
+            const matchesSubject = (member, label) => {
+                const l = normalize(label);
+                return (member.subjects || []).some(s => {
+                    const ns = normalize(s);
+                    return ns === l || ns.startsWith(l + ' ') || ns.startsWith(l + ' (');
+                });
+            };
+
+            teamGrid.innerHTML = subjects.map(({ label }) => {
+                const members = TEAM_DATA.filter(m => matchesSubject(m, label));
+                if (!members.length) return '';
+                return `
+                    <div class="section-header" style="text-align:left;margin-top:var(--space-2xl);">
+                        <h3 class="section-title">${label}</h3>
+                    </div>
+                    <div class="team-grid">
+                        ${members.map(m => renderTeamCard(m)).join('')}
+                    </div>
+                `;
+            }).join('');
         }
         const footerEl = document.getElementById('footerPlaceholder');
         if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();

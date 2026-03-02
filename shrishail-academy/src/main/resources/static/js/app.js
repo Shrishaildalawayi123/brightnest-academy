@@ -48,6 +48,10 @@ function initializeMobileMenu() {
     menuToggle.addEventListener("click", () => {
       navLinks.classList.toggle("active");
       menuToggle.classList.toggle("active");
+
+      // Keep aria-expanded accurate for accessibility
+      const expanded = menuToggle.getAttribute("aria-expanded") === "true";
+      menuToggle.setAttribute("aria-expanded", String(!expanded));
     });
 
     // Close menu when clicking a link (but not dropdown parent)
@@ -74,6 +78,10 @@ function initializeMobileMenu() {
       ) {
         navLinks.classList.remove("active");
         menuToggle.classList.remove("active");
+
+        if (menuToggle.hasAttribute("aria-expanded")) {
+          menuToggle.setAttribute("aria-expanded", "false");
+        }
       }
     });
   }

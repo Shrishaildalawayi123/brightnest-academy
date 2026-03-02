@@ -5,8 +5,13 @@ version: "3.8"
 services:
   app:
     build: .
+    container_name: brightnest-academy
     ports:
-      - "8080:8080"
+      # bind only to localhost; use Nginx reverse-proxy for public access
+      - "127.0.0.1:8080:8080"
+    env_file:
+      # On the server, create this file with secrets (DB creds, JWT_SECRET, admin creds)
+      - /opt/brightnest/.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=${DB_HOST}
@@ -19,6 +24,16 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - HTTPS_REQUIRED=true
       - COOKIE_SECURE=true
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'curl -fsS http://127.0.0.1:8080/health | grep -q ''"status"'' || exit 1',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     deploy:
       resources:
         limits:

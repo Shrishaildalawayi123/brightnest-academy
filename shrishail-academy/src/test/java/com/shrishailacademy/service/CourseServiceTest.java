@@ -1,5 +1,8 @@
 package com.shrishailacademy.service;
 
+import com.shrishailacademy.dto.CourseCreateRequest;
+import com.shrishailacademy.dto.CourseUpdateRequest;
+import com.shrishailacademy.exception.DuplicateResourceException;
 import com.shrishailacademy.model.Course;
 import com.shrishailacademy.repository.CourseRepository;
 import org.junit.jupiter.api.Test;
@@ -17,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,12 +35,14 @@ class CourseServiceTest {
 
     @Test
     void createCourseShouldThrowWhenTitleAlreadyExists() {
-        Course course = new Course();
-        course.setTitle("Mathematics");
+        CourseCreateRequest request = new CourseCreateRequest();
+        request.setTitle("Mathematics");
+        request.setFee(new BigDecimal("3000.00"));
 
         when(courseRepository.existsByTitle("Mathematics")).thenReturn(true);
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> courseService.createCourse(course));
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
+                () -> courseService.createCourse(request));
 
         assertTrue(ex.getMessage().contains("Course already exists"));
         assertTrue(ex.getMessage().contains("Mathematics"));
@@ -45,17 +51,22 @@ class CourseServiceTest {
 
     @Test
     void createCourseShouldSaveWhenTitleIsUnique() {
-        Course course = new Course();
-        course.setTitle("Mathematics");
-        course.setFee(new BigDecimal("3000.00"));
+        CourseCreateRequest request = new CourseCreateRequest();
+        request.setTitle("Mathematics");
+        request.setFee(new BigDecimal("3000.00"));
+
+        Course savedEntity = new Course();
+        savedEntity.setId(10L);
+        savedEntity.setTitle("Mathematics");
+        savedEntity.setFee(new BigDecimal("3000.00"));
 
         when(courseRepository.existsByTitle("Mathematics")).thenReturn(false);
-        when(courseRepository.save(course)).thenReturn(course);
+        when(courseRepository.save(any(Course.class))).thenReturn(savedEntity);
 
-        Course saved = courseService.createCourse(course);
+        Course saved = courseService.createCourse(request);
 
-        assertSame(course, saved);
-        verify(courseRepository).save(course);
+        assertSame(savedEntity, saved);
+        verify(courseRepository, times(1)).save(any(Course.class));
     }
 
     @Test
@@ -68,13 +79,12 @@ class CourseServiceTest {
         existing.setFee(new BigDecimal("1000.00"));
         existing.setColor("#123456");
 
-        Course patch = new Course();
+        CourseUpdateRequest patch = new CourseUpdateRequest();
         patch.setTitle("New Title");
         patch.setFee(new BigDecimal("1500.00"));
-        patch.setDescription(null);
-        patch.setDuration(null);
 
         when(courseRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(courseRepository.existsByTitleAndIdNot("New Title", 1L)).thenReturn(false);
         when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Course updated = courseService.updateCourse(1L, patch);
