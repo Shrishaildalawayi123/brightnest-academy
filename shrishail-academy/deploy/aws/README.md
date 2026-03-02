@@ -4,16 +4,37 @@ This guide matches the target production flow:
 
 `User → Nginx (80/443) → Docker container (127.0.0.1:8080) → Spring Boot`
 
+## 0) DNS cutover (GoDaddy → EC2)
+
+You confirmed you want to use the root domain. Pointing `brightnest-academy.com` to EC2 will replace whatever is currently hosted on GoDaddy Website Builder.
+
+Recommended approach:
+
+1. Allocate an **Elastic IP** in AWS and attach it to your EC2 instance (so IP does not change).
+2. In GoDaddy DNS, update:
+
+- `@` A record → your EC2 **Elastic IP**
+- `www` A record → your EC2 **Elastic IP** (or use a CNAME to `@` if you prefer)
+
+3. Wait for propagation (can take minutes to hours).
+
+Important: Certbot HTTP validation requires that `brightnest-academy.com` already resolves to this EC2 instance and that ports `80` and `443` are open in the Security Group.
+
 ## 1) Server prerequisites
 
 - Ubuntu 22.04+ (typical EC2)
 - Docker + Docker Compose plugin installed
-- A domain name (e.g. `brightnest-academy.com`) pointing to the instance public IP
+- A domain name (`brightnest-academy.com` + `www`) pointing to the instance public IP (typically an Elastic IP)
 
-Create a directory for env config:
+Builds/tests **must** be produced with **Java 21** before you push or deploy images. Mockito/Byte Buddy/Jacoco in this repo are pinned to JDK 21 bytecode.
 
-- `/opt/brightnest/.env` (used by the GitHub Actions SSH deploy step)
-- `/opt/brightnest/docker-compose.yml` (uploaded automatically by the CI/CD workflow)
+- Workstation check: `java -version` and `mvn -v` should both report 21.x
+- Windows tip: set `JAVA_HOME` to your JDK 21 install (`setx JAVA_HOME "C:\\Program Files\\Java\\jdk-21" /M` and restart shells/VS Code)
+
+Create a directory for env config (do not commit secrets):
+
+- `/opt/brightnest/.env` (recommended location)
+- `/opt/brightnest/docker-compose.yml`
 
 Example (do not commit secrets):
 
@@ -28,6 +49,11 @@ ADMIN_EMAIL=...
 ADMIN_PASSWORD=...
 PORT=8080
 SPRING_PROFILES_ACTIVE=prod
+
+# Optional overrides
+# CORS_ORIGINS=https://brightnest-academy.com,https://www.brightnest-academy.com
+# HTTPS_REQUIRED=true
+# COOKIE_SECURE=true
 ```
 
 ## 2) Nginx reverse proxy (do NOT expose 8080)
@@ -55,19 +81,52 @@ This proxies to `http://127.0.0.1:8080` where the container is bound.
 
 ## 2.1) Application container (Docker Compose)
 
-The CI/CD workflow deploys using Docker Compose on the server:
+You have two common deployment options:
+
+### Option A (recommended): pull a prebuilt image
+
+Use a Compose file that pulls an image (Docker Hub or GHCR), then restart:
+
+- bind `127.0.0.1:8080:8080` (so only Nginx can reach it)
+
+Repo examples:
+
+- Docker Hub (via GitHub Actions): the workflow uploads `docker-compose.prod.yml` and rewrites `build: .` to `image: <your_dockerhub_user>/brightnest-academy:latest` on the server.
+- GHCR (alternative/manual):
+
+- `deploy/aws/docker-compose.ghcr.yml`
+
+Server location (example):
+
+- `/opt/brightnest/docker-compose.yml`
+
+### Option B: build on the server
+
+Use:
+
+- `docker-compose.prod.yml`
+
+Note: it also binds `127.0.0.1:8080:8080` so you still keep 8080 private.
+
+If you are using the included GitHub Actions workflow (`.github/workflows/deploy.yml`), it deploys into:
+
+- `/opt/brightnest/docker-compose.yml`
+
+and expects your secrets to already exist on the server at:
+
+- `/opt/brightnest/.env`
 
 - pulls `ghcr.io/<owner>/brightnest-academy:latest`
 - runs it as `brightnest-academy`
 - binds `127.0.0.1:8080:8080` (so only Nginx can reach it)
 
-Compose file source in repo:
+Start/refresh the container:
 
-- `deploy/aws/docker-compose.ghcr.yml`
-
-On the server it is placed as:
-
-- `/opt/brightnest/docker-compose.yml`
+```
+cd /opt/brightnest
+sudo docker compose pull || true
+sudo docker compose up -d
+```
 
 ## 3) SSL certificate (Certbot)
 
@@ -144,7 +203,7 @@ Minimum viable approach:
 
 ## 6) Health endpoint
 
-Use Spring Boot actuator health for:
+Use the public health endpoint for:
 
 - Docker healthcheck
 - load balancer checks
@@ -152,10 +211,8 @@ Use Spring Boot actuator health for:
 
 Endpoint:
 
-- `GET /actuator/health`
+- `GET /health`
 
-In production config, it returns minimal info like:
+This endpoint is explicitly permitted by `SecurityConfig` and is safe for uptime checks.
 
-```
-{"status":"UP"}
-```
+If you prefer actuator for health checks, ensure `/actuator/health` remains publicly accessible.

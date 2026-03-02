@@ -138,10 +138,30 @@ shrishail-academy/
 
 Before running the application, ensure you have:
 
-1. **Java JDK 21 or higher**
+1. **Java JDK 21**
 
    ```bash
    java -version
+   ```
+
+   **Windows note (important): set `JAVA_HOME` to JDK 21**
+
+   This project intentionally runs builds/tests on **JDK 21** (newer JDKs can break Mockito/Byte Buddy/JaCoCo depending on versions).
+   - Install a JDK 21 (e.g., `C:\Program Files\Java\jdk-21`)
+   - Set `JAVA_HOME` and update `PATH`, then restart terminals/VS Code
+
+   PowerShell (system-wide):
+
+   ```powershell
+   setx JAVA_HOME "C:\Program Files\Java\jdk-21" /M
+   setx PATH "%PATH%;%JAVA_HOME%\\bin" /M
+   ```
+
+   Verify (new terminal):
+
+   ```bash
+   java -version
+   mvn -v
    ```
 
 2. **Maven 3.6+**
