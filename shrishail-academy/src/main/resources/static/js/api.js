@@ -26,6 +26,21 @@ function resolveApiBaseUrl() {
 const API_BASE_URL = resolveApiBaseUrl();
 
 const API = {
+  unwrapCollection(payload) {
+    if (Array.isArray(payload)) {
+      return payload;
+    }
+    if (payload && Array.isArray(payload.content)) {
+      return payload.content;
+    }
+    return [];
+  },
+
+  getToken() {
+    const token = localStorage.getItem("token");
+    return token && token.trim() ? token.trim() : null;
+  },
+
   getCookie(name) {
     const cookie = document.cookie
       .split("; ")
@@ -39,10 +54,18 @@ const API = {
 
   getHeaders(includeAuth = false) {
     const headers = { "Content-Type": "application/json" };
+
+    // Multi-tenant API: default to the single-tenant key used by this app.
+    // Can be overridden by setting localStorage.tenantKey.
+    if (!headers["X-Tenant-ID"]) {
+      const tenantKey = (localStorage.getItem("tenantKey") || "default").trim();
+      if (tenantKey) headers["X-Tenant-ID"] = tenantKey;
+    }
+
     if (includeAuth) {
-      const token = localStorage.getItem("token");
-      if (token && token.trim()) {
-        headers["Authorization"] = `Bearer ${token.trim()}`;
+      const token = this.getToken();
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
       }
     }
     return headers;
@@ -73,7 +96,6 @@ const API = {
 
       if (response.status === 401) {
         localStorage.removeItem("user");
-        // Clean up any legacy token if it exists.
         localStorage.removeItem("token");
       }
 
@@ -127,8 +149,18 @@ const API = {
       headers: this.getHeaders(),
     });
   },
+  async getCoursesList() {
+    const payload = await this.getCourses();
+    return this.unwrapCollection(payload);
+  },
   async getCourse(id) {
     return this.request(`/courses/${id}`, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+  },
+  async getCourseBySubject(subjectKey) {
+    return this.request(`/courses/subject/${encodeURIComponent(subjectKey)}`, {
       method: "GET",
       headers: this.getHeaders(),
     });
@@ -198,6 +230,15 @@ const API = {
       method: "GET",
       headers: this.getHeaders(true),
     });
+  },
+  async getFacultyUsers() {
+    return this.request("/users/faculty", {
+      method: "GET",
+      headers: this.getHeaders(true),
+    });
+  },
+  async getUsers() {
+    return this.getAllUsers();
   },
 
   // ===== BLOG (Public) =====

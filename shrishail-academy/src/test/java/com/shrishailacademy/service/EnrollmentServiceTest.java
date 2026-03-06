@@ -2,10 +2,14 @@ package com.shrishailacademy.service;
 
 import com.shrishailacademy.model.Course;
 import com.shrishailacademy.model.Enrollment;
+import com.shrishailacademy.model.Tenant;
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.EnrollmentRepository;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,12 +24,16 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EnrollmentServiceTest {
+
+    private static final Long TENANT_ID = 1L;
+    private static final String TENANT_KEY = "default";
 
     @Mock
     private EnrollmentRepository enrollmentRepository;
@@ -39,12 +47,28 @@ class EnrollmentServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private TenantService tenantService;
+
     @InjectMocks
     private EnrollmentService enrollmentService;
 
+    @BeforeEach
+    void setTenantContext() {
+        TenantContext.set(TENANT_ID, TENANT_KEY);
+        lenient().when(tenantService.requireCurrentTenant())
+                .thenReturn(new Tenant(TENANT_ID, TENANT_KEY, "Default Tenant"));
+    }
+
+    @AfterEach
+    void clearTenantContext() {
+        TenantContext.clear();
+    }
+
     @Test
     void enrollStudentShouldThrowWhenAlreadyEnrolled() {
-        when(enrollmentRepository.existsByUserIdAndCourseIdAndStatusNot(1L, 10L, Enrollment.Status.CANCELLED))
+        when(enrollmentRepository.existsByUserIdAndCourseIdAndTenantIdAndStatusNot(1L, 10L, TENANT_ID,
+                Enrollment.Status.CANCELLED))
                 .thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> enrollmentService.enrollStudent(1L, 10L));
@@ -60,10 +84,11 @@ class EnrollmentServiceTest {
         User student = user(1L, User.Role.STUDENT);
         Course course = course(10L, "Science");
 
-        when(enrollmentRepository.existsByUserIdAndCourseIdAndStatusNot(1L, 10L, Enrollment.Status.CANCELLED))
+        when(enrollmentRepository.existsByUserIdAndCourseIdAndTenantIdAndStatusNot(1L, 10L, TENANT_ID,
+                Enrollment.Status.CANCELLED))
                 .thenReturn(false);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(student));
-        when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
+        when(userRepository.findByIdAndTenantId(1L, TENANT_ID)).thenReturn(Optional.of(student));
+        when(courseRepository.findByIdAndTenantId(10L, TENANT_ID)).thenReturn(Optional.of(course));
         when(enrollmentRepository.save(any(Enrollment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Enrollment saved = enrollmentService.enrollStudent(1L, 10L);
@@ -81,7 +106,7 @@ class EnrollmentServiceTest {
         enrollment.setStatus(Enrollment.Status.CANCELLED);
         enrollment.setUser(user(1L, User.Role.STUDENT));
 
-        when(enrollmentRepository.findById(100L)).thenReturn(Optional.of(enrollment));
+        when(enrollmentRepository.findByIdAndTenantId(100L, TENANT_ID)).thenReturn(Optional.of(enrollment));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> enrollmentService.cancelEnrollment(100L, 1L, User.Role.STUDENT.name()));
@@ -97,7 +122,7 @@ class EnrollmentServiceTest {
         enrollment.setStatus(Enrollment.Status.ACTIVE);
         enrollment.setUser(user(2L, User.Role.STUDENT));
 
-        when(enrollmentRepository.findById(200L)).thenReturn(Optional.of(enrollment));
+        when(enrollmentRepository.findByIdAndTenantId(200L, TENANT_ID)).thenReturn(Optional.of(enrollment));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> enrollmentService.cancelEnrollment(200L, 1L, User.Role.STUDENT.name()));
@@ -113,7 +138,7 @@ class EnrollmentServiceTest {
         enrollment.setStatus(Enrollment.Status.ACTIVE);
         enrollment.setUser(user(2L, User.Role.STUDENT));
 
-        when(enrollmentRepository.findById(300L)).thenReturn(Optional.of(enrollment));
+        when(enrollmentRepository.findByIdAndTenantId(300L, TENANT_ID)).thenReturn(Optional.of(enrollment));
 
         enrollmentService.cancelEnrollment(300L, 1L, User.Role.ADMIN.name());
 

@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "attendance", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_id", "course_id", "attendance_date" })
+        @UniqueConstraint(name = "uk_attendance_tenant_user_course_date", columnNames = { "tenant_id", "user_id",
+                "course_id", "attendance_date" })
 })
 @Data
 @NoArgsConstructor
@@ -25,6 +26,11 @@ public class Attendance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer" })
+    private Tenant tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -47,7 +53,7 @@ public class Attendance {
     private String remarks;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "marked_by")
+    @JoinColumn(name = "marked_by_id")
     @JsonIgnoreProperties({ "enrollments", "password", "hibernateLazyInitializer" })
     private User markedBy;
 

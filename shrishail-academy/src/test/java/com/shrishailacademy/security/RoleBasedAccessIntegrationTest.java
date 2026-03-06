@@ -2,6 +2,7 @@ package com.shrishailacademy.security;
 
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.service.TenantService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -26,6 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class RoleBasedAccessIntegrationTest {
 
+        private static final String TENANT_HEADER = "X-Tenant-ID";
+        private static final String DEFAULT_TENANT_KEY = "default";
+
         @Autowired
         private MockMvc mockMvc;
 
@@ -35,9 +39,13 @@ class RoleBasedAccessIntegrationTest {
         @Autowired
         private PasswordEncoder passwordEncoder;
 
+        @Autowired
+        private TenantService tenantService;
+
         @Test
         void adminDashboardShouldRedirectToLoginWhenUnauthenticated() throws Exception {
                 mockMvc.perform(get("/admin-dashboard.html")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .accept(MediaType.TEXT_HTML))
                                 .andExpect(status().is3xxRedirection())
                                 .andExpect(header().string("Location", "/login.html"));
@@ -58,6 +66,7 @@ class RoleBasedAccessIntegrationTest {
                                 """.formatted(email, password);
 
                 MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(registerPayload))
                                 .andExpect(status().isOk())
@@ -66,6 +75,7 @@ class RoleBasedAccessIntegrationTest {
                 Cookie[] cookies = registerResult.getResponse().getCookies();
 
                 mockMvc.perform(get("/admin-dashboard.html")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .accept(MediaType.TEXT_HTML)
                                 .cookie(cookies))
                                 .andExpect(status().is3xxRedirection())
@@ -78,6 +88,7 @@ class RoleBasedAccessIntegrationTest {
                 String rawPassword = "Admin@123!";
 
                 User admin = new User();
+                admin.setTenant(tenantService.ensureDefaultTenantExists());
                 admin.setName("Admin User");
                 admin.setEmail(email);
                 admin.setPhone("9876543210");
@@ -93,6 +104,7 @@ class RoleBasedAccessIntegrationTest {
                                 """.formatted(email, rawPassword);
 
                 MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(loginPayload))
                                 .andExpect(status().isOk())
@@ -101,6 +113,7 @@ class RoleBasedAccessIntegrationTest {
                 Cookie[] cookies = loginResult.getResponse().getCookies();
 
                 mockMvc.perform(get("/admin-dashboard.html")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .accept(MediaType.TEXT_HTML)
                                 .cookie(cookies))
                                 .andExpect(status().isOk());

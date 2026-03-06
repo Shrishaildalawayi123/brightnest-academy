@@ -20,63 +20,71 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class CsrfProtectionIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  private static final String TENANT_HEADER = "X-Tenant-ID";
+  private static final String DEFAULT_TENANT_KEY = "default";
 
-    @Test
-    void logoutShouldRejectWhenCsrfHeaderMissing() throws Exception {
-        String email = "csrf-" + UUID.randomUUID() + "@example.com";
-        String password = "Student@123!";
+  @Autowired
+  private MockMvc mockMvc;
 
-        String registerPayload = """
-                {
-                  "name": "CSRF Student",
-                  "email": "%s",
-                  "password": "%s",
-                  "phone": "9876543210"
-                }
-                """.formatted(email, password);
+  @Test
+  void logoutShouldSucceedWithoutCsrfHeader() throws Exception {
+    String email = "csrf-" + UUID.randomUUID() + "@example.com";
+    String password = "Student@123!";
 
-        MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(registerPayload))
-                .andExpect(status().isOk())
-                .andReturn();
+    String registerPayload = """
+        {
+          "name": "CSRF Student",
+          "email": "%s",
+          "password": "%s",
+          "phone": "9876543210"
+        }
+        """.formatted(email, password);
 
-        Cookie authCookie = registerResult.getResponse().getCookie("AUTH_TOKEN");
-        Cookie csrfCookie = registerResult.getResponse().getCookie("XSRF-TOKEN");
+    MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
+        .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(registerPayload))
+        .andExpect(status().isOk())
+        .andReturn();
 
-        mockMvc.perform(post("/api/auth/logout")
-                        .cookie(authCookie, csrfCookie))
-                .andExpect(status().isForbidden());
-    }
+    Cookie authCookie = registerResult.getResponse().getCookie("AUTH_TOKEN");
+    Cookie csrfCookie = registerResult.getResponse().getCookie("XSRF-TOKEN");
 
-    @Test
-    void logoutShouldPassWhenCsrfHeaderMatchesCookie() throws Exception {
-        String email = "csrf-ok-" + UUID.randomUUID() + "@example.com";
-        String password = "Student@123!";
+    // Logout is CSRF-exempt — users must always be able to log out
+    mockMvc.perform(post("/api/auth/logout")
+        .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+        .cookie(authCookie, csrfCookie))
+        .andExpect(status().isOk());
+  }
 
-        String registerPayload = """
-                {
-                  "name": "CSRF Valid Student",
-                  "email": "%s",
-                  "password": "%s",
-                  "phone": "9876543210"
-                }
-                """.formatted(email, password);
+  @Test
+  void logoutShouldPassWhenCsrfHeaderMatchesCookie() throws Exception {
+    String email = "csrf-ok-" + UUID.randomUUID() + "@example.com";
+    String password = "Student@123!";
 
-        MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(registerPayload))
-                .andExpect(status().isOk())
-                .andReturn();
+    String registerPayload = """
+        {
+          "name": "CSRF Valid Student",
+          "email": "%s",
+          "password": "%s",
+          "phone": "9876543210"
+        }
+        """.formatted(email, password);
 
-        Cookie authCookie = registerResult.getResponse().getCookie("AUTH_TOKEN");
-        Cookie csrfCookie = registerResult.getResponse().getCookie("XSRF-TOKEN");
+    MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
+        .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(registerPayload))
+        .andExpect(status().isOk())
+        .andReturn();
 
-        mockMvc.perform(post("/api/auth/logout")
-                        .cookie(authCookie, csrfCookie)
-                        .header("X-CSRF-Token", csrfCookie.getValue()))
-                .andExpect(status().isOk());
-    }
+    Cookie authCookie = registerResult.getResponse().getCookie("AUTH_TOKEN");
+    Cookie csrfCookie = registerResult.getResponse().getCookie("XSRF-TOKEN");
+
+    mockMvc.perform(post("/api/auth/logout")
+        .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+        .cookie(authCookie, csrfCookie)
+        .header("X-CSRF-Token", csrfCookie.getValue()))
+        .andExpect(status().isOk());
+  }
 }

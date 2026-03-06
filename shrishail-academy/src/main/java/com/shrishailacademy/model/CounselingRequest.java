@@ -1,5 +1,6 @@
 package com.shrishailacademy.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "counseling_requests", indexes = {
+        @Index(name = "idx_counseling_tenant", columnList = "tenant_id"),
         @Index(name = "idx_counseling_status", columnList = "status"),
         @Index(name = "idx_counseling_date", columnList = "created_at")
 })
@@ -28,6 +30,11 @@ public class CounselingRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer"})
+    private Tenant tenant;
 
     @NotBlank(message = "Student name is required")
     @Size(max = 100)

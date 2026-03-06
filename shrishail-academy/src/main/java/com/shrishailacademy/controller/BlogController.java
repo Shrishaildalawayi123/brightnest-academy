@@ -1,5 +1,8 @@
 package com.shrishailacademy.controller;
 
+import com.shrishailacademy.dto.ApiResponse;
+import com.shrishailacademy.dto.BlogPostCreateRequest;
+import com.shrishailacademy.dto.BlogPostUpdateRequest;
 import com.shrishailacademy.dto.response.BlogPostResponse;
 import com.shrishailacademy.model.BlogPost;
 import com.shrishailacademy.service.BlogService;
@@ -7,13 +10,13 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Blog CMS Controller
@@ -64,33 +67,31 @@ public class BlogController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> createPost(@Valid @RequestBody BlogPost post) {
-        BlogPost saved = blogService.createPost(post);
-        return ResponseEntity.ok(Map.of(
-                "message", "Blog post created successfully",
-                "post", BlogPostResponse.fromEntity(saved)));
+    public ResponseEntity<ApiResponse> createPost(@Valid @RequestBody BlogPostCreateRequest request) {
+        BlogPost saved = blogService.createPost(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Blog post created successfully", BlogPostResponse.fromEntity(saved)));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> updatePost(@PathVariable Long id, @Valid @RequestBody BlogPost updated) {
-        BlogPost saved = blogService.updatePost(id, updated);
-        return ResponseEntity.ok(Map.of(
-                "message", "Blog post updated",
-                "post", BlogPostResponse.fromEntity(saved)));
+    public ResponseEntity<ApiResponse> updatePost(@PathVariable Long id,
+            @Valid @RequestBody BlogPostUpdateRequest request) {
+        BlogPost saved = blogService.updatePost(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Blog post updated", BlogPostResponse.fromEntity(saved)));
     }
 
     @PutMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> togglePublish(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> togglePublish(@PathVariable Long id) {
         blogService.togglePublish(id);
-        return ResponseEntity.ok(Map.of("message", "Post publish status toggled successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Post publish status toggled successfully"));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> deletePost(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse> deletePost(@PathVariable Long id) {
         blogService.deletePost(id);
-        return ResponseEntity.ok(Map.of("message", "Blog post deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Blog post deleted successfully"));
     }
 }

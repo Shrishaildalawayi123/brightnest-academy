@@ -1,11 +1,11 @@
 -- Index and query-plan checks
 
 -- 1) Verify indexes used by common read paths
-EXPLAIN SELECT * FROM courses WHERE active = true;
+EXPLAIN SELECT * FROM courses ORDER BY id LIMIT 20;
 
-EXPLAIN SELECT * FROM enrollments WHERE user_id = 1 ORDER BY enrollment_date DESC;
+EXPLAIN SELECT * FROM enrollments WHERE user_id = 1 ORDER BY enrolled_at DESC;
 
-EXPLAIN SELECT * FROM payments WHERE user_id = 1 ORDER BY payment_date DESC;
+EXPLAIN SELECT * FROM payments WHERE user_id = 1 ORDER BY created_at DESC;
 
 EXPLAIN SELECT * FROM blog_posts WHERE published = true ORDER BY published_at DESC LIMIT 10;
 

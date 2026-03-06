@@ -2,30 +2,24 @@ package com.shrishailacademy.service;
 
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.tenant.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Optional;
 
 /**
- * Refresh Token Service - Handles refresh token rotation.
- * 
- * Flow:
- * 1. On login: generate refresh token, store in DB, return to client
- * 2. On /api/auth/refresh: validate refresh token, rotate it, issue new access
- * + refresh tokens
- * 3. On logout: clear refresh token from DB
- * 
- * Security: Each refresh token is single-use (rotated on every refresh call).
- * If a stolen token is used after rotation, the legitimate user's token will be
- * invalid,
- * signaling a potential breach.
+ * Refresh token service with rotation and at-rest token hashing.
  */
 @Service
 public class RefreshTokenService {
@@ -34,7 +28,10 @@ public class RefreshTokenService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Value("${jwt.refresh.expiration:604800000}")
-    private long refreshTokenExpirationMs; // Default: 7 days
+    private long refreshTokenExpirationMs;
+
+    @Value("${jwt.refresh.pepper:}")
+    private String refreshTokenPepper;
 
     private final UserRepository userRepository;
 
@@ -42,64 +39,53 @@ public class RefreshTokenService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Generate and store a new refresh token for the user.
-     */
     @Transactional
     public String createRefreshToken(Long userId) {
-        User user = userRepository.findById(userId)
+        Long tenantId = TenantContext.requireTenantId();
+        User user = userRepository.findByIdAndTenantId(userId, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-        String token = generateSecureToken();
-        user.setRefreshToken(token);
+        String rawToken = generateSecureToken();
+        user.setRefreshToken(hashToken(rawToken));
         user.setRefreshTokenExpiry(LocalDateTime.now().plusSeconds(refreshTokenExpirationMs / 1000));
         userRepository.save(user);
 
         log.debug("Refresh token created for userId={}", userId);
-        return token;
+        return rawToken;
     }
 
-    /**
-     * Validate and rotate the refresh token. Returns the user if valid.
-     * Implements token rotation: old token is invalidated, new token is issued.
-     */
     @Transactional
-    public Optional<User> rotateRefreshToken(String oldToken) {
-        Optional<User> userOpt = userRepository.findByRefreshToken(oldToken);
+    public Optional<RefreshTokenRotation> rotateRefreshToken(String oldToken) {
+        Long tenantId = TenantContext.requireTenantId();
+        Optional<User> userOpt = userRepository.findByRefreshTokenAndTenantId(hashToken(oldToken), tenantId);
 
         if (userOpt.isEmpty()) {
-            log.warn("Refresh token not found — possible token reuse attack");
+            log.warn("Refresh token not found, possible token reuse");
             return Optional.empty();
         }
 
         User user = userOpt.get();
-
-        // Check expiry
         if (user.getRefreshTokenExpiry() == null || user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
             log.warn("Expired refresh token used for userId={}", user.getId());
-            // Clear the expired token
             user.setRefreshToken(null);
             user.setRefreshTokenExpiry(null);
             userRepository.save(user);
             return Optional.empty();
         }
 
-        // Rotate: invalidate old token, issue new one
-        String newToken = generateSecureToken();
-        user.setRefreshToken(newToken);
+        String newRawToken = generateSecureToken();
+        user.setRefreshToken(hashToken(newRawToken));
         user.setRefreshTokenExpiry(LocalDateTime.now().plusSeconds(refreshTokenExpirationMs / 1000));
         userRepository.save(user);
 
         log.debug("Refresh token rotated for userId={}", user.getId());
-        return Optional.of(user);
+        return Optional.of(new RefreshTokenRotation(user, newRawToken));
     }
 
-    /**
-     * Invalidate refresh token on logout.
-     */
     @Transactional
     public void revokeRefreshToken(String email) {
-        userRepository.findByEmail(email).ifPresent(user -> {
+        Long tenantId = TenantContext.requireTenantId();
+        userRepository.findByEmailAndTenantId(email, tenantId).ifPresent(user -> {
             user.setRefreshToken(null);
             user.setRefreshTokenExpiry(null);
             userRepository.save(user);
@@ -107,12 +93,25 @@ public class RefreshTokenService {
         });
     }
 
-    /**
-     * Generate a cryptographically secure random token.
-     */
     private String generateSecureToken() {
         byte[] bytes = new byte[64];
         SECURE_RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String hashToken(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) {
+            return null;
+        }
+        String value = rawToken + (refreshTokenPepper == null ? "" : refreshTokenPepper);
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 algorithm unavailable", ex);
+        }
+    }
+
+    public record RefreshTokenRotation(User user, String rawRefreshToken) {
     }
 }

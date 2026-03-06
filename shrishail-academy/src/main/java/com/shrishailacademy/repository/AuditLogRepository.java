@@ -15,6 +15,20 @@ import java.util.List;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
+    // ========== TENANT-AWARE QUERIES ==========
+
+    Page<AuditLog> findByTenantIdOrderByTimestampDesc(Long tenantId, Pageable pageable);
+
+    Page<AuditLog> findByTenantIdAndUserId(Long tenantId, Long userId, Pageable pageable);
+
+    Page<AuditLog> findByTenantIdAndAction(Long tenantId, String action, Pageable pageable);
+
+    List<AuditLog> findByTenantIdAndTimestampBetween(Long tenantId, LocalDateTime start, LocalDateTime end);
+
+    long countByTenantIdAndActionAndTimestampAfter(Long tenantId, String action, LocalDateTime after);
+
+    // ========== LEGACY (non-tenant) ==========
+
     Page<AuditLog> findByUserId(Long userId, Pageable pageable);
 
     Page<AuditLog> findByAction(String action, Pageable pageable);

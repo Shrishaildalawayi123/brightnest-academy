@@ -4,11 +4,16 @@
  */
 
 const Auth = {
+  getToken() {
+    const token = localStorage.getItem("token");
+    return token && token.trim() ? token.trim() : null;
+  },
+
   /**
    * Check if user is logged in
    */
   isLoggedIn() {
-    return localStorage.getItem("user") !== null;
+    return this.getToken() !== null && this.getCurrentUser() !== null;
   },
 
   /**
@@ -16,7 +21,38 @@ const Auth = {
    */
   getCurrentUser() {
     const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
+    if (!user) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(user);
+    } catch (_) {
+      localStorage.removeItem("user");
+      return null;
+    }
+  },
+
+  setSession(response) {
+    if (!response || !response.token) {
+      throw new Error("Login response did not include a JWT token.");
+    }
+
+    localStorage.setItem("token", response.token);
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        role: response.role,
+      }),
+    );
+  },
+
+  clearSession() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   },
 
   /**
@@ -39,61 +75,18 @@ const Auth = {
    * Login user
    */
   async login(email, password) {
-    try {
-      const response = await API.login(email, password);
-
-      // Store JWT for Bearer-token API calls (optional; cookies still work too).
-      if (response && response.token) {
-        localStorage.setItem("token", response.token);
-      } else {
-        localStorage.removeItem("token");
-      }
-
-      // Store only user profile; JWT is now managed via HttpOnly cookie.
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: response.id,
-          name: response.name,
-          email: response.email,
-          role: response.role,
-        }),
-      );
-
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await API.login(email, password);
+    this.setSession(response);
+    return response;
   },
 
   /**
    * Register new user
    */
   async register(userData) {
-    try {
-      const response = await API.register(userData);
-
-      if (response && response.token) {
-        localStorage.setItem("token", response.token);
-      } else {
-        localStorage.removeItem("token");
-      }
-
-      // Store only user profile; JWT is now managed via HttpOnly cookie.
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: response.id,
-          name: response.name,
-          email: response.email,
-          role: response.role,
-        }),
-      );
-
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await API.register(userData);
+    this.setSession(response);
+    return response;
   },
 
   /**
@@ -101,8 +94,7 @@ const Auth = {
    */
   logout() {
     API.logout().catch(() => {});
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    this.clearSession();
     window.location.href = "index.html";
   },
 

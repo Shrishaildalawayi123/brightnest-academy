@@ -4,11 +4,15 @@ import com.shrishailacademy.dto.AttendanceRequest;
 import com.shrishailacademy.model.Attendance;
 import com.shrishailacademy.model.Course;
 import com.shrishailacademy.model.Enrollment;
+import com.shrishailacademy.model.Tenant;
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.AttendanceRepository;
 import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.EnrollmentRepository;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,12 +32,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AttendanceServiceTest {
+
+        private static final Long TENANT_ID = 1L;
+        private static final String TENANT_KEY = "default";
 
         @Mock
         private AttendanceRepository attendanceRepository;
@@ -47,8 +55,23 @@ class AttendanceServiceTest {
         @Mock
         private EnrollmentRepository enrollmentRepository;
 
+        @Mock
+        private TenantService tenantService;
+
         @InjectMocks
         private AttendanceService attendanceService;
+
+        @BeforeEach
+        void setTenantContext() {
+                TenantContext.set(TENANT_ID, TENANT_KEY);
+                lenient().when(tenantService.requireCurrentTenant())
+                                .thenReturn(new Tenant(TENANT_ID, TENANT_KEY, "Default Tenant"));
+        }
+
+        @AfterEach
+        void clearTenantContext() {
+                TenantContext.clear();
+        }
 
         @Test
         void markAttendanceShouldSkipUnenrolledStudents() {
@@ -70,13 +93,15 @@ class AttendanceServiceTest {
                                                 new AttendanceRequest.StudentAttendance(1L, "PRESENT", "On time"),
                                                 new AttendanceRequest.StudentAttendance(2L, "ABSENT", "Not enrolled")));
 
-                when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
-                when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
-                when(userRepository.findAllById(any())).thenReturn(List.of(enrolledStudent, unenrolledStudent));
-                when(enrollmentRepository.findActiveUserIdsByCourseIdAndUserIdIn(eq(courseId), anySet(),
+                when(courseRepository.findByIdAndTenantId(courseId, TENANT_ID)).thenReturn(Optional.of(course));
+                when(userRepository.findByIdAndTenantId(adminId, TENANT_ID)).thenReturn(Optional.of(admin));
+                when(userRepository.findByIdInAndTenantId(anySet(), eq(TENANT_ID)))
+                                .thenReturn(List.of(enrolledStudent, unenrolledStudent));
+                when(enrollmentRepository.findActiveUserIdsByCourseIdAndUserIdIn(eq(TENANT_ID), eq(courseId), anySet(),
                                 eq(Enrollment.Status.CANCELLED)))
                                 .thenReturn(Set.of(1L));
-                when(attendanceRepository.findByCourseIdAndAttendanceDateAndUserIdIn(courseId, date, Set.of(1L)))
+                when(attendanceRepository.findByCourseIdAndAttendanceDateAndUserIdInAndTenantId(courseId, date,
+                                Set.of(1L), TENANT_ID))
                                 .thenReturn(List.of());
                 when(attendanceRepository.saveAll(any())).thenAnswer(invocation -> {
                         Iterable<Attendance> records = invocation.getArgument(0);
@@ -90,7 +115,8 @@ class AttendanceServiceTest {
                 assertEquals(1, saved.size());
                 assertSame(enrolledStudent, saved.get(0).getUser());
                 assertEquals(Attendance.Status.PRESENT, saved.get(0).getStatus());
-                verify(attendanceRepository).findByCourseIdAndAttendanceDateAndUserIdIn(courseId, date, Set.of(1L));
+                verify(attendanceRepository).findByCourseIdAndAttendanceDateAndUserIdInAndTenantId(courseId, date,
+                                Set.of(1L), TENANT_ID);
         }
 
         @Test
@@ -119,13 +145,14 @@ class AttendanceServiceTest {
                                 date,
                                 List.of(new AttendanceRequest.StudentAttendance(studentId, "LATE", "Traffic")));
 
-                when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
-                when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
-                when(userRepository.findAllById(any())).thenReturn(List.of(student));
-                when(enrollmentRepository.findActiveUserIdsByCourseIdAndUserIdIn(eq(courseId), anySet(),
+                when(courseRepository.findByIdAndTenantId(courseId, TENANT_ID)).thenReturn(Optional.of(course));
+                when(userRepository.findByIdAndTenantId(adminId, TENANT_ID)).thenReturn(Optional.of(admin));
+                when(userRepository.findByIdInAndTenantId(anySet(), eq(TENANT_ID))).thenReturn(List.of(student));
+                when(enrollmentRepository.findActiveUserIdsByCourseIdAndUserIdIn(eq(TENANT_ID), eq(courseId), anySet(),
                                 eq(Enrollment.Status.CANCELLED)))
                                 .thenReturn(Set.of(studentId));
-                when(attendanceRepository.findByCourseIdAndAttendanceDateAndUserIdIn(courseId, date, Set.of(studentId)))
+                when(attendanceRepository.findByCourseIdAndAttendanceDateAndUserIdInAndTenantId(courseId, date,
+                                Set.of(studentId), TENANT_ID))
                                 .thenReturn(List.of(existing));
                 when(attendanceRepository.saveAll(any())).thenAnswer(invocation -> {
                         Iterable<Attendance> records = invocation.getArgument(0);
@@ -160,10 +187,10 @@ class AttendanceServiceTest {
                                 date,
                                 List.of(new AttendanceRequest.StudentAttendance(studentId, "INVALID", null)));
 
-                when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
-                when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
-                when(userRepository.findAllById(any())).thenReturn(List.of(student));
-                when(enrollmentRepository.findActiveUserIdsByCourseIdAndUserIdIn(eq(courseId), anySet(),
+                when(courseRepository.findByIdAndTenantId(courseId, TENANT_ID)).thenReturn(Optional.of(course));
+                when(userRepository.findByIdAndTenantId(adminId, TENANT_ID)).thenReturn(Optional.of(admin));
+                when(userRepository.findByIdInAndTenantId(anySet(), eq(TENANT_ID))).thenReturn(List.of(student));
+                when(enrollmentRepository.findActiveUserIdsByCourseIdAndUserIdIn(eq(TENANT_ID), eq(courseId), anySet(),
                                 eq(Enrollment.Status.CANCELLED)))
                                 .thenReturn(Set.of(studentId));
 
@@ -181,7 +208,7 @@ class AttendanceServiceTest {
                                 new Object[] { Attendance.Status.ABSENT, 3L },
                                 new Object[] { Attendance.Status.LATE, 2L });
 
-                when(attendanceRepository.getAttendanceSummary(1L, 2L)).thenReturn(rawSummary);
+                when(attendanceRepository.getAttendanceSummary(TENANT_ID, 1L, 2L)).thenReturn(rawSummary);
 
                 Map<String, Object> summary = attendanceService.getAttendanceSummary(1L, 2L);
 

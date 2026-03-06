@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/counseling")
 public class CounselingController {
@@ -36,8 +34,8 @@ public class CounselingController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllRequests() {
-        return ResponseEntity.ok(counselingService.getAllRequests());
+    public ResponseEntity<ApiResponse> getAllRequests() {
+        return ResponseEntity.ok(ApiResponse.success("Requests retrieved", counselingService.getAllRequests()));
     }
 
     /**
@@ -45,8 +43,8 @@ public class CounselingController {
      */
     @GetMapping("/new")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getNewRequests() {
-        return ResponseEntity.ok(counselingService.getNewRequests());
+    public ResponseEntity<ApiResponse> getNewRequests() {
+        return ResponseEntity.ok(ApiResponse.success("New requests retrieved", counselingService.getNewRequests()));
     }
 
     /**
@@ -64,7 +62,7 @@ public class CounselingController {
      */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getStats() {
-        return ResponseEntity.ok(counselingService.getStats());
+    public ResponseEntity<ApiResponse> getStats() {
+        return ResponseEntity.ok(ApiResponse.success("Stats retrieved", counselingService.getStats()));
     }
 }

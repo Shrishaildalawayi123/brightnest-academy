@@ -16,7 +16,12 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "enrollments", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_id", "course_id" })
+        @UniqueConstraint(name = "uk_enrollment_tenant_user_course", columnNames = { "tenant_id", "user_id",
+                "course_id" })
+}, indexes = {
+        @Index(name = "idx_enrollment_tenant", columnList = "tenant_id"),
+        @Index(name = "idx_enrollment_user_enrolled_at", columnList = "user_id,enrolled_at"),
+        @Index(name = "idx_enrollment_course_status", columnList = "course_id,status")
 })
 @Data
 @NoArgsConstructor
@@ -29,6 +34,11 @@ public class Enrollment {
 
     @Version
     private Long version;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer" })
+    private Tenant tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

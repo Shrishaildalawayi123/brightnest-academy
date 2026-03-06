@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/contact")
 public class ContactController {
@@ -35,8 +33,8 @@ public class ContactController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllMessages() {
-        return ResponseEntity.ok(contactService.getAllMessages());
+    public ResponseEntity<ApiResponse> getAllMessages() {
+        return ResponseEntity.ok(ApiResponse.success("Messages retrieved", contactService.getAllMessages()));
     }
 
     /**
@@ -44,8 +42,8 @@ public class ContactController {
      */
     @GetMapping("/unread")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getUnreadMessages() {
-        return ResponseEntity.ok(contactService.getUnreadMessages());
+    public ResponseEntity<ApiResponse> getUnreadMessages() {
+        return ResponseEntity.ok(ApiResponse.success("Unread messages retrieved", contactService.getUnreadMessages()));
     }
 
     /**
@@ -63,7 +61,7 @@ public class ContactController {
      */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getContactStats() {
-        return ResponseEntity.ok(contactService.getStats());
+    public ResponseEntity<ApiResponse> getContactStats() {
+        return ResponseEntity.ok(ApiResponse.success("Stats retrieved", contactService.getStats()));
     }
 }

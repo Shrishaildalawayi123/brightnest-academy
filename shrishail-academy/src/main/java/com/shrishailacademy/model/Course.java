@@ -1,32 +1,52 @@
 package com.shrishailacademy.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "courses")
-@Data
+@Table(name = "courses", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_course_tenant_title", columnNames = { "tenant_id", "title" }),
+        @UniqueConstraint(name = "uk_course_tenant_subject_key", columnNames = { "tenant_id", "subject_key" })
+}, indexes = {
+        @Index(name = "idx_course_tenant", columnList = "tenant_id"),
+        @Index(name = "idx_course_tenant_title", columnList = "tenant_id,title"),
+        @Index(name = "idx_course_tenant_subject_key", columnList = "tenant_id,subject_key"),
+        @Index(name = "idx_course_teacher", columnList = "teacher_id")
+})
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Course extends BaseAuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer" })
+    private Tenant tenant;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id")
+    @JsonIgnoreProperties({ "enrollments", "password", "hibernateLazyInitializer" })
+    private User teacher;
 
     @NotBlank(message = "Course title is required")
     @Size(max = 100, message = "Title must not exceed 100 characters")
@@ -44,6 +64,9 @@ public class Course extends BaseAuditableEntity {
 
     @Column(length = 20)
     private String color;
+
+    @Column(name = "subject_key", length = 50)
+    private String subjectKey;
 
     @NotNull(message = "Course fee is required")
     @DecimalMin(value = "0.00", message = "Fee must be non-negative")

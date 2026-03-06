@@ -2,6 +2,8 @@ package com.shrishailacademy.service;
 
 import com.shrishailacademy.model.AuditLog;
 import com.shrishailacademy.repository.AuditLogRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.util.InputSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Audit Log Service - Records security-relevant events asynchronously.
  * 
- * Actions tracked:
- * - LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT
- * - REGISTER, PASSWORD_CHANGE
- * - PAYMENT_INITIATED, PAYMENT_CONFIRMED, PAYMENT_FAILED
- * - COURSE_CREATED, COURSE_UPDATED, COURSE_DELETED
- * - ADMIN_ACCESS
+ * Note: tenantId is passed explicitly to @Async methods because
+ * ThreadLocal-based TenantContext is not propagated to async executor threads.
  */
 @Service
 public class AuditLogService {
@@ -34,21 +32,22 @@ public class AuditLogService {
 
     /**
      * Record an audit event asynchronously to avoid slowing down request
-     * processing.
+     * processing. tenantId must be resolved on the calling thread.
      */
     @Async
     @Transactional
-    public void logEvent(Long userId, String action, String details, HttpServletRequest request) {
+    public void logEvent(Long tenantId, Long userId, String action, String details, HttpServletRequest request) {
         try {
             String ipAddress = extractClientIp(request);
             String userAgent = request.getHeader("User-Agent");
 
             AuditLog auditLog = new AuditLog();
+            auditLog.setTenantId(tenantId);
             auditLog.setUserId(userId);
-            auditLog.setAction(action);
-            auditLog.setDetails(details);
-            auditLog.setIpAddress(ipAddress);
-            auditLog.setUserAgent(userAgent != null ? truncate(userAgent, 500) : null);
+            auditLog.setAction(InputSanitizer.sanitizeAndTruncate(action, 100));
+            auditLog.setDetails(InputSanitizer.sanitizeAndTruncateNullable(details, 500));
+            auditLog.setIpAddress(InputSanitizer.sanitizeAndTruncateNullable(ipAddress, 45));
+            auditLog.setUserAgent(InputSanitizer.sanitizeAndTruncateNullable(userAgent, 500));
 
             auditLogRepository.save(auditLog);
             log.debug("Audit logged: action={} userId={} ip={}", action, userId, ipAddress);
@@ -60,12 +59,18 @@ public class AuditLogService {
 
     /**
      * Record an audit event without an HTTP request context.
+     * tenantId must be resolved on the calling thread.
      */
     @Async
     @Transactional
-    public void logEvent(Long userId, String action, String details, String ipAddress) {
+    public void logEvent(Long tenantId, Long userId, String action, String details, String ipAddress) {
         try {
-            AuditLog auditLog = new AuditLog(userId, action, details, ipAddress);
+            AuditLog auditLog = new AuditLog(
+                    tenantId,
+                    userId,
+                    InputSanitizer.sanitizeAndTruncate(action, 100),
+                    InputSanitizer.sanitizeAndTruncateNullable(details, 500),
+                    InputSanitizer.sanitizeAndTruncateNullable(ipAddress, 45));
             auditLogRepository.save(auditLog);
             log.debug("Audit logged: action={} userId={}", action, userId);
         } catch (Exception e) {
@@ -78,7 +83,8 @@ public class AuditLogService {
      */
     @Transactional(readOnly = true)
     public Page<AuditLog> getAuditLogs(Pageable pageable) {
-        return auditLogRepository.findAllByOrderByTimestampDesc(pageable);
+        Long tenantId = TenantContext.requireTenantId();
+        return auditLogRepository.findByTenantIdOrderByTimestampDesc(tenantId, pageable);
     }
 
     /**
@@ -86,7 +92,8 @@ public class AuditLogService {
      */
     @Transactional(readOnly = true)
     public Page<AuditLog> getAuditLogsByUser(Long userId, Pageable pageable) {
-        return auditLogRepository.findByUserId(userId, pageable);
+        Long tenantId = TenantContext.requireTenantId();
+        return auditLogRepository.findByTenantIdAndUserId(tenantId, userId, pageable);
     }
 
     /**
@@ -94,7 +101,8 @@ public class AuditLogService {
      */
     @Transactional(readOnly = true)
     public Page<AuditLog> getAuditLogsByAction(String action, Pageable pageable) {
-        return auditLogRepository.findByAction(action, pageable);
+        Long tenantId = TenantContext.requireTenantId();
+        return auditLogRepository.findByTenantIdAndAction(tenantId, action, pageable);
     }
 
     /**
@@ -113,7 +121,4 @@ public class AuditLogService {
         return request.getRemoteAddr();
     }
 
-    private String truncate(String value, int maxLength) {
-        return value.length() <= maxLength ? value : value.substring(0, maxLength);
-    }
 }

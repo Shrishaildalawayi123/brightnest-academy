@@ -12,6 +12,30 @@ import java.util.Optional;
 @Repository
 public interface BlogPostRepository extends JpaRepository<BlogPost, Long> {
 
+    // ========== TENANT-AWARE QUERIES ==========
+
+    Page<BlogPost> findByTenantIdAndPublishedTrue(Long tenantId, Pageable pageable);
+
+    Page<BlogPost> findByTenantIdAndPublishedTrueAndCategory(Long tenantId, BlogPost.Category category,
+            Pageable pageable);
+
+    Optional<BlogPost> findByTenantIdAndSlugAndPublishedTrue(Long tenantId, String slug);
+
+    Page<BlogPost> findByTenantId(Long tenantId, Pageable pageable);
+
+    Optional<BlogPost> findByIdAndTenantId(Long id, Long tenantId);
+
+    boolean existsByTenantIdAndSlug(Long tenantId, String slug);
+
+    boolean existsByTenantIdAndSlugAndIdNot(Long tenantId, String slug, Long id);
+
+    void deleteByIdAndTenantId(Long id, Long tenantId);
+
+    long countByTenantIdAndPublished(Long tenantId, boolean published);
+
+    // ========== LEGACY (non-tenant) — retained for backward compatibility
+    // ==========
+
     List<BlogPost> findByPublishedTrueOrderByPublishedAtDesc();
 
     Page<BlogPost> findByPublishedTrue(Pageable pageable);

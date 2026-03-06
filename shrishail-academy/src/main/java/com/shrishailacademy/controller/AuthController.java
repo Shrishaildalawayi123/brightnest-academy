@@ -9,6 +9,7 @@ import com.shrishailacademy.security.JwtTokenProvider;
 import com.shrishailacademy.service.AuditLogService;
 import com.shrishailacademy.service.AuthService;
 import com.shrishailacademy.service.RefreshTokenService;
+import com.shrishailacademy.tenant.TenantContext;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -68,12 +69,12 @@ public class AuthController {
             AuthResponse response = authService.register(request);
             String refreshToken = refreshTokenService.createRefreshToken(response.getId());
             setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
-            auditLogService.logEvent(response.getId(), "REGISTER",
+            auditLogService.logEvent(TenantContext.getTenantId(), response.getId(), "REGISTER",
                     "New user registered: " + request.getEmail(), httpRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.warn("Registration failed for email: {}", request.getEmail());
-            auditLogService.logEvent(null, "REGISTER_FAILED",
+            auditLogService.logEvent(TenantContext.getTenantId(), null, "REGISTER_FAILED",
                     "Registration attempt: " + request.getEmail(), httpRequest);
             throw e;
         }
@@ -87,12 +88,12 @@ public class AuthController {
             AuthResponse response = authService.login(request);
             String refreshToken = refreshTokenService.createRefreshToken(response.getId());
             setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
-            auditLogService.logEvent(response.getId(), "LOGIN_SUCCESS",
+            auditLogService.logEvent(TenantContext.getTenantId(), response.getId(), "LOGIN_SUCCESS",
                     "User logged in: " + request.getEmail(), httpRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.warn("Login failed for email: {}", request.getEmail());
-            auditLogService.logEvent(null, "LOGIN_FAILED",
+            auditLogService.logEvent(TenantContext.getTenantId(), null, "LOGIN_FAILED",
                     "Failed login attempt: " + request.getEmail(), httpRequest);
             throw e;
         }
@@ -117,8 +118,9 @@ public class AuthController {
                             "Refresh token missing"));
         }
 
-        Optional<User> userOpt = refreshTokenService.rotateRefreshToken(oldRefreshToken);
-        if (userOpt.isEmpty()) {
+        Optional<RefreshTokenService.RefreshTokenRotation> rotationOpt = refreshTokenService
+                .rotateRefreshToken(oldRefreshToken);
+        if (rotationOpt.isEmpty()) {
             clearAuthCookies(httpRequest, httpResponse);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ApiErrorResponse(
@@ -128,12 +130,14 @@ public class AuthController {
                             "Invalid or expired refresh token. Please login again."));
         }
 
-        User user = userOpt.get();
+        RefreshTokenService.RefreshTokenRotation rotation = rotationOpt.get();
+        User user = rotation.user();
         String role = "ROLE_" + user.getRole().name();
-        String newAccessToken = jwtTokenProvider.generateTokenFromUsername(user.getEmail(), role);
-        setAuthCookies(httpRequest, httpResponse, newAccessToken, user.getRefreshToken());
+        Long tenantId = user.getTenant().getId();
+        String newAccessToken = jwtTokenProvider.generateTokenFromUsername(user.getEmail(), role, tenantId);
+        setAuthCookies(httpRequest, httpResponse, newAccessToken, rotation.rawRefreshToken());
 
-        auditLogService.logEvent(user.getId(), "TOKEN_REFRESH",
+        auditLogService.logEvent(TenantContext.getTenantId(), user.getId(), "TOKEN_REFRESH",
                 "Access token refreshed", httpRequest);
 
         return ResponseEntity.ok(Map.of(
@@ -155,7 +159,7 @@ public class AuthController {
             }
         }
         clearAuthCookies(request, response);
-        auditLogService.logEvent(null, "LOGOUT", "User logged out", request);
+        auditLogService.logEvent(TenantContext.getTenantId(), null, "LOGOUT", "User logged out", request);
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 

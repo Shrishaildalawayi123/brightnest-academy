@@ -7,13 +7,36 @@ CREATE DATABASE IF NOT EXISTS shrishail_academy;
 USE shrishail_academy;
 
 -- =====================================================
+-- Table: tenants
+-- Multi-tenant isolation root table
+-- =====================================================
+CREATE TABLE IF NOT EXISTS tenants (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_key VARCHAR(50) NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    domain VARCHAR(255),
+    plan VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_tenant_key (tenant_key),
+    INDEX idx_tenant_key (tenant_key)
+);
+
+-- =====================================================
+-- Seed Default Tenant
+-- =====================================================
+INSERT INTO tenants (tenant_key, name) VALUES ('default', 'Default Tenant')
+ON DUPLICATE KEY UPDATE name=name;
+
+-- =====================================================
 -- Table: users
 -- Stores both students and admins
 -- =====================================================
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     role VARCHAR(20) NOT NULL DEFAULT 'STUDENT',
@@ -21,8 +44,12 @@ CREATE TABLE IF NOT EXISTS users (
     refresh_token_expiry TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    UNIQUE KEY uk_user_tenant_email (tenant_id, email),
     INDEX idx_email (email),
-    INDEX idx_role (role)
+    INDEX idx_role (role),
+    INDEX idx_refresh_token (refresh_token),
+    INDEX idx_user_tenant (tenant_id)
 );
 
 -- =====================================================
@@ -31,14 +58,25 @@ CREATE TABLE IF NOT EXISTS users (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS courses (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT,
     duration VARCHAR(50),
     icon VARCHAR(50),
     color VARCHAR(20),
+    subject_key VARCHAR(50),
     fee DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    teacher_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE SET NULL,
+    UNIQUE KEY uk_course_tenant_title (tenant_id, title),
+    UNIQUE KEY uk_course_tenant_subject_key (tenant_id, subject_key),
+    INDEX idx_course_title (title),
+    INDEX idx_course_tenant (tenant_id),
+    INDEX idx_course_tenant_subject_key (tenant_id, subject_key),
+    INDEX idx_course_teacher (teacher_id)
 );
 
 -- =====================================================
@@ -47,23 +85,29 @@ CREATE TABLE IF NOT EXISTS courses (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS enrollments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     course_id BIGINT NOT NULL,
     enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'ACTIVE',
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_enrollment (user_id, course_id),
+    UNIQUE KEY unique_enrollment (tenant_id, user_id, course_id),
     INDEX idx_user_id (user_id),
-    INDEX idx_course_id (course_id)
+    INDEX idx_course_id (course_id),
+    INDEX idx_user_enrolled_at (user_id, enrolled_at),
+    INDEX idx_course_status (course_id, status),
+    INDEX idx_enrollment_tenant (tenant_id)
 );
 
 -- =====================================================
 -- Insert Default Admin User
 -- Password: admin123 (BCrypt encoded)
 -- =====================================================
-INSERT INTO users (name, email, password, phone, role) 
+INSERT INTO users (tenant_id, name, email, password, phone, role) 
 VALUES (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Admin', 
     'admin@academy.com', 
     '$2a$10$xQGE5BhYV5YOB.YLhXGze.8FqLHKCKLLPWYVLLqhL5GQpLUzKqz4G',
@@ -71,67 +115,163 @@ VALUES (
     'ADMIN'
 ) ON DUPLICATE KEY UPDATE email=email;
 
+INSERT INTO users (tenant_id, name, email, password, phone, role) VALUES
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Bharati R Satappagol',
+    'bharati@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '6363464005',
+    'TEACHER'
+),
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Chetana',
+    'chetana@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '9000000001',
+    'TEACHER'
+),
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Mahadev S',
+    'mahadev@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '9000000002',
+    'TEACHER'
+),
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Pooja',
+    'pooja@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '9000000003',
+    'TEACHER'
+),
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Nagesh Kumar M U',
+    'nagesh@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '9000000004',
+    'TEACHER'
+),
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Preeti R S',
+    'preeti@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '9000000005',
+    'TEACHER'
+),
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Prema G',
+    'prema@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '9000000006',
+    'TEACHER'
+),
+(
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'Mr. Shrishail Dalawayi',
+    'shrishail@brightnest-academy.com',
+    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
+    '9000000007',
+    'TEACHER'
+)
+ON DUPLICATE KEY UPDATE name = VALUES(name), phone = VALUES(phone), role = VALUES(role);
+
 -- =====================================================
 -- Insert Default Courses
 -- =====================================================
-INSERT INTO courses (title, description, duration, icon, color, fee) VALUES
+INSERT INTO courses (tenant_id, title, description, duration, icon, color, subject_key, fee, teacher_id) VALUES
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Mathematics',
     'Master mathematical concepts from basics to advanced levels. Our structured curriculum covers algebra, geometry, calculus, and more with practical problem-solving techniques.',
     '12 months',
     '📐',
     '#3B82F6',
-    3000.00
+    'maths',
+    3000.00,
+    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'nagesh@brightnest-academy.com')
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Science',
     'Explore the wonders of Physics, Chemistry, and Biology through interactive learning. We make science fun with experiments and real-world applications.',
     '12 months',
     '🔬',
     '#10B981',
-    3500.00
+    'science',
+    3500.00,
+    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'pooja@brightnest-academy.com')
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'English',
     'Develop strong communication skills with our comprehensive English program covering grammar, literature, writing, and spoken English.',
     '10 months',
     '📚',
     '#8B5CF6',
-    2500.00
+    'english',
+    2500.00,
+    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'chetana@brightnest-academy.com')
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Kannada',
     'Learn Karnataka''s beautiful language with focus on reading, writing, and literature. Perfect for students preparing for board exams.',
     '8 months',
     'ಕ',
     '#F59E0B',
-    2000.00
+    'kannada',
+    2000.00,
+    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'bharati@brightnest-academy.com')
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Hindi',
     'Master Hindi language skills through comprehensive lessons in grammar, literature, and composition. Ideal for all proficiency levels.',
     '10 months',
     'ह',
     '#EF4444',
-    2500.00
+    'hindi',
+    2500.00,
+    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'mahadev@brightnest-academy.com')
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Sanskrit',
     'Discover the ancient language of Sanskrit with expert guidance in grammar, slokas, and classical texts.',
     '12 months',
     'संस्',
     '#EC4899',
-    2000.00
+    'sanskrit',
+    2000.00,
+    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'bharati@brightnest-academy.com')
 ),
 (
-    'French',
-    'Learn French language with interactive sessions covering conversation, grammar, and French culture. DELF exam preparation available.',
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    'German',
+    'Learn German language with interactive sessions covering conversation, grammar, and cultural fluency for school learners.',
     '14 months',
-    '🇫🇷',
+    '🇩🇪',
     '#06B6D4',
+    'german',
+    3000.00
     4000.00
 )
-ON DUPLICATE KEY UPDATE title=title;
+ON DUPLICATE KEY UPDATE
+    title = VALUES(title),
+    description = VALUES(description),
+    duration = VALUES(duration),
+    icon = VALUES(icon),
+    color = VALUES(color),
+    subject_key = VALUES(subject_key),
+    fee = VALUES(fee),
+    teacher_id = VALUES(teacher_id);
 
 -- =====================================================
 -- Table: attendance
@@ -139,6 +279,7 @@ ON DUPLICATE KEY UPDATE title=title;
 -- =====================================================
 CREATE TABLE IF NOT EXISTS attendance (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     course_id BIGINT NOT NULL,
     attendance_date DATE NOT NULL,
@@ -146,13 +287,15 @@ CREATE TABLE IF NOT EXISTS attendance (
     remarks VARCHAR(255),
     marked_by_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
     FOREIGN KEY (marked_by_id) REFERENCES users(id) ON DELETE SET NULL,
-    UNIQUE KEY unique_attendance (user_id, course_id, attendance_date),
+    UNIQUE KEY unique_attendance (tenant_id, user_id, course_id, attendance_date),
     INDEX idx_attendance_user (user_id),
     INDEX idx_attendance_course (course_id),
-    INDEX idx_attendance_date (attendance_date)
+    INDEX idx_attendance_date (attendance_date),
+    INDEX idx_attendance_tenant (tenant_id)
 );
 
 -- =====================================================
@@ -161,6 +304,7 @@ CREATE TABLE IF NOT EXISTS attendance (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS payments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     course_id BIGINT NOT NULL,
     enrollment_id BIGINT,
@@ -175,6 +319,7 @@ CREATE TABLE IF NOT EXISTS payments (
     paid_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE RESTRICT,
     FOREIGN KEY (enrollment_id) REFERENCES enrollments(id) ON DELETE SET NULL,
@@ -182,7 +327,10 @@ CREATE TABLE IF NOT EXISTS payments (
     INDEX idx_payment_user (user_id),
     INDEX idx_payment_course (course_id),
     INDEX idx_payment_status (status),
-    INDEX idx_payment_receipt (receipt_number)
+    INDEX idx_payment_receipt (receipt_number),
+    INDEX idx_payment_user_created_at (user_id, created_at),
+    INDEX idx_payment_enrollment_status (enrollment_id, status),
+    INDEX idx_payment_tenant (tenant_id)
 );
 
 -- =====================================================
@@ -191,6 +339,7 @@ CREATE TABLE IF NOT EXISTS payments (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS contact_messages (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
@@ -198,6 +347,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     message VARCHAR(2000) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'NEW',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    INDEX idx_contact_tenant (tenant_id),
     INDEX idx_contact_status (status),
     INDEX idx_contact_date (created_at)
 );
@@ -208,12 +359,15 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS testimonials (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     student_name VARCHAR(100) NOT NULL,
     course_name VARCHAR(100),
     review VARCHAR(1000) NOT NULL,
     rating INT NOT NULL DEFAULT 5,
     approved BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    INDEX idx_testimonial_tenant (tenant_id),
     INDEX idx_testimonial_approved (approved)
 );
 
@@ -221,8 +375,9 @@ CREATE TABLE IF NOT EXISTS testimonials (
 -- Sample Student User for Testing
 -- Password: student123
 -- =====================================================
-INSERT INTO users (name, email, password, phone, role) 
+INSERT INTO users (tenant_id, name, email, password, phone, role) 
 VALUES (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Test Student', 
     'student@test.com', 
     '$2a$10$8c5qW7mLJh5QlYmZ1YsXxOYfHJ3vQKZ7kLpYvXqZ7qYvXqZ7qYvXq',
@@ -233,8 +388,10 @@ VALUES (
 -- =====================================================
 -- Sample Enrollment for Testing
 -- =====================================================
-INSERT INTO enrollments (user_id, course_id, status)
-SELECT u.id, c.id, 'ACTIVE'
+INSERT INTO enrollments (tenant_id, user_id, course_id, status)
+SELECT
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
+    u.id, c.id, 'ACTIVE'
 FROM users u, courses c
 WHERE u.email = 'student@test.com' 
   AND c.title = 'Mathematics'
@@ -247,8 +404,9 @@ ON DUPLICATE KEY UPDATE status=status;
 -- =====================================================
 CREATE TABLE IF NOT EXISTS blog_posts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
-    slug VARCHAR(220) NOT NULL UNIQUE,
+    slug VARCHAR(220) NOT NULL,
     excerpt VARCHAR(500),
     content LONGTEXT,
     category VARCHAR(40) NOT NULL DEFAULT 'ACADEMY_NEWS',
@@ -258,10 +416,14 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     published_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    UNIQUE KEY uk_blog_tenant_slug (tenant_id, slug),
     INDEX idx_blog_slug (slug),
     INDEX idx_blog_category (category),
     INDEX idx_blog_published (published),
-    INDEX idx_blog_published_at (published_at)
+    INDEX idx_blog_published_at (published_at),
+    INDEX idx_blog_published_published_at (published, published_at),
+    INDEX idx_blog_tenant (tenant_id)
 );
 
 -- =====================================================
@@ -270,6 +432,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS demo_bookings (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     student_name VARCHAR(100) NOT NULL,
     parent_name VARCHAR(100),
     email VARCHAR(100) NOT NULL,
@@ -284,6 +447,8 @@ CREATE TABLE IF NOT EXISTS demo_bookings (
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     scheduled_date TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    INDEX idx_demo_tenant (tenant_id),
     INDEX idx_demo_status (status),
     INDEX idx_demo_date (created_at)
 );
@@ -294,6 +459,7 @@ CREATE TABLE IF NOT EXISTS demo_bookings (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS teacher_applications (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
@@ -307,6 +473,8 @@ CREATE TABLE IF NOT EXISTS teacher_applications (
     resume_file_path VARCHAR(500),
     status VARCHAR(20) NOT NULL DEFAULT 'NEW',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    INDEX idx_teacher_app_tenant (tenant_id),
     INDEX idx_teacher_app_status (status),
     INDEX idx_teacher_app_date (created_at)
 );
@@ -314,8 +482,9 @@ CREATE TABLE IF NOT EXISTS teacher_applications (
 -- =====================================================
 -- Seed Blog Posts
 -- =====================================================
-INSERT INTO blog_posts (title, slug, excerpt, content, category, author, published, published_at) VALUES
+INSERT INTO blog_posts (tenant_id, title, slug, excerpt, content, category, author, published, published_at) VALUES
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     '5 Proven Techniques to Master Any Language Faster',
     '5-proven-techniques-to-master-any-language-faster',
     'Discover science-backed strategies that can accelerate your language learning journey and help you achieve fluency in less time.',
@@ -326,6 +495,7 @@ INSERT INTO blog_posts (title, slug, excerpt, content, category, author, publish
     '2026-02-20 10:00:00'
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'How to Prepare for Board Exams: A Complete Study Guide',
     'how-to-prepare-for-board-exams-complete-study-guide',
     'Board exams can feel overwhelming, but with the right strategy and preparation timeline, students can approach them with confidence and clarity.',
@@ -336,6 +506,7 @@ INSERT INTO blog_posts (title, slug, excerpt, content, category, author, publish
     '2026-02-15 09:00:00'
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'The Beauty of Sanskrit: Why This Ancient Language Matters Today',
     'the-beauty-of-sanskrit-why-this-ancient-language-matters-today',
     'Sanskrit is far more than an ancient language — it is a window into philosophy, science, and literature that continues to influence modern thought and education.',
@@ -346,6 +517,7 @@ INSERT INTO blog_posts (title, slug, excerpt, content, category, author, publish
     '2026-02-10 11:30:00'
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Welcome to BrightNest Academy: Our Story and Mission',
     'welcome-to-brightnest-academy-our-story-and-mission',
     'Learn about BrightNest Academy''s journey, our commitment to quality education, and how we are making a difference in students'' lives across Bangalore.',
@@ -356,6 +528,7 @@ INSERT INTO blog_posts (title, slug, excerpt, content, category, author, publish
     '2026-01-25 08:00:00'
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Choosing Between Hindi and Sanskrit for CBSE: A Parent''s Guide',
     'choosing-between-hindi-and-sanskrit-for-cbse-parents-guide',
     'A comprehensive comparison to help CBSE parents make an informed decision about their child''s second language — Hindi or Sanskrit.',
@@ -366,6 +539,7 @@ INSERT INTO blog_posts (title, slug, excerpt, content, category, author, publish
     '2026-02-01 14:00:00'
 ),
 (
+    (SELECT id FROM tenants WHERE tenant_key = 'default'),
     'Building Strong Reading Habits in Children: Tips for Parents',
     'building-strong-reading-habits-in-children-tips-for-parents',
     'Reading is the foundation of all learning. Here are practical strategies parents can use to cultivate a lifelong love of reading in their children.',
@@ -382,17 +556,40 @@ ON DUPLICATE KEY UPDATE title=title;
 -- =====================================================
 
 -- =====================================================
+-- Table: notifications
+-- Messages and alerts for users within a tenant
+-- =====================================================
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    message VARCHAR(2000) NOT NULL,
+    type VARCHAR(50),
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_notification_tenant (tenant_id),
+    INDEX idx_notification_user (user_id),
+    INDEX idx_notification_read (is_read),
+    INDEX idx_notification_created (created_at)
+);
+
+-- =====================================================
 -- Table: audit_log
 -- Tracks security-relevant user actions for compliance
 -- =====================================================
 CREATE TABLE IF NOT EXISTS audit_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT,
     user_id BIGINT,
     action VARCHAR(100) NOT NULL,
     details VARCHAR(500),
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ip_address VARCHAR(45),
     user_agent VARCHAR(500),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    INDEX idx_audit_tenant (tenant_id),
     INDEX idx_audit_user_id (user_id),
     INDEX idx_audit_action (action),
     INDEX idx_audit_timestamp (timestamp)
@@ -421,12 +618,15 @@ CREATE TABLE IF NOT EXISTS site_visits (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS counseling_requests (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
     student_name VARCHAR(100) NOT NULL,
     student_class VARCHAR(30) NOT NULL,
     board VARCHAR(50) NOT NULL,
     parent_phone VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'NEW',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    INDEX idx_counseling_tenant (tenant_id),
     INDEX idx_counseling_status (status),
     INDEX idx_counseling_date (created_at)
 );

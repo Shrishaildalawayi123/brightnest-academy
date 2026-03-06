@@ -110,8 +110,8 @@
     <section class="course-educators">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Our Science Educators</h2>
-                <p class="section-subtitle">Meet the expert teachers who will guide your Science learning journey.</p>
+                <h2 class="section-title">Assigned Science Faculty</h2>
+                <p class="section-subtitle">Meet the faculty currently assigned to guide this subject.</p>
             </div>
             <div class="team-grid" id="educatorsGrid"></div>
         </div>
@@ -133,41 +133,11 @@
 
     <script src="js/data.js?v=20260302"></script>
     <script src="js/app.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/subject-page.js"></script>
     <script>
         const courseKey = 'science';
-        const info = COURSE_INFO[courseKey];
-        if (info) {
-            document.getElementById('courseTagline').textContent = info.tagline;
-            document.getElementById('courseDescription').textContent = info.description;
-            const grid = document.getElementById('offeringsGrid');
-            grid.innerHTML = info.offerings.map(o =>
-                '<div class="offering-card">'
-                + '<div class="offering-icon">' + o.icon + '</div>'
-                + '<h3>' + o.title + '</h3>'
-                + '<p>' + o.desc + '</p>'
-                + '</div>'
-            ).join('');
-        }
-        const educators = getEducatorsForSubject(courseKey);
-        const educatorsGrid = document.getElementById('educatorsGrid');
-        if (educatorsGrid) {
-            educatorsGrid.innerHTML = educators.map(m => renderTeamCard(m)).join('');
-        }
-        // Render highlights
-        const highlightsEl = document.getElementById('courseHighlights');
-        if (highlightsEl && info.highlights) highlightsEl.innerHTML = renderCourseHighlights(info);
-        // Render outcomes
-        const outcomesEl = document.getElementById('outcomesContainer');
-        if (outcomesEl && info.outcomes) outcomesEl.innerHTML = renderCourseOutcomes(info);
-        // Render curriculum
-        const curriculumEl = document.getElementById('curriculumGrid');
-        if (curriculumEl && info.curriculum) curriculumEl.innerHTML = renderCourseCurriculum(info);
-        // Render audience
-        const audienceEl = document.getElementById('audienceContainer');
-        if (audienceEl && info.targetAudience) audienceEl.innerHTML = renderCourseAudience(info);
-
-        const footerEl = document.getElementById('footerPlaceholder');
-        if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();
+        renderSubjectPage(courseKey);
     </script>
 </body>
 </html>

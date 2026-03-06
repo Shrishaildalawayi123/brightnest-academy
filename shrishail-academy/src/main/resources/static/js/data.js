@@ -7,6 +7,7 @@ const TEAM_DATA = [
   {
     id: "founder",
     name: "Bharati R Satappagol",
+    email: "bharati@brightnest-academy.com",
     role: "Founder & Lead Educator",
     subjects: ["Kannada", "English", "Science", "Mathematics"],
     bio: "10 years of teaching experience — consistently delivering uncompromised quality and impactful learning.",
@@ -17,6 +18,7 @@ const TEAM_DATA = [
   {
     id: "chetana",
     name: "Chetana",
+    email: "chetana@brightnest-academy.com",
     role: "English Educator",
     subjects: ["English"],
     bio: "8 years of teaching experience — focused on grammar, writing skills, reading comprehension, and spoken confidence with clear explanations and regular practice.",
@@ -27,6 +29,7 @@ const TEAM_DATA = [
   {
     id: "mahadev",
     name: "Mahadev S",
+    email: "mahadev@brightnest-academy.com",
     role: "Spoken Language Educator",
     subjects: ["Kannada (Spoken)", "Hindi (Spoken)"],
     bio: "17 years of teaching experience — helping learners build everyday speaking confidence with structured conversational practice, pronunciation support, and role-play based learning.",
@@ -37,6 +40,7 @@ const TEAM_DATA = [
   {
     id: "pooja",
     name: "Pooja",
+    email: "pooja@brightnest-academy.com",
     role: "Science Educator",
     subjects: ["Science"],
     bio: "5 years of teaching experience — explains concepts with real-life examples and step-by-step clarity, helping students strengthen fundamentals and score better in school exams.",
@@ -47,6 +51,7 @@ const TEAM_DATA = [
   {
     id: "nagesh",
     name: "Nagesh Kumar M U",
+    email: "nagesh@brightnest-academy.com",
     role: "Senior Educator",
     subjects: ["Mathematics"],
     bio: "25 years of teaching experience — concept-first Mathematics with a strong focus on fundamentals, problem-solving, and exam readiness.",
@@ -57,6 +62,7 @@ const TEAM_DATA = [
   {
     id: "preeti",
     name: "Preeti R S",
+    email: "preeti@brightnest-academy.com",
     role: "Mathematics Educator",
     subjects: ["Mathematics"],
     bio: "6 years of teaching experience — builds strong fundamentals, problem-solving speed, and confidence through guided practice, worksheets, and exam-oriented preparation.",
@@ -65,8 +71,20 @@ const TEAM_DATA = [
     color: "#6366f1",
   },
   {
+    id: "prema",
+    name: "Prema G",
+    email: "prema@brightnest-academy.com",
+    role: "English & Mathematics Educator",
+    subjects: ["English", "Mathematics"],
+    bio: "Supports English and Mathematics learning with concept clarity, practice-driven sessions, and steady academic guidance for school students.",
+    avatar: "👩‍🏫",
+    photo: "images/Prema%20G_English-Maths.png",
+    color: "#8b5cf6",
+  },
+  {
     id: "shrishail",
     name: "Mr. Shrishail Dalawayi",
+    email: "shrishail@brightnest-academy.com",
     role: "Educator",
     subjects: ["German", "Kannada", "Computer Science"],
     bio: "2 years of teaching experience — supports German, Kannada, and Computer Science learning through interactive and structured teaching methods.",
@@ -590,9 +608,9 @@ const COURSE_INFO = {
 const COURSE_EDUCATORS = {
   sanskrit: ["founder"],
   hindi: ["founder", "mahadev"],
-  english: ["founder", "chetana"],
+  english: ["founder", "chetana", "prema"],
   kannada: ["founder", "mahadev", "shrishail"],
-  maths: ["founder", "preeti", "nagesh"],
+  maths: ["founder", "preeti", "nagesh", "prema"],
   science: ["founder", "pooja"],
   german: ["founder", "shrishail"],
 };
@@ -601,6 +619,50 @@ const COURSE_EDUCATORS = {
 function getEducatorsForSubject(subject) {
   const ids = COURSE_EDUCATORS[subject.toLowerCase()] || [];
   return TEAM_DATA.filter((t) => ids.includes(t.id));
+}
+
+function findTeamMemberByTeacher(teacher) {
+  if (!teacher) {
+    return null;
+  }
+
+  const teacherEmail = (teacher.email || "").trim().toLowerCase();
+  const teacherName = (teacher.name || "").trim().toLowerCase();
+
+  return (
+    TEAM_DATA.find((member) => {
+      const memberEmail = (member.email || "").trim().toLowerCase();
+      const memberName = (member.name || "").trim().toLowerCase();
+      return (
+        (teacherEmail && memberEmail === teacherEmail) ||
+        (teacherName && memberName === teacherName)
+      );
+    }) || null
+  );
+}
+
+function buildAssignedEducatorProfile(teacher, subjectName) {
+  if (!teacher) {
+    return null;
+  }
+
+  const matchedMember = findTeamMemberByTeacher(teacher);
+  if (matchedMember) {
+    return matchedMember;
+  }
+
+  return {
+    id: `assigned-${teacher.id || "faculty"}`,
+    name: teacher.name || "Assigned Faculty",
+    email: teacher.email || "",
+    role: teacher.role === "ADMIN" ? "Lead Educator" : "Subject Educator",
+    subjects: subjectName ? [subjectName] : [],
+    bio: subjectName
+      ? `Assigned faculty for ${subjectName} at BrightNest Academy.`
+      : "Assigned faculty at BrightNest Academy.",
+    avatar: "👩‍🏫",
+    color: "#3b82f6",
+  };
 }
 
 function renderTeamCard(member) {
@@ -949,6 +1011,8 @@ window.TESTIMONIALS = TESTIMONIALS;
 window.COURSE_INFO = COURSE_INFO;
 window.COURSE_EDUCATORS = COURSE_EDUCATORS;
 window.getEducatorsForSubject = getEducatorsForSubject;
+window.findTeamMemberByTeacher = findTeamMemberByTeacher;
+window.buildAssignedEducatorProfile = buildAssignedEducatorProfile;
 window.renderTeamCard = renderTeamCard;
 window.renderFaqAccordion = renderFaqAccordion;
 window.toggleAccordion = toggleAccordion;

@@ -7,6 +7,8 @@ import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.EnrollmentRepository;
 import com.shrishailacademy.repository.PaymentRepository;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -29,17 +31,20 @@ public class PaymentService {
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final NotificationService notificationService;
+    private final TenantService tenantService;
 
     public PaymentService(PaymentRepository paymentRepository,
             UserRepository userRepository,
             CourseRepository courseRepository,
             EnrollmentRepository enrollmentRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            TenantService tenantService) {
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.enrollmentRepository = enrollmentRepository;
         this.notificationService = notificationService;
+        this.tenantService = tenantService;
     }
 
     /**
@@ -49,21 +54,25 @@ public class PaymentService {
      */
     @Transactional
     public Payment initiatePayment(Long userId, PaymentRequest request) {
-        User user = userRepository.findById(userId)
+        Long tenantId = TenantContext.requireTenantId();
+
+        User user = userRepository.findByIdAndTenantId(userId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        Course course = courseRepository.findById(request.getCourseId())
+        Course course = courseRepository.findByIdAndTenantId(request.getCourseId(), tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", request.getCourseId()));
 
         // Prevent duplicate successful payments (idempotency)
-        if (paymentRepository.existsByUserIdAndCourseIdAndStatus(userId, course.getId(), Payment.Status.SUCCESS)) {
+        if (paymentRepository.existsByUserIdAndCourseIdAndTenantIdAndStatus(userId, course.getId(), tenantId,
+                Payment.Status.SUCCESS)) {
             throw new DuplicateResourceException("Payment", "userId+courseId", userId + "+" + course.getId());
         }
 
         // Prevent duplicate pending payments via transactionId
-        if (request.getTransactionId() != null && !request.getTransactionId().isBlank()) {
-            paymentRepository.findByTransactionId(request.getTransactionId()).ifPresent(existing -> {
-                throw new DuplicateResourceException("Payment", "transactionId", request.getTransactionId());
+        String sanitizedTransactionId = InputSanitizer.sanitizeAndTruncateNullable(request.getTransactionId(), 100);
+        if (sanitizedTransactionId != null && !sanitizedTransactionId.isBlank()) {
+            paymentRepository.findByTransactionIdAndTenantId(sanitizedTransactionId, tenantId).ifPresent(existing -> {
+                throw new DuplicateResourceException("Payment", "transactionId", sanitizedTransactionId);
             });
         }
 
@@ -79,26 +88,29 @@ public class PaymentService {
         Payment.PaymentMethod method;
         try {
             method = Payment.PaymentMethod.valueOf(
-                    request.getPaymentMethod() != null ? request.getPaymentMethod().toUpperCase() : "UPI");
+                    request.getPaymentMethod() != null
+                            ? InputSanitizer.sanitize(request.getPaymentMethod()).toUpperCase()
+                            : "UPI");
         } catch (IllegalArgumentException e) {
             method = Payment.PaymentMethod.UPI;
         }
 
         Enrollment enrollment = enrollmentRepository
-                .findByUserIdAndCourseId(userId, course.getId())
+                .findByUserIdAndCourseIdAndTenantId(userId, course.getId(), tenantId)
                 .orElse(null);
 
         String receiptNumber = generateReceiptNumber();
 
         Payment payment = new Payment();
+        payment.setTenant(tenantService.requireCurrentTenant());
         payment.setUser(user);
         payment.setCourse(course);
         payment.setEnrollment(enrollment);
         payment.setAmount(request.getAmount());
         payment.setPaymentMethod(method);
-        payment.setTransactionId(request.getTransactionId());
+        payment.setTransactionId(sanitizedTransactionId);
         payment.setReceiptNumber(receiptNumber);
-        payment.setRemarks(request.getRemarks());
+        payment.setRemarks(InputSanitizer.sanitizeNullable(request.getRemarks()));
         payment.setStatus(Payment.Status.PENDING);
 
         Payment saved = paymentRepository.save(payment);
@@ -114,7 +126,8 @@ public class PaymentService {
      */
     @Transactional
     public Payment confirmPayment(Long paymentId, String gatewayPaymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Long tenantId = TenantContext.requireTenantId();
+        Payment payment = paymentRepository.findByIdAndTenantId(paymentId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", paymentId));
 
         if (payment.getStatus() == Payment.Status.SUCCESS) {
@@ -126,13 +139,14 @@ public class PaymentService {
         }
 
         payment.setStatus(Payment.Status.SUCCESS);
-        payment.setGatewayPaymentId(gatewayPaymentId);
+        payment.setGatewayPaymentId(InputSanitizer.sanitizeAndTruncate(gatewayPaymentId, 100));
         payment.setPaidAt(LocalDateTime.now());
 
         // Auto-enroll if not already enrolled
         if (payment.getEnrollment() == null) {
             Optional<Enrollment> existingEnrollment = enrollmentRepository
-                    .findByUserIdAndCourseId(payment.getUser().getId(), payment.getCourse().getId());
+                    .findByUserIdAndCourseIdAndTenantId(payment.getUser().getId(), payment.getCourse().getId(),
+                            tenantId);
 
             if (existingEnrollment.isPresent()) {
                 Enrollment enrollment = existingEnrollment.get();
@@ -141,6 +155,7 @@ public class PaymentService {
                 payment.setEnrollment(enrollment);
             } else {
                 Enrollment newEnrollment = new Enrollment();
+                newEnrollment.setTenant(tenantService.requireCurrentTenant());
                 newEnrollment.setUser(payment.getUser());
                 newEnrollment.setCourse(payment.getCourse());
                 newEnrollment.setStatus(Enrollment.Status.ACTIVE);
@@ -174,7 +189,8 @@ public class PaymentService {
      */
     @Transactional
     public Payment failPayment(Long paymentId, String reason) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Long tenantId = TenantContext.requireTenantId();
+        Payment payment = paymentRepository.findByIdAndTenantId(paymentId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", paymentId));
 
         if (payment.getStatus() != Payment.Status.PENDING) {
@@ -182,9 +198,9 @@ public class PaymentService {
         }
 
         payment.setStatus(Payment.Status.FAILED);
-        payment.setRemarks(reason);
+        payment.setRemarks(InputSanitizer.sanitizeNullable(reason));
 
-        log.warn("PAYMENT_FAILED: receipt={} reason={}", payment.getReceiptNumber(), reason);
+        log.warn("PAYMENT_FAILED: receipt={} reason={}", payment.getReceiptNumber(), payment.getRemarks());
         return paymentRepository.save(payment);
     }
 
@@ -195,8 +211,8 @@ public class PaymentService {
     public Payment recordManualPayment(Long userId, PaymentRequest request, Long adminId) {
         Payment payment = initiatePayment(userId, request);
         payment.setPaymentMethod(Payment.PaymentMethod.CASH);
-        payment.setRemarks("Manual payment recorded by admin. " +
-                (request.getRemarks() != null ? request.getRemarks() : ""));
+        String remarks = request.getRemarks() != null ? request.getRemarks() : "";
+        payment.setRemarks(InputSanitizer.sanitizeNullable("Manual payment recorded by admin. " + remarks));
         paymentRepository.save(payment);
 
         log.info("PAYMENT_MANUAL: receipt={} userId={} adminId={}", payment.getReceiptNumber(), userId, adminId);
@@ -204,29 +220,34 @@ public class PaymentService {
     }
 
     public List<Payment> getStudentPayments(Long userId) {
-        return paymentRepository.findByUserId(userId);
+        Long tenantId = TenantContext.requireTenantId();
+        return paymentRepository.findByUserIdAndTenantId(userId, tenantId);
     }
 
     public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
+        Long tenantId = TenantContext.requireTenantId();
+        return paymentRepository.findAllByTenantId(tenantId);
     }
 
     public Page<Payment> getAllPayments(Pageable pageable) {
-        return paymentRepository.findAll(pageable);
+        Long tenantId = TenantContext.requireTenantId();
+        return paymentRepository.findAllByTenantId(tenantId, pageable);
     }
 
     public Payment getPaymentById(Long paymentId) {
-        return paymentRepository.findById(paymentId)
+        Long tenantId = TenantContext.requireTenantId();
+        return paymentRepository.findByIdAndTenantId(paymentId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", paymentId));
     }
 
     public Map<String, Object> getRevenueStats() {
+        Long tenantId = TenantContext.requireTenantId();
         Map<String, Object> stats = new LinkedHashMap<>();
-        stats.put("totalRevenue", paymentRepository.getTotalRevenue());
-        stats.put("successCount", paymentRepository.countByStatus(Payment.Status.SUCCESS));
-        stats.put("pendingCount", paymentRepository.countByStatus(Payment.Status.PENDING));
-        stats.put("failedCount", paymentRepository.countByStatus(Payment.Status.FAILED));
-        stats.put("methodBreakdown", paymentRepository.getPaymentMethodStats());
+        stats.put("totalRevenue", paymentRepository.getTotalRevenueByTenant(tenantId));
+        stats.put("successCount", paymentRepository.countByStatusAndTenantId(Payment.Status.SUCCESS, tenantId));
+        stats.put("pendingCount", paymentRepository.countByStatusAndTenantId(Payment.Status.PENDING, tenantId));
+        stats.put("failedCount", paymentRepository.countByStatusAndTenantId(Payment.Status.FAILED, tenantId));
+        stats.put("methodBreakdown", paymentRepository.getPaymentMethodStatsByTenant(tenantId));
         return stats;
     }
 

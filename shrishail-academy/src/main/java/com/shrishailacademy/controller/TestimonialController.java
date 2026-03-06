@@ -1,9 +1,11 @@
 package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ApiResponse;
+import com.shrishailacademy.dto.TestimonialRequest;
 import com.shrishailacademy.model.Testimonial;
 import com.shrishailacademy.service.TestimonialService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -33,9 +35,10 @@ public class TestimonialController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> addTestimonial(@Valid @RequestBody Testimonial testimonial) {
-        Testimonial saved = testimonialService.addTestimonial(testimonial);
-        return ResponseEntity.ok(ApiResponse.success("Testimonial added", saved));
+    public ResponseEntity<ApiResponse> addTestimonial(@Valid @RequestBody TestimonialRequest request) {
+        Testimonial saved = testimonialService.addTestimonial(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Testimonial added", saved));
     }
 
     @PutMapping("/{id}/approve")

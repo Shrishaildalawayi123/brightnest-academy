@@ -17,46 +17,51 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class ValidationAndExceptionIntegrationTest {
 
-        @Autowired
-        private MockMvc mockMvc;
+  private static final String TENANT_HEADER = "X-Tenant-ID";
+  private static final String DEFAULT_TENANT_KEY = "default";
 
-        @Test
-        void registerShouldReturnBadRequestForInvalidEmail() throws Exception {
-                String invalidPayload = """
-                                {
-                                  "name": "A",
-                                  "email": "invalid-email",
-                                  "password": "weak",
-                                  "phone": "9999999999"
-                                }
-                                """;
+  @Autowired
+  private MockMvc mockMvc;
 
-                mockMvc.perform(post("/api/auth/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(invalidPayload))
-                                .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.status").value(400))
-                                .andExpect(jsonPath("$.error").value("Validation Error"))
-                                .andExpect(jsonPath("$.message").exists())
-                                .andExpect(jsonPath("$.timestamp").exists());
+  @Test
+  void registerShouldReturnBadRequestForInvalidEmail() throws Exception {
+    String invalidPayload = """
+        {
+          "name": "A",
+          "email": "invalid-email",
+          "password": "weak",
+          "phone": "9999999999"
         }
+        """;
 
-        @Test
-        void loginShouldReturnUnauthorizedForInvalidPassword() throws Exception {
-                String invalidLoginPayload = """
-                                {
-                                  "email": "does-not-exist@example.com",
-                                  "password": "Wrong@123"
-                                }
-                                """;
+    mockMvc.perform(post("/api/auth/register")
+        .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(invalidPayload))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("Validation Error"))
+        .andExpect(jsonPath("$.message").exists())
+        .andExpect(jsonPath("$.timestamp").exists());
+  }
 
-                mockMvc.perform(post("/api/auth/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(invalidLoginPayload))
-                                .andExpect(status().isUnauthorized())
-                                .andExpect(jsonPath("$.status").value(401))
-                                .andExpect(jsonPath("$.error").value("Unauthorized"))
-                                .andExpect(jsonPath("$.message").value("Invalid email or password."))
-                                .andExpect(jsonPath("$.timestamp").exists());
+  @Test
+  void loginShouldReturnUnauthorizedForInvalidPassword() throws Exception {
+    String invalidLoginPayload = """
+        {
+          "email": "does-not-exist@example.com",
+          "password": "Wrong@123"
         }
+        """;
+
+    mockMvc.perform(post("/api/auth/login")
+        .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(invalidLoginPayload))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.status").value(401))
+        .andExpect(jsonPath("$.error").value("Unauthorized"))
+        .andExpect(jsonPath("$.message").value("Invalid email or password."))
+        .andExpect(jsonPath("$.timestamp").exists());
+  }
 }

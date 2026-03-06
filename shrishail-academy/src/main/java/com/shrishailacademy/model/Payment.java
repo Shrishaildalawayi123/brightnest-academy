@@ -13,7 +13,12 @@ import java.time.LocalDateTime;
  * Payment Entity - Tracks fee payments for course enrollments
  */
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", indexes = {
+        @Index(name = "idx_payment_tenant", columnList = "tenant_id"),
+        @Index(name = "idx_payment_user_created_at", columnList = "user_id,created_at"),
+        @Index(name = "idx_payment_enrollment_status", columnList = "enrollment_id,status"),
+        @Index(name = "idx_payment_status_paid_at", columnList = "status,paid_at")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +30,11 @@ public class Payment extends BaseAuditableEntity {
 
     @Version
     private Long version;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer" })
+    private Tenant tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

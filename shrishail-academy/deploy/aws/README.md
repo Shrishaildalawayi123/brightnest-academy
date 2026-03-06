@@ -130,24 +130,43 @@ sudo docker compose up -d
 
 ## 3) SSL certificate (Certbot)
 
-Install certbot for nginx:
+The Nginx config (`nginx-brightnest.conf`) already includes full SSL/TLS configuration pointing to Let's Encrypt certificate paths. You must obtain the certificates before enabling the HTTPS server block.
 
-```
+### Initial setup
+
+Install certbot:
+
+```bash
 sudo snap install core; sudo snap refresh core
 sudo snap install --classic certbot
 sudo ln -s /snap/bin/certbot /usr/bin/certbot
 ```
 
-Issue and install the cert:
+**Step 1**: First deploy with a temporary HTTP-only Nginx config to pass ACME validation:
 
+```bash
+# Start Nginx with only the port-80 server block active
+sudo certbot certonly --webroot -w /var/www/certbot \
+  -d brightnest-academy.com -d www.brightnest-academy.com \
+  --non-interactive --agree-tos -m admin@brightnest-academy.com
 ```
-sudo certbot --nginx -d brightnest-academy.com -d www.brightnest-academy.com
+
+**Step 2**: Once certificates are issued, deploy the full `nginx-brightnest.conf` (which has both HTTP redirect and HTTPS blocks):
+
+```bash
+sudo cp deploy/aws/nginx-brightnest.conf /etc/nginx/sites-available/brightnest
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Certbot will:
+### Auto-renewal
 
-- configure TLS
-- (optionally) redirect HTTP → HTTPS
+Certbot's snap package installs a systemd timer for auto-renewal. Verify:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+Certificates renew automatically every ~60 days. The timer runs twice daily.
 
 ## 4) AWS Security Group rules
 
@@ -216,3 +235,63 @@ Endpoint:
 This endpoint is explicitly permitted by `SecurityConfig` and is safe for uptime checks.
 
 If you prefer actuator for health checks, ensure `/actuator/health` remains publicly accessible.
+
+## 7) Operational scripts (recommended)
+
+Use the scripts under `deploy/aws/scripts` from the project root or copy them to `/opt/brightnest/deploy/aws/scripts` on the server.
+
+- Deploy immutable image + health gate:
+
+```bash
+bash deploy/aws/scripts/deploy-release.sh ghcr.io/<owner>/brightnest-academy:<git-sha>
+```
+
+- Rollback to previous known-good image:
+
+```bash
+bash deploy/aws/scripts/rollback-release.sh
+```
+
+- Verify app health explicitly:
+
+```bash
+bash deploy/aws/scripts/verify-health.sh
+```
+
+- Create MySQL backup:
+
+```bash
+bash deploy/aws/scripts/backup-mysql.sh
+```
+
+- Install automated backup cron:
+
+```bash
+bash deploy/aws/scripts/install-backup-cron.sh
+```
+
+- Bootstrap all ops tasks in one step (chmod + cron + CloudWatch):
+
+```bash
+bash deploy/aws/scripts/bootstrap-ops.sh
+```
+
+## 8) Monitoring bootstrap (CloudWatch)
+
+CloudWatch agent config is provided at:
+
+- `deploy/aws/monitoring/cloudwatch-agent-config.json`
+
+Setup command:
+
+```bash
+bash deploy/aws/scripts/setup-monitoring.sh
+```
+
+## 9) Full operations documentation
+
+For the complete enterprise checklist, architecture, testing strategy, CI/CD design, and DR plan, see:
+
+- `docs/operations/PRODUCTION_READINESS_GUIDE.md`
+- `docs/operations/DEPLOYMENT_RUNBOOK.md`
+- `docs/operations/BACKUP_DR_RUNBOOK.md`

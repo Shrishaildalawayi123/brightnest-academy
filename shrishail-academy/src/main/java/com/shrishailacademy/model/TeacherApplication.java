@@ -1,5 +1,6 @@
 package com.shrishailacademy.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -15,7 +16,11 @@ import java.time.LocalDateTime;
  * TeacherApplication - Educator recruitment form submissions
  */
 @Entity
-@Table(name = "teacher_applications")
+@Table(name = "teacher_applications", indexes = {
+        @Index(name = "idx_teacher_app_tenant", columnList = "tenant_id"),
+        @Index(name = "idx_teacher_app_status", columnList = "status"),
+        @Index(name = "idx_teacher_app_date", columnList = "created_at")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,6 +29,11 @@ public class TeacherApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer"})
+    private Tenant tenant;
 
     @NotBlank(message = "Full name is required")
     @Size(max = 100)

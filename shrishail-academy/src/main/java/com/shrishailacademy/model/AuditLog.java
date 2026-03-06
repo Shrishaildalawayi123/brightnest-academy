@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "audit_log", indexes = {
+        @Index(name = "idx_audit_tenant", columnList = "tenant_id"),
         @Index(name = "idx_audit_user_id", columnList = "user_id"),
         @Index(name = "idx_audit_action", columnList = "action"),
         @Index(name = "idx_audit_timestamp", columnList = "timestamp")
@@ -26,6 +27,9 @@ public class AuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "tenant_id")
+    private Long tenantId;
 
     @Column(name = "user_id")
     private Long userId;
@@ -49,7 +53,8 @@ public class AuditLog {
     /**
      * Convenience constructor for quick audit log creation.
      */
-    public AuditLog(Long userId, String action, String details, String ipAddress) {
+    public AuditLog(Long tenantId, Long userId, String action, String details, String ipAddress) {
+        this.tenantId = tenantId;
         this.userId = userId;
         this.action = action;
         this.details = details;

@@ -1,5 +1,6 @@
 package com.shrishailacademy.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -16,7 +17,10 @@ import java.time.LocalDateTime;
  * Testimonial - Student reviews visible on the website
  */
 @Entity
-@Table(name = "testimonials")
+@Table(name = "testimonials", indexes = {
+        @Index(name = "idx_testimonial_tenant", columnList = "tenant_id"),
+        @Index(name = "idx_testimonial_approved", columnList = "approved")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +29,11 @@ public class Testimonial {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer"})
+    private Tenant tenant;
 
     @NotBlank(message = "Student name is required")
     @Size(max = 100)

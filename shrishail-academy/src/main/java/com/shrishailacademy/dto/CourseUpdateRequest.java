@@ -31,6 +31,11 @@ public class CourseUpdateRequest {
     @Size(max = 20, message = "Color must not exceed 20 characters")
     private String color;
 
+    @Size(max = 50, message = "Subject key must not exceed 50 characters")
+    private String subjectKey;
+
+    private Long teacherId;
+
     @DecimalMin(value = "0.00", message = "Fee must be non-negative")
     private BigDecimal fee;
 }

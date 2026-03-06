@@ -11,6 +11,8 @@ import com.shrishailacademy.repository.AttendanceRepository;
 import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.EnrollmentRepository;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -35,15 +37,18 @@ public class AttendanceService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final TenantService tenantService;
 
     public AttendanceService(AttendanceRepository attendanceRepository,
             UserRepository userRepository,
             CourseRepository courseRepository,
-            EnrollmentRepository enrollmentRepository) {
+            EnrollmentRepository enrollmentRepository,
+            TenantService tenantService) {
         this.attendanceRepository = attendanceRepository;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.enrollmentRepository = enrollmentRepository;
+        this.tenantService = tenantService;
     }
 
     /**
@@ -52,6 +57,7 @@ public class AttendanceService {
      */
     @Transactional
     public List<Attendance> markAttendance(AttendanceRequest request, Long adminId) {
+        Long tenantId = TenantContext.requireTenantId();
         if (request == null) {
             throw new BusinessException("Attendance request is required");
         }
@@ -62,10 +68,10 @@ public class AttendanceService {
             throw new BusinessException("Too many attendance records in one request");
         }
 
-        Course course = courseRepository.findById(request.getCourseId())
+        Course course = courseRepository.findByIdAndTenantId(request.getCourseId(), tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", request.getCourseId()));
 
-        User admin = userRepository.findById(adminId)
+        User admin = userRepository.findByIdAndTenantId(adminId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", adminId));
 
         if (!admin.isAdmin()) {
@@ -92,7 +98,7 @@ public class AttendanceService {
 
         // Bulk fetch students
         Map<Long, User> studentsById = new HashMap<>();
-        userRepository.findAllById(studentIds).forEach(u -> studentsById.put(u.getId(), u));
+        userRepository.findByIdInAndTenantId(studentIds, tenantId).forEach(u -> studentsById.put(u.getId(), u));
         for (Long studentId : studentIds) {
             if (!studentsById.containsKey(studentId)) {
                 throw new ResourceNotFoundException("Student", "id", studentId);
@@ -101,13 +107,13 @@ public class AttendanceService {
 
         // Bulk enrollment check (active only)
         Set<Long> enrolledStudentIds = enrollmentRepository.findActiveUserIdsByCourseIdAndUserIdIn(
-                course.getId(), studentIds, com.shrishailacademy.model.Enrollment.Status.CANCELLED);
+                tenantId, course.getId(), studentIds, com.shrishailacademy.model.Enrollment.Status.CANCELLED);
 
         // Bulk existing attendance lookup for the date
         Map<Long, Attendance> existingByStudentId = new HashMap<>();
         if (!enrolledStudentIds.isEmpty()) {
-            List<Attendance> existing = attendanceRepository.findByCourseIdAndAttendanceDateAndUserIdIn(
-                    course.getId(), attendanceDate, enrolledStudentIds);
+            List<Attendance> existing = attendanceRepository.findByCourseIdAndAttendanceDateAndUserIdInAndTenantId(
+                    course.getId(), attendanceDate, enrolledStudentIds, tenantId);
             for (Attendance attendance : existing) {
                 if (attendance.getUser() != null) {
                     existingByStudentId.put(attendance.getUser().getId(), attendance);
@@ -135,6 +141,7 @@ public class AttendanceService {
             Attendance attendance = existingByStudentId.get(studentId);
             if (attendance == null) {
                 attendance = new Attendance();
+                attendance.setTenant(tenantService.requireCurrentTenant());
                 attendance.setUser(student);
                 attendance.setCourse(course);
                 attendance.setAttendanceDate(attendanceDate);
@@ -163,32 +170,38 @@ public class AttendanceService {
 
     @Transactional(readOnly = true)
     public List<Attendance> getStudentCourseAttendance(Long userId, Long courseId) {
-        return attendanceRepository.findByUserIdAndCourseId(userId, courseId);
+        Long tenantId = TenantContext.requireTenantId();
+        return attendanceRepository.findByUserIdAndCourseIdAndTenantId(userId, courseId, tenantId);
     }
 
     @Transactional(readOnly = true)
     public List<Attendance> getStudentAttendance(Long userId) {
-        return attendanceRepository.findByUserId(userId);
+        Long tenantId = TenantContext.requireTenantId();
+        return attendanceRepository.findByUserIdAndTenantId(userId, tenantId);
     }
 
     @Transactional(readOnly = true)
     public List<Attendance> getCourseAttendanceByDate(Long courseId, LocalDate date) {
-        return attendanceRepository.findByCourseIdAndAttendanceDate(courseId, date);
+        Long tenantId = TenantContext.requireTenantId();
+        return attendanceRepository.findByCourseIdAndAttendanceDateAndTenantId(courseId, date, tenantId);
     }
 
     @Transactional(readOnly = true)
     public List<Attendance> getCourseAttendance(Long courseId) {
-        return attendanceRepository.findByCourseId(courseId);
+        Long tenantId = TenantContext.requireTenantId();
+        return attendanceRepository.findByCourseIdAndTenantId(courseId, tenantId);
     }
 
     @Transactional(readOnly = true)
     public List<Attendance> getAllAttendance() {
-        return attendanceRepository.findAll();
+        Long tenantId = TenantContext.requireTenantId();
+        return attendanceRepository.findAllByTenantId(tenantId);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> getAttendanceSummary(Long userId, Long courseId) {
-        List<Object[]> rawSummary = attendanceRepository.getAttendanceSummary(userId, courseId);
+        Long tenantId = TenantContext.requireTenantId();
+        List<Object[]> rawSummary = attendanceRepository.getAttendanceSummary(tenantId, userId, courseId);
         Map<String, Object> summary = new LinkedHashMap<>();
         long total = 0;
         long present = 0;
@@ -210,7 +223,8 @@ public class AttendanceService {
 
     @Transactional(readOnly = true)
     public List<Attendance> getAttendanceByDateRange(Long courseId, LocalDate start, LocalDate end) {
-        return attendanceRepository.findByCourseIdAndAttendanceDateBetween(courseId, start, end);
+        Long tenantId = TenantContext.requireTenantId();
+        return attendanceRepository.findByCourseIdAndAttendanceDateBetweenAndTenantId(courseId, start, end, tenantId);
     }
 
     private static Attendance.Status parseStatus(String rawStatus) {
@@ -229,12 +243,12 @@ public class AttendanceService {
         if (remarks == null) {
             return null;
         }
-        String trimmed = remarks.trim();
-        if (trimmed.isEmpty()) {
+        String sanitized = InputSanitizer.sanitizeNullable(remarks);
+        if (sanitized == null || sanitized.isBlank()) {
             return null;
         }
-        // Basic normalization: remove NUL and other control chars (except tab/newline)
-        String cleaned = trimmed.replaceAll("[\\p{Cntrl}&&[^\\r\\n\\t]]", "");
+        // Remove control chars after HTML escaping.
+        String cleaned = sanitized.replaceAll("[\\p{Cntrl}&&[^\\r\\n\\t]]", "");
         if (cleaned.length() > 500) {
             cleaned = cleaned.substring(0, 500);
         }

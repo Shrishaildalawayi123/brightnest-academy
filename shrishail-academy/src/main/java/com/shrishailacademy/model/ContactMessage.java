@@ -1,5 +1,6 @@
 package com.shrishailacademy.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -15,7 +16,11 @@ import java.time.LocalDateTime;
  * ContactMessage - Stores contact form submissions
  */
 @Entity
-@Table(name = "contact_messages")
+@Table(name = "contact_messages", indexes = {
+        @Index(name = "idx_contact_tenant", columnList = "tenant_id"),
+        @Index(name = "idx_contact_status", columnList = "status"),
+        @Index(name = "idx_contact_date", columnList = "created_at")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,6 +29,11 @@ public class ContactMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer"})
+    private Tenant tenant;
 
     @NotBlank(message = "Name is required")
     @Size(max = 100)

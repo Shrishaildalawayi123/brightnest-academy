@@ -2,6 +2,7 @@ package com.shrishailacademy.service;
 
 import com.shrishailacademy.model.SiteVisit;
 import com.shrishailacademy.repository.SiteVisitRepository;
+import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -36,11 +37,11 @@ public class VisitorAnalyticsService {
             String ipAddress, String userAgent) {
         try {
             SiteVisit visit = new SiteVisit();
-            visit.setSessionId(sessionId);
-            visit.setPageUrl(truncate(pageUrl, 500));
-            visit.setReferrer(referrer != null ? truncate(referrer, 500) : null);
-            visit.setIpAddress(ipAddress);
-            visit.setUserAgent(userAgent != null ? truncate(userAgent, 500) : null);
+            visit.setSessionId(InputSanitizer.sanitizeAndTruncate(sessionId, 100));
+            visit.setPageUrl(InputSanitizer.sanitizeAndTruncate(pageUrl, 500));
+            visit.setReferrer(InputSanitizer.sanitizeAndTruncateNullable(referrer, 500));
+            visit.setIpAddress(InputSanitizer.sanitizeAndTruncateNullable(ipAddress, 45));
+            visit.setUserAgent(InputSanitizer.sanitizeAndTruncateNullable(userAgent, 500));
             siteVisitRepository.save(visit);
         } catch (Exception e) {
             log.error("Failed to record site visit: {}", e.getMessage());
@@ -76,9 +77,5 @@ public class VisitorAnalyticsService {
         summary.put("topPages7d", topPagesMap);
 
         return summary;
-    }
-
-    private String truncate(String value, int maxLength) {
-        return value.length() <= maxLength ? value : value.substring(0, maxLength);
     }
 }

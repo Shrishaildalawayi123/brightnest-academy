@@ -1,4 +1,19 @@
 {
+  // Keep VS Code Java tooling aligned with Maven's required JDK (21).
+  "java.jdt.ls.java.home": "C:\\Users\\Dell\\.jdk\\jdk-21.0.1+12",
+
+  // Force Java project language/runtime level to Java 21 in this workspace.
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Users\\Dell\\.jdk\\jdk-21.0.1+12",
+      "default": true
+    }
+  ],
+
+  // Keep Maven/Java imports on the same JDK to prevent mixed-compiler indexing noise.
+  "java.import.maven.java.home": "C:\\Users\\Dell\\.jdk\\jdk-21.0.1+12",
+
   "chat.tools.terminal.autoApprove": {
     "Start-Process": true
   }

@@ -4,6 +4,8 @@ import com.shrishailacademy.dto.CounselingRequestDTO;
 import com.shrishailacademy.exception.ResourceNotFoundException;
 import com.shrishailacademy.model.CounselingRequest;
 import com.shrishailacademy.repository.CounselingRequestRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,9 +22,11 @@ public class CounselingService {
     private static final Logger log = LoggerFactory.getLogger(CounselingService.class);
 
     private final CounselingRequestRepository counselingRepo;
+    private final TenantService tenantService;
 
-    public CounselingService(CounselingRequestRepository counselingRepo) {
+    public CounselingService(CounselingRequestRepository counselingRepo, TenantService tenantService) {
         this.counselingRepo = counselingRepo;
+        this.tenantService = tenantService;
     }
 
     /**
@@ -31,15 +35,16 @@ public class CounselingService {
     @Transactional
     public CounselingRequest submitRequest(CounselingRequestDTO dto) {
         CounselingRequest req = new CounselingRequest();
-        req.setStudentName(dto.getStudentName());
-        req.setStudentClass(dto.getStudentClass());
-        req.setBoard(dto.getBoard());
-        req.setParentPhone(dto.getParentPhone());
+        req.setTenant(tenantService.requireCurrentTenant());
+        req.setStudentName(InputSanitizer.sanitizeAndTruncate(dto.getStudentName(), 100));
+        req.setStudentClass(InputSanitizer.sanitizeAndTruncate(dto.getStudentClass(), 30));
+        req.setBoard(InputSanitizer.sanitizeAndTruncate(dto.getBoard(), 50));
+        req.setParentPhone(InputSanitizer.sanitizeAndTruncate(dto.getParentPhone(), 20));
         req.setStatus(CounselingRequest.Status.NEW);
 
         CounselingRequest saved = counselingRepo.save(req);
         log.info("COUNSELING_REQUEST: student='{}' class='{}' board='{}' phone='{}'",
-                dto.getStudentName(), dto.getStudentClass(), dto.getBoard(), "REDACTED");
+                saved.getStudentName(), saved.getStudentClass(), saved.getBoard(), "REDACTED");
         return saved;
     }
 
@@ -47,14 +52,16 @@ public class CounselingService {
      * Admin: get all counseling requests ordered by newest first.
      */
     public List<CounselingRequest> getAllRequests() {
-        return counselingRepo.findAllByOrderByCreatedAtDesc();
+        Long tenantId = TenantContext.requireTenantId();
+        return counselingRepo.findByTenantIdOrderByCreatedAtDesc(tenantId);
     }
 
     /**
      * Admin: get only new/uncontacted requests.
      */
     public List<CounselingRequest> getNewRequests() {
-        return counselingRepo.findByStatusOrderByCreatedAtDesc(CounselingRequest.Status.NEW);
+        Long tenantId = TenantContext.requireTenantId();
+        return counselingRepo.findByTenantIdAndStatusOrderByCreatedAtDesc(tenantId, CounselingRequest.Status.NEW);
     }
 
     /**
@@ -62,7 +69,8 @@ public class CounselingService {
      */
     @Transactional
     public CounselingRequest updateStatus(Long id, String status) {
-        CounselingRequest req = counselingRepo.findById(id)
+        Long tenantId = TenantContext.requireTenantId();
+        CounselingRequest req = counselingRepo.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("CounselingRequest", "id", id));
 
         try {
@@ -81,11 +89,12 @@ public class CounselingService {
      * Admin: get stats for counseling requests.
      */
     public Map<String, Object> getStats() {
+        Long tenantId = TenantContext.requireTenantId();
         Map<String, Object> stats = new HashMap<>();
-        stats.put("total", counselingRepo.count());
-        stats.put("new", counselingRepo.countByStatus(CounselingRequest.Status.NEW));
-        stats.put("contacted", counselingRepo.countByStatus(CounselingRequest.Status.CONTACTED));
-        stats.put("completed", counselingRepo.countByStatus(CounselingRequest.Status.COMPLETED));
+        stats.put("total", counselingRepo.countByTenantId(tenantId));
+        stats.put("new", counselingRepo.countByTenantIdAndStatus(tenantId, CounselingRequest.Status.NEW));
+        stats.put("contacted", counselingRepo.countByTenantIdAndStatus(tenantId, CounselingRequest.Status.CONTACTED));
+        stats.put("completed", counselingRepo.countByTenantIdAndStatus(tenantId, CounselingRequest.Status.COMPLETED));
         return stats;
     }
 }

@@ -4,7 +4,11 @@ import com.shrishailacademy.dto.CourseCreateRequest;
 import com.shrishailacademy.dto.CourseUpdateRequest;
 import com.shrishailacademy.exception.DuplicateResourceException;
 import com.shrishailacademy.model.Course;
+import com.shrishailacademy.model.Tenant;
 import com.shrishailacademy.repository.CourseRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,10 +19,14 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,11 +35,29 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
+    private static final Long TENANT_ID = 1L;
+    private static final String TENANT_KEY = "default";
+
     @Mock
     private CourseRepository courseRepository;
 
+    @Mock
+    private TenantService tenantService;
+
     @InjectMocks
     private CourseService courseService;
+
+    @BeforeEach
+    void setTenantContext() {
+        TenantContext.set(TENANT_ID, TENANT_KEY);
+        lenient().when(tenantService.requireCurrentTenant())
+                .thenReturn(new Tenant(TENANT_ID, TENANT_KEY, "Default Tenant"));
+    }
+
+    @AfterEach
+    void clearTenantContext() {
+        TenantContext.clear();
+    }
 
     @Test
     void createCourseShouldThrowWhenTitleAlreadyExists() {
@@ -39,7 +65,7 @@ class CourseServiceTest {
         request.setTitle("Mathematics");
         request.setFee(new BigDecimal("3000.00"));
 
-        when(courseRepository.existsByTitle("Mathematics")).thenReturn(true);
+        when(courseRepository.existsByTitleAndTenantId("Mathematics", TENANT_ID)).thenReturn(true);
 
         DuplicateResourceException ex = assertThrows(DuplicateResourceException.class,
                 () -> courseService.createCourse(request));
@@ -60,13 +86,35 @@ class CourseServiceTest {
         savedEntity.setTitle("Mathematics");
         savedEntity.setFee(new BigDecimal("3000.00"));
 
-        when(courseRepository.existsByTitle("Mathematics")).thenReturn(false);
+        when(courseRepository.existsByTitleAndTenantId("Mathematics", TENANT_ID)).thenReturn(false);
         when(courseRepository.save(any(Course.class))).thenReturn(savedEntity);
 
         Course saved = courseService.createCourse(request);
 
         assertSame(savedEntity, saved);
         verify(courseRepository, times(1)).save(any(Course.class));
+    }
+
+    @Test
+    void createCourseShouldSanitizeStoredTextFields() {
+        CourseCreateRequest request = new CourseCreateRequest();
+        request.setTitle("<script>alert(1)</script> Mathematics");
+        request.setDescription("<img src=x onerror=alert(1)>desc");
+        request.setFee(new BigDecimal("3000.00"));
+
+        when(courseRepository.existsByTitleAndTenantId(anyString(), eq(TENANT_ID))).thenReturn(false);
+        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> {
+            Course c = invocation.getArgument(0);
+            c.setId(11L);
+            return c;
+        });
+
+        Course saved = courseService.createCourse(request);
+
+        assertFalse(saved.getTitle().contains("<script>"));
+        assertTrue(saved.getTitle().contains("&lt;script&gt;"));
+        assertFalse(saved.getDescription().contains("<img"));
+        assertTrue(saved.getDescription().contains("&lt;img"));
     }
 
     @Test
@@ -83,8 +131,8 @@ class CourseServiceTest {
         patch.setTitle("New Title");
         patch.setFee(new BigDecimal("1500.00"));
 
-        when(courseRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(courseRepository.existsByTitleAndIdNot("New Title", 1L)).thenReturn(false);
+        when(courseRepository.findByIdAndTenantId(1L, TENANT_ID)).thenReturn(Optional.of(existing));
+        when(courseRepository.existsByTitleAndTenantIdAndIdNot("New Title", TENANT_ID, 1L)).thenReturn(false);
         when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Course updated = courseService.updateCourse(1L, patch);
@@ -99,7 +147,7 @@ class CourseServiceTest {
 
     @Test
     void getCourseByIdShouldThrowWhenCourseMissing() {
-        when(courseRepository.findById(99L)).thenReturn(Optional.empty());
+        when(courseRepository.findByIdAndTenantId(99L, TENANT_ID)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> courseService.getCourseById(99L));
 
@@ -112,7 +160,7 @@ class CourseServiceTest {
         Course course = new Course();
         course.setId(7L);
 
-        when(courseRepository.findById(7L)).thenReturn(Optional.of(course));
+        when(courseRepository.findByIdAndTenantId(7L, TENANT_ID)).thenReturn(Optional.of(course));
 
         courseService.deleteCourse(7L);
 

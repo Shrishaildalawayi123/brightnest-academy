@@ -7,16 +7,19 @@ describe("Auth helper", () => {
     loadBrowserScript("auth.js");
   });
 
-  it("stores user profile (without token) on successful login", async () => {
+  it("stores token and user profile on successful login", async () => {
     window.API.login = vi.fn().mockResolvedValue({
       id: 99,
       name: "QA Admin",
       email: "qa-admin@example.com",
       role: "ADMIN",
-      token: "server-jwt"
+      token: "server-jwt",
     });
 
-    const response = await window.Auth.login("qa-admin@example.com", "Admin@123");
+    const response = await window.Auth.login(
+      "qa-admin@example.com",
+      "Admin@123",
+    );
     expect(response.role).toBe("ADMIN");
 
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -24,9 +27,9 @@ describe("Auth helper", () => {
       id: 99,
       name: "QA Admin",
       email: "qa-admin@example.com",
-      role: "ADMIN"
+      role: "ADMIN",
     });
-    expect(localStorage.getItem("token")).toBeNull();
+    expect(localStorage.getItem("token")).toBe("server-jwt");
   });
 
   it("correctly identifies admin and student roles", () => {

@@ -10,3 +10,7 @@ hs_err_pid*.log
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local launch scripts (may contain credentials)
+launch.bat
+launch.local.bat

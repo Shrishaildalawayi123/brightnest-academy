@@ -3,10 +3,13 @@ package com.shrishailacademy.service;
 import com.shrishailacademy.dto.AuthResponse;
 import com.shrishailacademy.dto.LoginRequest;
 import com.shrishailacademy.dto.RegisterRequest;
+import com.shrishailacademy.model.Tenant;
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.security.JwtTokenProvider;
+import com.shrishailacademy.tenant.TenantContext;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -26,13 +29,18 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings({ "unused", "null" })
 class AuthServiceTest {
+
+    private static final Long TENANT_ID = 1L;
+    private static final String TENANT_KEY = "default";
 
     @Mock
     private UserRepository userRepository;
@@ -46,18 +54,29 @@ class AuthServiceTest {
     @Mock
     private JwtTokenProvider tokenProvider;
 
+    @Mock
+    private TenantService tenantService;
+
     @InjectMocks
     private AuthService authService;
+
+    @BeforeEach
+    void setTenantContext() {
+        TenantContext.set(TENANT_ID, TENANT_KEY);
+        lenient().when(tenantService.requireCurrentTenant())
+                .thenReturn(new Tenant(TENANT_ID, TENANT_KEY, "Default Tenant"));
+    }
 
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+        TenantContext.clear();
     }
 
     @Test
     void registerShouldThrowWhenEmailAlreadyExists() {
         RegisterRequest request = new RegisterRequest("Student", "student@example.com", "Password@123", "9999999999");
-        when(userRepository.existsByEmail("student@example.com")).thenReturn(true);
+        when(userRepository.existsByEmailAndTenantId("student@example.com", TENANT_ID)).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.register(request));
 
@@ -69,14 +88,15 @@ class AuthServiceTest {
     @Test
     void registerShouldEncodePasswordAndReturnAuthResponse() {
         RegisterRequest request = new RegisterRequest("Student", "student@example.com", "Password@123", "9999999999");
-        when(userRepository.existsByEmail("student@example.com")).thenReturn(false);
+        when(userRepository.existsByEmailAndTenantId("student@example.com", TENANT_ID)).thenReturn(false);
         when(passwordEncoder.encode("Password@123")).thenReturn("encoded-password");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             user.setId(10L);
             return user;
         });
-        when(tokenProvider.generateTokenFromUsername("student@example.com")).thenReturn("jwt-token");
+        when(tokenProvider.generateTokenFromUsername("student@example.com", "ROLE_STUDENT", TENANT_ID))
+                .thenReturn("jwt-token");
 
         AuthResponse response = authService.register(request);
 
@@ -105,7 +125,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(tokenProvider.generateToken(authentication)).thenReturn("token-123");
-        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailAndTenantId("admin@example.com", TENANT_ID)).thenReturn(Optional.of(user));
 
         AuthResponse response = authService.login(request);
 
@@ -123,7 +143,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(tokenProvider.generateToken(authentication)).thenReturn("token-xyz");
-        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndTenantId("missing@example.com", TENANT_ID)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.login(request));
 

@@ -1,5 +1,7 @@
 package com.shrishailacademy.security;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,8 +34,11 @@ import java.util.stream.Collectors;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+        private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
         private final UserDetailsService userDetailsService;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final com.shrishailacademy.tenant.TenantContextFilter tenantContextFilter;
         private final RateLimitFilter rateLimitFilter;
         private final CsrfProtectionFilter csrfProtectionFilter;
         private final SecurityHeaderFilter securityHeaderFilter;
@@ -45,12 +52,14 @@ public class SecurityConfig {
 
         public SecurityConfig(UserDetailsService userDetailsService,
                         JwtAuthenticationFilter jwtAuthenticationFilter,
+                        com.shrishailacademy.tenant.TenantContextFilter tenantContextFilter,
                         RateLimitFilter rateLimitFilter,
                         CsrfProtectionFilter csrfProtectionFilter,
                         SecurityHeaderFilter securityHeaderFilter,
                         AuthEntryPointJwt unauthorizedHandler) {
                 this.userDetailsService = userDetailsService;
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.tenantContextFilter = tenantContextFilter;
                 this.rateLimitFilter = rateLimitFilter;
                 this.csrfProtectionFilter = csrfProtectionFilter;
                 this.securityHeaderFilter = securityHeaderFilter;
@@ -71,17 +80,52 @@ public class SecurityConfig {
         }
 
         @Bean
+        public AccessDeniedHandler accessDeniedHandler() {
+                return (req, res, ex) -> {
+                        String accept = req.getHeader("Accept");
+                        boolean wantsHtml = req.getRequestURI().endsWith(".html")
+                                        || (accept != null && accept.contains("text/html"));
+
+                        if (wantsHtml) {
+                                res.sendRedirect("/index.html");
+                                return;
+                        }
+
+                        res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        res.setContentType("application/json");
+                        String body = "{" +
+                                        "\"timestamp\":\"" + Instant.now().toString() + "\"," +
+                                        "\"status\":" + HttpServletResponse.SC_FORBIDDEN + "," +
+                                        "\"error\":\"Forbidden\"," +
+                                        "\"message\":\"Access denied\"" +
+                                        "}";
+                        res.getWriter().write(body);
+                };
+        }
+
+        @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                List<String> allowedOriginPatterns = Arrays.stream(corsAllowedOrigins.split(","))
+                List<String> allowedOrigins = Arrays.stream(corsAllowedOrigins.split(","))
                                 .map(String::trim)
                                 .filter(s -> !s.isBlank())
                                 .collect(Collectors.toList());
-                configuration.setAllowedOriginPatterns(allowedOriginPatterns);
+                if (allowedOrigins.stream().anyMatch(origin -> origin.contains("*"))) {
+                        throw new IllegalStateException(
+                                        "CORS origins must be explicit when credentials are enabled. Remove wildcard origins.");
+                }
+
+                if (allowedOrigins.isEmpty()) {
+                        log.warn("No CORS origins configured. Falling back to localhost development defaults.");
+                        allowedOrigins = List.of("http://localhost:3000", "http://localhost:8080");
+                }
+
+                configuration.setAllowedOrigins(allowedOrigins);
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(
                                 Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With",
-                                                "X-CSRF-Token"));
+                                                "X-CSRF-Token", "X-Request-Id", "X-Tenant-ID"));
+                configuration.setExposedHeaders(List.of("X-Request-Id"));
                 configuration.setAllowCredentials(true);
                 configuration.setMaxAge(3600L);
 
@@ -148,8 +192,8 @@ public class SecurityConfig {
                                                                 "/css/**", "/js/**", "/images/**")
                                                 .permitAll()
                                                 .requestMatchers("/student-dashboard.html")
-                                                .hasAnyRole("STUDENT", "ADMIN")
-                                                .requestMatchers("/admin-dashboard.html").hasRole("ADMIN")
+                                                .hasAnyRole("STUDENT", "TEACHER", "ADMIN")
+                                                .requestMatchers("/admin-dashboard.html").hasAnyRole("TEACHER", "ADMIN")
                                                 .requestMatchers("/health", "/actuator/health", "/actuator/info")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
@@ -181,34 +225,26 @@ public class SecurityConfig {
                                                                 "/api/blog/categories",
                                                                 "/api/blog/{slug}")
                                                 .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/users/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(org.springframework.http.HttpMethod.PUT,
+                                                                "/api/users/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(org.springframework.http.HttpMethod.DELETE,
+                                                                "/api/users/**")
+                                                .hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint(unauthorizedHandler)
-                                                .accessDeniedHandler((req, res, e) -> {
-                                                        String accept = req.getHeader("Accept");
-                                                        if (req.getRequestURI().endsWith(".html")
-                                                                        || (accept != null && accept
-                                                                                        .contains("text/html"))) {
-                                                                res.sendRedirect("/index.html");
-                                                                return;
-                                                        }
-                                                        res.setStatus(403);
-                                                        res.setContentType("application/json");
-                                                        String body = "{"
-                                                                        + "\"timestamp\":\"" + Instant.now().toString()
-                                                                        + "\","
-                                                                        + "\"status\":403,"
-                                                                        + "\"error\":\"Forbidden\","
-                                                                        + "\"message\":\"Access Denied\""
-                                                                        + "}";
-                                                        res.getWriter().write(body);
-                                                }));
+                                                .accessDeniedHandler(accessDeniedHandler()));
 
                 http.authenticationProvider(authProvider);
                 http.addFilterBefore(securityHeaderFilter, UsernamePasswordAuthenticationFilter.class);
                 http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+                http.addFilterBefore(tenantContextFilter, UsernamePasswordAuthenticationFilter.class);
                 http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-                http.addFilterAfter(csrfProtectionFilter, JwtAuthenticationFilter.class);
+                http.addFilterBefore(csrfProtectionFilter, UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();
         }

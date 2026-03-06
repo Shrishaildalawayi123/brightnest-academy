@@ -10,6 +10,7 @@ import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.EnrollmentRepository;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.tenant.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -28,29 +29,35 @@ public class EnrollmentService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final NotificationService notificationService;
+    private final TenantService tenantService;
 
     public EnrollmentService(EnrollmentRepository enrollmentRepository,
             UserRepository userRepository,
             CourseRepository courseRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            TenantService tenantService) {
         this.enrollmentRepository = enrollmentRepository;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.notificationService = notificationService;
+        this.tenantService = tenantService;
     }
 
     @Transactional
     public Enrollment enrollStudent(Long userId, Long courseId) {
-        if (enrollmentRepository.existsByUserIdAndCourseIdAndStatusNot(userId, courseId, Enrollment.Status.CANCELLED)) {
+        Long tenantId = TenantContext.requireTenantId();
+        if (enrollmentRepository.existsByUserIdAndCourseIdAndTenantIdAndStatusNot(userId, courseId, tenantId,
+                Enrollment.Status.CANCELLED)) {
             throw new DuplicateResourceException("Enrollment", "userId+courseId", userId + "+" + courseId);
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndTenantId(userId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        Course course = courseRepository.findById(courseId)
+        Course course = courseRepository.findByIdAndTenantId(courseId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
 
         Enrollment enrollment = new Enrollment();
+        enrollment.setTenant(tenantService.requireCurrentTenant());
         enrollment.setUser(user);
         enrollment.setCourse(course);
         enrollment.setStatus(Enrollment.Status.ACTIVE);
@@ -68,20 +75,24 @@ public class EnrollmentService {
     }
 
     public List<Enrollment> getStudentEnrollments(Long userId) {
-        return enrollmentRepository.findByUserId(userId);
+        Long tenantId = TenantContext.requireTenantId();
+        return enrollmentRepository.findByUserIdAndTenantIdWithDetails(userId, tenantId);
     }
 
     public List<Enrollment> getAllEnrollments() {
-        return enrollmentRepository.findAll();
+        Long tenantId = TenantContext.requireTenantId();
+        return enrollmentRepository.findAllByTenantId(tenantId);
     }
 
     public Page<Enrollment> getAllEnrollments(Pageable pageable) {
-        return enrollmentRepository.findAll(pageable);
+        Long tenantId = TenantContext.requireTenantId();
+        return enrollmentRepository.findAllByTenantIdWithDetails(tenantId, pageable);
     }
 
     @Transactional
     public void cancelEnrollment(Long enrollmentId, Long userId, String role) {
-        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+        Long tenantId = TenantContext.requireTenantId();
+        Enrollment enrollment = enrollmentRepository.findByIdAndTenantId(enrollmentId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment", "id", enrollmentId));
 
         if (enrollment.getStatus() == Enrollment.Status.CANCELLED) {

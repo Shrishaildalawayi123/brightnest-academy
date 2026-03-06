@@ -20,94 +20,102 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class AuthControllerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        private static final String TENANT_HEADER = "X-Tenant-ID";
+        private static final String DEFAULT_TENANT_KEY = "default";
 
-    @Test
-    void loginShouldSucceedForRegisteredUser() throws Exception {
-        String email = "login-" + UUID.randomUUID() + "@example.com";
-        String password = "Student@123";
+        @Autowired
+        private MockMvc mockMvc;
 
-        String registerPayload = """
-                {
-                  \"name\": \"Login Student\",
-                  \"email\": \"%s\",
-                  \"password\": \"%s\",
-                  \"phone\": \"9876543210\"
-                }
-                """.formatted(email, password);
+        @Test
+        void loginShouldSucceedForRegisteredUser() throws Exception {
+                String email = "login-" + UUID.randomUUID() + "@example.com";
+                String password = "Student@123";
 
-        mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(registerPayload))
-                .andExpect(status().isOk());
+                String registerPayload = """
+                                {
+                                  \"name\": \"Login Student\",
+                                  \"email\": \"%s\",
+                                  \"password\": \"%s\",
+                                  \"phone\": \"9876543210\"
+                                }
+                                """.formatted(email, password);
 
-        String loginPayload = """
-                {
-                  \"email\": \"%s\",
-                  \"password\": \"%s\"
-                }
-                """.formatted(email, password);
+                mockMvc.perform(post("/api/auth/register")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(registerPayload))
+                                .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginPayload))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.token").isString())
-                .andExpect(jsonPath("$.email").value(email))
-                .andExpect(jsonPath("$.role").value("ROLE_STUDENT"));
-    }
+                String loginPayload = """
+                                {
+                                  \"email\": \"%s\",
+                                  \"password\": \"%s\"
+                                }
+                                """.formatted(email, password);
 
-    @Test
-    void loginShouldFailWithInvalidPassword() throws Exception {
-        String email = "badpass-" + UUID.randomUUID() + "@example.com";
-        String password = "Student@123";
+                mockMvc.perform(post("/api/auth/login")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(loginPayload))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.token").isString())
+                                .andExpect(jsonPath("$.email").value(email))
+                                .andExpect(jsonPath("$.role").value("ROLE_STUDENT"));
+        }
 
-        String registerPayload = """
-                {
-                  \"name\": \"Bad Pass Student\",
-                  \"email\": \"%s\",
-                  \"password\": \"%s\",
-                  \"phone\": \"9876543210\"
-                }
-                """.formatted(email, password);
+        @Test
+        void loginShouldFailWithInvalidPassword() throws Exception {
+                String email = "badpass-" + UUID.randomUUID() + "@example.com";
+                String password = "Student@123";
 
-        mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(registerPayload))
-                .andExpect(status().isOk());
+                String registerPayload = """
+                                {
+                                  \"name\": \"Bad Pass Student\",
+                                  \"email\": \"%s\",
+                                  \"password\": \"%s\",
+                                  \"phone\": \"9876543210\"
+                                }
+                                """.formatted(email, password);
 
-        String loginPayload = """
-                {
-                  \"email\": \"%s\",
-                  \"password\": \"WrongPassword@123\"
-                }
-                """.formatted(email);
+                mockMvc.perform(post("/api/auth/register")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(registerPayload))
+                                .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginPayload))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value(401));
-    }
+                String loginPayload = """
+                                {
+                                  \"email\": \"%s\",
+                                  \"password\": \"WrongPassword@123\"
+                                }
+                                """.formatted(email);
 
-    @Test
-    void loginShouldFailWhenUserDoesNotExist() throws Exception {
-        String email = "missing-" + UUID.randomUUID() + "@example.com";
-        String loginPayload = """
-                {
-                        \"email\": \"%s\",
-                        \"password\": \"Student@123\"
-                }
-                """.formatted(email);
+                mockMvc.perform(post("/api/auth/login")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(loginPayload))
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.status").value(401));
+        }
 
-        mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginPayload))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.status").value(401));
-    }
+        @Test
+        void loginShouldFailWhenUserDoesNotExist() throws Exception {
+                String email = "missing-" + UUID.randomUUID() + "@example.com";
+                String loginPayload = """
+                                {
+                                        \"email\": \"%s\",
+                                        \"password\": \"Student@123\"
+                                }
+                                """.formatted(email);
+
+                mockMvc.perform(post("/api/auth/login")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(loginPayload))
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.status").value(401));
+        }
 }

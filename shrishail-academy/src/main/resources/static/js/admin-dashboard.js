@@ -1,4 +1,63 @@
-﻿Auth.requireAdmin();
+﻿function isLocalDevHost() {
+  const { hostname, protocol } = window.location;
+  return (
+    protocol === "file:" || hostname === "localhost" || hostname === "127.0.0.1"
+  );
+}
+
+function isAdminDebugEnabled() {
+  const storedFlag = localStorage.getItem("authDebug");
+  if (storedFlag === "true") {
+    return true;
+  }
+  if (storedFlag === "false") {
+    return false;
+  }
+  return isLocalDevHost();
+}
+
+function debugAdmin(eventName, details) {
+  if (!isAdminDebugEnabled()) {
+    return;
+  }
+
+  if (typeof details === "undefined") {
+    console.info("[admin-debug]", eventName);
+    return;
+  }
+
+  console.info("[admin-debug]", eventName, details);
+}
+
+function ensureAdminDebugBanner() {
+  if (!isAdminDebugEnabled() || document.getElementById("adminDebugBanner")) {
+    return;
+  }
+
+  const banner = document.createElement("div");
+  banner.id = "adminDebugBanner";
+  banner.textContent =
+    "Local admin debug is enabled. Network requests will be logged to the console.";
+  banner.style.cssText = [
+    "position:sticky",
+    "top:0",
+    "z-index:1000",
+    "padding:0.65rem 1rem",
+    "background:#EFF6FF",
+    "border-bottom:1px solid #93C5FD",
+    "color:#1D4ED8",
+    "font:600 0.9rem/1.4 sans-serif",
+    "text-align:center",
+  ].join(";");
+  document.body.prepend(banner);
+}
+
+ensureAdminDebugBanner();
+debugAdmin("dashboard:init", {
+  path: window.location.pathname || window.location.href,
+});
+
+Auth.requireAdmin();
 const user = Auth.getCurrentUser();
 document.getElementById("adminName").textContent = user.name || "Admin";
 document.getElementById("dateDisplay").textContent =
@@ -16,7 +75,9 @@ function toggleSidebar() {
   overlay.style.display = sidebar.classList.contains("open") ? "block" : "none";
 }
 
-const authHdr = { "Content-Type": "application/json" };
+function authHeaders() {
+  return API.getHeaders(true);
+}
 const nativeFetch = window.fetch.bind(window);
 function getCookie(name) {
   const cookie = document.cookie
@@ -27,18 +88,40 @@ function getCookie(name) {
 window.fetch = async (url, options = {}) => {
   const method = (options.method || "GET").toUpperCase();
   const headers = { ...(options.headers || {}) };
+  const token = localStorage.getItem("token");
+  const requestUrl =
+    typeof url === "string" ? url : url && url.url ? url.url : String(url);
+  if (token && token.trim() && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token.trim()}`;
+  }
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
     const csrfToken = getCookie("XSRF-TOKEN");
     if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
   }
-  const response = await nativeFetch(url, {
-    credentials: "include",
-    ...options,
-    method,
-    headers,
-  });
+  debugAdmin("request", { method, url: requestUrl, headers });
+
+  let response;
+  try {
+    response = await nativeFetch(url, {
+      credentials: "include",
+      ...options,
+      method,
+      headers,
+    });
+  } catch (error) {
+    debugAdmin("request:error", {
+      method,
+      url: requestUrl,
+      message:
+        error && error.message ? error.message : "Network request failed",
+    });
+    throw error;
+  }
+
+  debugAdmin("response", { method, url: requestUrl, status: response.status });
   if (response.status === 401) {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     window.location.href = "/login.html";
     throw new Error("Unauthorized");
   }
@@ -77,6 +160,7 @@ function showSection(name) {
   );
   if (activeLink) activeLink.classList.add("active");
   document.getElementById("pageTitle").textContent = titles[name];
+  if (name === "overview") loadOverview();
   if (name === "courses") loadCourses();
   if (name === "students") loadStudents();
   if (name === "enrollments") loadEnrollments();
@@ -100,9 +184,11 @@ function esc(str) {
 async function loadOverview() {
   try {
     const [users, courses, enrollments] = await Promise.all([
-      fetch("/api/users", { headers: authHdr }).then((r) => r.json()),
+      fetch("/api/users", { headers: authHeaders() }).then((r) => r.json()),
       fetch("/api/courses").then((r) => r.json()),
-      fetch("/api/enrollments", { headers: authHdr }).then((r) => r.json()),
+      fetch("/api/enrollments", { headers: authHeaders() }).then((r) =>
+        r.json(),
+      ),
     ]);
     const students = Array.isArray(users)
       ? users.filter((u) => u.role === "STUDENT")
@@ -168,8 +254,8 @@ async function loadCourses() {
 async function loadStudents() {
   const tbody = document.querySelector("#studentsTable tbody");
   try {
-    const users = await fetch("/api/users", { headers: authHdr }).then((r) =>
-      r.json(),
+    const users = await fetch("/api/users", { headers: authHeaders() }).then(
+      (r) => r.json(),
     );
     tbody.innerHTML =
       (Array.isArray(users) ? users : [])
@@ -190,7 +276,7 @@ async function loadEnrollments() {
   const tbody = document.querySelector("#enrollmentsTable tbody");
   try {
     const enrollments = await fetch("/api/enrollments", {
-      headers: authHdr,
+      headers: authHeaders(),
     }).then((r) => r.json());
     tbody.innerHTML =
       (Array.isArray(enrollments) ? enrollments : [])
@@ -256,7 +342,11 @@ document.getElementById("courseForm").addEventListener("submit", async (e) => {
   try {
     const url = id ? `/api/courses/${id}` : "/api/courses";
     const method = id ? "PUT" : "POST";
-    await fetch(url, { method, headers: authHdr, body: JSON.stringify(data) });
+    await fetch(url, {
+      method,
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
     closeModal();
     showToast(id ? "Course updated!" : "Course added!");
     loadCourses();
@@ -282,7 +372,7 @@ async function confirmDelete() {
   try {
     await fetch(`/api/courses/${deleteId}`, {
       method: "DELETE",
-      headers: authHdr,
+      headers: authHeaders(),
     });
     document.getElementById("deleteModal").classList.remove("show");
     showToast("Course deleted!");
@@ -325,7 +415,7 @@ async function loadCourseStudents() {
   }
   try {
     const enrollments = await fetch("/api/enrollments", {
-      headers: authHdr,
+      headers: authHeaders(),
     }).then((r) => r.json());
     attStudents = (Array.isArray(enrollments) ? enrollments : []).filter(
       (e) => e.course && e.course.id == courseId && e.status === "ACTIVE",
@@ -378,7 +468,7 @@ async function submitAttendance() {
   try {
     const res = await fetch("/api/attendance/mark", {
       method: "POST",
-      headers: authHdr,
+      headers: authHeaders(),
       body: JSON.stringify({ courseId: parseInt(courseId), date, records }),
     });
     const data = await res.json();
@@ -396,9 +486,9 @@ async function submitAttendance() {
 async function loadRecentAttendance() {
   const tbody = document.querySelector("#recentAttendance tbody");
   try {
-    const records = await fetch("/api/attendance", { headers: authHdr }).then(
-      (r) => r.json(),
-    );
+    const records = await fetch("/api/attendance", {
+      headers: authHeaders(),
+    }).then((r) => r.json());
     const list = Array.isArray(records) ? records.slice(0, 50) : [];
     tbody.innerHTML =
       list
@@ -427,7 +517,7 @@ async function loadPaymentsSection() {
 
 async function loadPaymentStats() {
   try {
-    const res = await fetch("/api/payments/stats", { headers: authHdr });
+    const res = await fetch("/api/payments/stats", { headers: authHeaders() });
     const data = await res.json();
     const stats = data.data || data;
     document.getElementById("totalRevenue").textContent =
@@ -446,7 +536,7 @@ async function loadPaymentStats() {
 async function loadPaymentDropdowns() {
   try {
     const [users, courses] = await Promise.all([
-      fetch("/api/users", { headers: authHdr }).then((r) => r.json()),
+      fetch("/api/users", { headers: authHeaders() }).then((r) => r.json()),
       fetch("/api/courses").then((r) => r.json()),
     ]);
     const students = (Array.isArray(users) ? users : []).filter(
@@ -493,7 +583,7 @@ async function recordManualPayment() {
   try {
     const res = await fetch(`/api/payments/manual/${userId}`, {
       method: "POST",
-      headers: authHdr,
+      headers: authHeaders(),
       body: JSON.stringify({
         courseId: parseInt(courseId),
         amount: parseFloat(amount),
@@ -516,9 +606,9 @@ async function recordManualPayment() {
 async function loadAllPayments() {
   const tbody = document.querySelector("#paymentsTable tbody");
   try {
-    const payments = await fetch("/api/payments", { headers: authHdr }).then(
-      (r) => r.json(),
-    );
+    const payments = await fetch("/api/payments", {
+      headers: authHeaders(),
+    }).then((r) => r.json());
     tbody.innerHTML =
       (Array.isArray(payments) ? payments : [])
         .map(
@@ -546,7 +636,7 @@ async function confirmPayment(paymentId) {
   try {
     const res = await fetch(`/api/payments/${paymentId}/confirm`, {
       method: "POST",
-      headers: authHdr,
+      headers: authHeaders(),
     });
     if (res.ok) {
       showToast("Payment confirmed!");
@@ -564,7 +654,7 @@ async function failPaymentAction(paymentId) {
   try {
     const res = await fetch(
       `/api/payments/${paymentId}/fail?reason=Admin%20rejected`,
-      { method: "POST", headers: authHdr },
+      { method: "POST", headers: authHeaders() },
     );
     if (res.ok) {
       showToast("Payment marked as failed");
@@ -582,8 +672,8 @@ async function failPaymentAction(paymentId) {
 async function loadBlogAdmin() {
   const tbody = document.querySelector("#blogTable tbody");
   try {
-    const posts = await fetch("/api/blog/all", { headers: authHdr }).then((r) =>
-      r.json(),
+    const posts = await fetch("/api/blog/all", { headers: authHeaders() }).then(
+      (r) => r.json(),
     );
     tbody.innerHTML =
       (Array.isArray(posts) ? posts : [])
@@ -608,7 +698,10 @@ async function loadBlogAdmin() {
 
 async function togglePublish(id) {
   try {
-    await fetch(`/api/blog/${id}/publish`, { method: "PUT", headers: authHdr });
+    await fetch(`/api/blog/${id}/publish`, {
+      method: "PUT",
+      headers: authHeaders(),
+    });
     showToast("Publish status toggled");
     loadBlogAdmin();
   } catch (e) {
@@ -619,7 +712,10 @@ async function togglePublish(id) {
 async function deleteBlogPost(id) {
   if (!confirm("Delete this blog post?")) return;
   try {
-    await fetch(`/api/blog/${id}`, { method: "DELETE", headers: authHdr });
+    await fetch(`/api/blog/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
     showToast("Blog post deleted");
     loadBlogAdmin();
   } catch (e) {
@@ -664,7 +760,7 @@ async function saveBlogPost(e) {
   try {
     const res = await fetch("/api/blog", {
       method: "POST",
-      headers: authHdr,
+      headers: authHeaders(),
       body: JSON.stringify(data),
     });
     if (res.ok) {
@@ -684,8 +780,10 @@ async function saveBlogPost(e) {
 async function loadDemosAdmin() {
   try {
     const [bookings, stats] = await Promise.all([
-      fetch("/api/demo-booking", { headers: authHdr }).then((r) => r.json()),
-      fetch("/api/demo-booking/stats", { headers: authHdr }).then((r) =>
+      fetch("/api/demo-booking", { headers: authHeaders() }).then((r) =>
+        r.json(),
+      ),
+      fetch("/api/demo-booking/stats", { headers: authHeaders() }).then((r) =>
         r.json(),
       ),
     ]);
@@ -727,7 +825,7 @@ async function updateDemoStatus(id, status) {
   try {
     await fetch(`/api/demo-booking/${id}/status?status=${status}`, {
       method: "PUT",
-      headers: authHdr,
+      headers: authHeaders(),
     });
     showToast("Status updated");
     loadDemosAdmin();
@@ -740,11 +838,11 @@ async function updateDemoStatus(id, status) {
 async function loadTeacherAppsAdmin() {
   try {
     const [apps, stats] = await Promise.all([
-      fetch("/api/teacher-applications", { headers: authHdr }).then((r) =>
+      fetch("/api/teacher-applications", { headers: authHeaders() }).then((r) =>
         r.json(),
       ),
-      fetch("/api/teacher-applications/stats", { headers: authHdr }).then((r) =>
-        r.json(),
+      fetch("/api/teacher-applications/stats", { headers: authHeaders() }).then(
+        (r) => r.json(),
       ),
     ]);
     document.getElementById("totalTeacherApps").textContent =
@@ -785,7 +883,7 @@ async function updateTeacherStatus(id, status) {
   try {
     await fetch(`/api/teacher-applications/${id}/status?status=${status}`, {
       method: "PUT",
-      headers: authHdr,
+      headers: authHeaders(),
     });
     showToast("Status updated");
     loadTeacherAppsAdmin();

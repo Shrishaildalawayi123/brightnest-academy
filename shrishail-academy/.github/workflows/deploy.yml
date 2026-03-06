@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-yml-prod-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/brightnest-academy
 
@@ -82,10 +86,26 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+  security-scan-trivy-image:
+    name: Trivy Image Scan
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+
+    steps:
+      - name: Scan pushed image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: table
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+
   deploy-ec2:
     name: SSH Deploy to EC2
     runs-on: ubuntu-latest
-    needs: docker-build-push
+    needs: [docker-build-push, security-scan-trivy-image]
 
     steps:
       - name: Checkout
@@ -109,10 +129,16 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
           script: |
-            set -e
+            set -euo pipefail
             mkdir -p /opt/brightnest
 
             IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            NEW_IMAGE="${{ env.IMAGE_NAME }}:${{ github.sha }}"
+            PREVIOUS_IMAGE=""
+
+            if docker ps -a --format '{{.Names}}' | grep -q '^brightnest-academy$'; then
+              PREVIOUS_IMAGE=$(docker inspect --format='{{.Config.Image}}' brightnest-academy || true)
+            fi
 
             # Normalize compose file location
             if [ -f /opt/brightnest/shrishail-academy/docker-compose.prod.yml ]; then
@@ -128,10 +154,10 @@ jobs:
 
             # If the compose file already has image, overwrite it
             if grep -q "^[[:space:]]*image:" /opt/brightnest/docker-compose.yml; then
-              sed -i "s|^[[:space:]]*image:.*|    image: ${IMAGE_NAME}:latest|" /opt/brightnest/docker-compose.yml
+              sed -i "s|^[[:space:]]*image:.*|    image: ${NEW_IMAGE}|" /opt/brightnest/docker-compose.yml
             else
               # Insert image under service app: if missing
-              awk 'BEGIN{ins=0} /^[[:space:]]*app:[[:space:]]*$/{print; print "    image: '${IMAGE_NAME}':latest"; ins=1; next} {print}' /opt/brightnest/docker-compose.yml > /opt/brightnest/docker-compose.tmp.yml
+              awk 'BEGIN{ins=0} /^[[:space:]]*app:[[:space:]]*$/{print; print "    image: '${NEW_IMAGE}'"; ins=1; next} {print}' /opt/brightnest/docker-compose.yml > /opt/brightnest/docker-compose.tmp.yml
               mv /opt/brightnest/docker-compose.tmp.yml /opt/brightnest/docker-compose.yml
             fi
 
@@ -139,6 +165,25 @@ jobs:
             cd /opt/brightnest
             docker compose pull
             docker compose up -d
+
+            HEALTH_OK=false
+            for i in $(seq 1 30); do
+              if curl -fsS http://127.0.0.1:8080/health >/dev/null; then
+                HEALTH_OK=true
+                break
+              fi
+              sleep 5
+            done
+
+            if [ "${HEALTH_OK}" != "true" ]; then
+              echo "Deployment failed health check, attempting rollback"
+              if [ -n "${PREVIOUS_IMAGE}" ]; then
+                sed -i "s|^[[:space:]]*image:.*|    image: ${PREVIOUS_IMAGE}|" /opt/brightnest/docker-compose.yml
+                docker compose pull || true
+                docker compose up -d
+              fi
+              exit 1
+            fi
 
             docker image prune -f || true
             echo "Deploy complete."

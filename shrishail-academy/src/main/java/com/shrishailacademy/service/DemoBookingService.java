@@ -5,6 +5,8 @@ import com.shrishailacademy.exception.BusinessException;
 import com.shrishailacademy.exception.ResourceNotFoundException;
 import com.shrishailacademy.model.DemoBooking;
 import com.shrishailacademy.repository.DemoBookingRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,53 +22,59 @@ public class DemoBookingService {
     private static final Logger log = LoggerFactory.getLogger(DemoBookingService.class);
 
     private final DemoBookingRepository demoBookingRepository;
+    private final TenantService tenantService;
 
-    public DemoBookingService(DemoBookingRepository demoBookingRepository) {
+    public DemoBookingService(DemoBookingRepository demoBookingRepository, TenantService tenantService) {
         this.demoBookingRepository = demoBookingRepository;
+        this.tenantService = tenantService;
     }
 
     @Transactional
     public DemoBooking submitBooking(DemoBookingRequest request) {
         DemoBooking booking = new DemoBooking();
-        booking.setStudentName(request.getStudentName());
-        booking.setParentName(request.getParentName());
-        booking.setEmail(request.getEmail());
-        booking.setPhone(request.getPhone());
-        booking.setSubject(request.getSubject());
-        booking.setGrade(request.getGrade());
-        booking.setBoard(request.getBoard());
-        booking.setRequirements(request.getRequirements());
-        booking.setMessage(request.getMessage());
+        booking.setTenant(tenantService.requireCurrentTenant());
+        booking.setStudentName(InputSanitizer.sanitizeAndTruncate(request.getStudentName(), 100));
+        booking.setParentName(InputSanitizer.sanitizeAndTruncateNullable(request.getParentName(), 100));
+        booking.setEmail(InputSanitizer.sanitizeEmailAndTruncate(request.getEmail(), 100));
+        booking.setPhone(InputSanitizer.sanitizeAndTruncate(request.getPhone(), 20));
+        booking.setSubject(InputSanitizer.sanitizeAndTruncate(request.getSubject(), 50));
+        booking.setGrade(InputSanitizer.sanitizeAndTruncateNullable(request.getGrade(), 30));
+        booking.setBoard(InputSanitizer.sanitizeAndTruncateNullable(request.getBoard(), 30));
+        booking.setRequirements(InputSanitizer.sanitizeAndTruncateNullable(request.getRequirements(), 500));
+        booking.setMessage(InputSanitizer.sanitizeAndTruncateNullable(request.getMessage(), 1000));
         booking.setDemoFee(100);
         booking.setStatus(DemoBooking.Status.PENDING);
 
         try {
-            booking.setClassMode(DemoBooking.ClassMode.valueOf(request.getClassMode().toUpperCase()));
+            booking.setClassMode(DemoBooking.ClassMode
+                    .valueOf(InputSanitizer.sanitizeAndTruncate(request.getClassMode(), 20).toUpperCase()));
         } catch (Exception e) {
             booking.setClassMode(DemoBooking.ClassMode.ONLINE);
         }
 
         DemoBooking saved = demoBookingRepository.save(booking);
         log.info("DEMO_BOOKING_CREATED: id={}, student='{}', email='{}'",
-                saved.getId(), request.getStudentName(), request.getEmail());
+                saved.getId(), saved.getStudentName(), saved.getEmail());
         return saved;
     }
 
     public List<DemoBooking> getAllBookings(String status) {
+        Long tenantId = TenantContext.requireTenantId();
         if (status != null && !status.isEmpty()) {
             try {
                 DemoBooking.Status s = DemoBooking.Status.valueOf(status.toUpperCase());
-                return demoBookingRepository.findByStatusOrderByCreatedAtDesc(s);
+                return demoBookingRepository.findByTenantIdAndStatusOrderByCreatedAtDesc(tenantId, s);
             } catch (IllegalArgumentException e) {
                 throw new BusinessException("Invalid status", "INVALID_STATUS");
             }
         }
-        return demoBookingRepository.findAllByOrderByCreatedAtDesc();
+        return demoBookingRepository.findByTenantIdOrderByCreatedAtDesc(tenantId);
     }
 
     @Transactional
     public DemoBooking updateStatus(Long id, String status) {
-        DemoBooking booking = demoBookingRepository.findById(id)
+        Long tenantId = TenantContext.requireTenantId();
+        DemoBooking booking = demoBookingRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("DemoBooking", "id", id));
 
         try {
@@ -82,11 +90,12 @@ public class DemoBookingService {
     }
 
     public Map<String, Object> getStats() {
+        Long tenantId = TenantContext.requireTenantId();
         return Map.of(
-                "total", demoBookingRepository.count(),
-                "pending", demoBookingRepository.countByStatus(DemoBooking.Status.PENDING),
-                "scheduled", demoBookingRepository.countByStatus(DemoBooking.Status.SCHEDULED),
-                "completed", demoBookingRepository.countByStatus(DemoBooking.Status.COMPLETED),
-                "cancelled", demoBookingRepository.countByStatus(DemoBooking.Status.CANCELLED));
+                "total", demoBookingRepository.countByTenantId(tenantId),
+                "pending", demoBookingRepository.countByTenantIdAndStatus(tenantId, DemoBooking.Status.PENDING),
+                "scheduled", demoBookingRepository.countByTenantIdAndStatus(tenantId, DemoBooking.Status.SCHEDULED),
+                "completed", demoBookingRepository.countByTenantIdAndStatus(tenantId, DemoBooking.Status.COMPLETED),
+                "cancelled", demoBookingRepository.countByTenantIdAndStatus(tenantId, DemoBooking.Status.CANCELLED));
     }
 }
