@@ -17,7 +17,16 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeApp();
 });
 
+const ANNOUNCEMENT_ROTATION_MS = 3200;
+const ANNOUNCEMENT_MESSAGES = [
+  "CBSE | ICSE | Karnataka State Board | Grades 1-10",
+  "Personalized online and offline classes with expert faculty",
+  "Admissions open for Mathematics, Science, English, Hindi, Kannada, Sanskrit and German",
+];
+
 function initializeApp() {
+  initializeAnnouncementBar();
+
   // Set current year in footer
   const yearElement = document.getElementById("currentYear");
   if (yearElement) {
@@ -37,6 +46,102 @@ function initializeApp() {
   updateNavigation();
 
   console.log("🎓 BrightNest Academy initialized");
+}
+
+function initializeAnnouncementBar() {
+  const header = document.getElementById("header");
+  if (!header) {
+    return;
+  }
+
+  let announcementBar = document.querySelector(".announcement-bar");
+
+  if (!announcementBar) {
+    announcementBar = document.createElement("div");
+    announcementBar.className = "announcement-bar";
+    announcementBar.innerHTML = `
+      <div class="container announcement-bar__inner">
+        <div class="announcement-bar__rotator" aria-live="polite"></div>
+        <a class="announcement-bar__phone" href="tel:+916363464005" aria-label="Call BrightNest Academy">☎ +91 63634 64005</a>
+      </div>
+    `;
+
+    header.before(announcementBar);
+  }
+
+  const rotator = announcementBar.querySelector(".announcement-bar__rotator");
+  if (rotator && rotator.children.length === 0) {
+    ANNOUNCEMENT_MESSAGES.forEach((message, index) => {
+      const item = document.createElement("span");
+      item.className = "announcement-bar__item";
+      if (index === 0) {
+        item.classList.add("is-active");
+      }
+      item.textContent = message;
+      rotator.appendChild(item);
+    });
+  }
+
+  startAnnouncementRotation(announcementBar);
+  syncFixedTopOffset();
+  window.requestAnimationFrame(() => syncFixedTopOffset());
+
+  const onResize = debounce(() => syncFixedTopOffset(), 50);
+  window.addEventListener("resize", onResize);
+  window.addEventListener("pageshow", () => syncFixedTopOffset());
+
+  if (typeof ResizeObserver === "function") {
+    const resizeObserver = new ResizeObserver(() => {
+      syncFixedTopOffset();
+    });
+    resizeObserver.observe(announcementBar);
+    resizeObserver.observe(header);
+  }
+}
+
+function startAnnouncementRotation(announcementBar) {
+  const items = announcementBar.querySelectorAll(".announcement-bar__item");
+  if (items.length <= 1 || announcementBar.dataset.rotationStarted === "true") {
+    return;
+  }
+
+  let activeIndex = 0;
+  announcementBar.dataset.rotationStarted = "true";
+
+  window.setInterval(() => {
+    items[activeIndex].classList.remove("is-active");
+    activeIndex = (activeIndex + 1) % items.length;
+    items[activeIndex].classList.add("is-active");
+  }, ANNOUNCEMENT_ROTATION_MS);
+}
+
+function syncFixedTopOffset() {
+  const header = document.getElementById("header");
+  const root = document.documentElement;
+
+  if (!header) {
+    return;
+  }
+
+  const currentHeaderHeight = parseFloat(
+    getComputedStyle(root).getPropertyValue("--header-height"),
+  );
+
+  const headerHeight = header.offsetHeight || currentHeaderHeight || 0;
+
+  // Keep announcement height CSS-driven to avoid measurement feedback loops.
+  // We only sync live header height for accurate top offset calculations.
+  root.style.setProperty("--header-height", `${headerHeight}px`);
+}
+
+function getFixedTopOffset() {
+  const rootStyles = getComputedStyle(document.documentElement);
+  const announcementHeight = parseFloat(
+    rootStyles.getPropertyValue("--announcement-height"),
+  );
+  const headerHeight = parseFloat(rootStyles.getPropertyValue("--header-height"));
+
+  return (announcementHeight || 0) + (headerHeight || 0);
 }
 
 // ========== Mobile Menu ==========
@@ -104,12 +209,27 @@ function initializeScrollEffects() {
   // Smooth scroll for anchor links
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener("click", function (e) {
+      const selector = this.getAttribute("href");
+      if (!selector || selector === "#") {
+        return;
+      }
+
+      const target = document.querySelector(selector);
+      if (!target) {
+        return;
+      }
+
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute("href"));
       if (target) {
-        target.scrollIntoView({
+        const top =
+          target.getBoundingClientRect().top +
+          window.scrollY -
+          getFixedTopOffset() -
+          16;
+
+        window.scrollTo({
+          top: Math.max(top, 0),
           behavior: "smooth",
-          block: "start",
         });
       }
     });

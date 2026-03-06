@@ -160,6 +160,7 @@
                         <p style="margin:0;font-size:0.82rem;color:#3b82f6;">This amount gets deducted from your first month's tuition if you enroll. Not satisfied? Get a full refund within 30 days.</p>
                     </div>
                     <button type="submit" class="btn btn-accent btn-lg btn-block" id="demoSubmitBtn">Book My Demo</button>
+                    <div id="demoFormMessage" style="display:none;padding:0.9rem 1rem;border-radius:10px;font-size:0.92rem;font-weight:500;margin-top:1rem;"></div>
                     <p style="text-align:center;margin-top:var(--space-md);color:var(--navy-400);font-size:0.85rem;">
                         By booking, you agree to our <a href="terms-conditions.html">Terms & Conditions</a> and <a href="fee-payment.html">Fee Policy</a>.
                     </p>
@@ -203,13 +204,16 @@
             });
         });
 
-        // Demo form → WhatsApp
-        document.getElementById('demoForm').addEventListener('submit', function(e) {
+        // Demo form → backend API
+        document.getElementById('demoForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!this.checkValidity()) {
                 this.reportValidity();
                 return;
             }
+
+            const submitButton = document.getElementById('demoSubmitBtn');
+            const messageBox = document.getElementById('demoFormMessage');
             const studentName = document.getElementById('demoStudentName').value.trim();
             const parentName = document.getElementById('demoParentName').value.trim();
             const email = document.getElementById('demoEmail').value.trim();
@@ -221,11 +225,40 @@
             const mode = modeRadio ? modeRadio.value : 'Online';
             const requirements = Array.from(document.querySelectorAll('.req-check:checked')).map(function(c){ return c.value; }).join(', ') || 'Not specified';
             const message = document.getElementById('demoMessage').value.trim() || '';
-            const text = 'Hi BrightNest Academy! I want to book a Demo Class.%0A%0AStudent: ' + encodeURIComponent(studentName) + '%0AParent: ' + encodeURIComponent(parentName) + '%0AEmail: ' + encodeURIComponent(email) + '%0APhone: ' + encodeURIComponent(phone) + '%0ASubject: ' + encodeURIComponent(subject) + '%0AGrade: ' + encodeURIComponent(grade) + (board ? '%0ABoard: ' + encodeURIComponent(board) : '') + '%0AMode: ' + encodeURIComponent(mode) + '%0ARequirements: ' + encodeURIComponent(requirements) + (message ? '%0AMessage: ' + encodeURIComponent(message) : '') + '%0A%0APlease schedule my demo session.';
-            window.open('https://wa.me/916363464005?text=' + text, '_blank');
-            this.reset();
-            document.querySelectorAll('.mode-option').forEach(function(l){ l.style.borderColor = '#e5e7eb'; });
-            if (window.AppUtils) AppUtils.showNotification('Opening WhatsApp to confirm your demo booking!', 'success');
+
+            submitButton.disabled = true;
+            messageBox.style.display = 'none';
+
+            try {
+                const response = await API.submitDemoBooking({
+                    studentName,
+                    parentName,
+                    email,
+                    phone,
+                    subject,
+                    grade,
+                    board,
+                    classMode: mode,
+                    requirements,
+                    message,
+                });
+
+                this.reset();
+                document.querySelectorAll('.mode-option').forEach(function(l){ l.style.borderColor = '#e5e7eb'; });
+                messageBox.style.background = '#f0fdf4';
+                messageBox.style.color = '#166534';
+                messageBox.style.border = '1px solid #bbf7d0';
+                messageBox.textContent = response?.message || 'Demo booking submitted successfully. Our team will contact you shortly.';
+                messageBox.style.display = 'block';
+            } catch (error) {
+                messageBox.style.background = '#fff1f2';
+                messageBox.style.color = '#be123c';
+                messageBox.style.border = '1px solid #fecdd3';
+                messageBox.textContent = error.message || 'Unable to submit your demo booking right now. Please try again.';
+                messageBox.style.display = 'block';
+            } finally {
+                submitButton.disabled = false;
+            }
         });
     </script>
 </body>

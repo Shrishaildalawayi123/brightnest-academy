@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" href="images/logo.png">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .careers-hero { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; padding: calc(var(--header-height) + 3rem) 0 3rem; text-align: center; }
+        .careers-hero { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; padding: calc(var(--fixed-top-offset) + 3rem) 0 3rem; text-align: center; }
         .careers-hero h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.5rem; }
         .careers-hero p { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
 
@@ -301,6 +301,7 @@
     <div id="footerPlaceholder"></div>
 
     <script src="js/data.js?v=20260302"></script>
+    <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script>
         // Footer
@@ -393,20 +394,41 @@
             const experience = document.getElementById('appExperience').value;
             const motivation = document.getElementById('appMotivation').value.trim();
 
-            const text = 'Hi BrightNest Academy! I want to apply as a tutor.%0A%0AName: ' + encodeURIComponent(fullName) + '%0AEmail: ' + encodeURIComponent(email) + '%0APhone: ' + encodeURIComponent(phone) + '%0ASubject: ' + encodeURIComponent(subject) + '%0AQualification: ' + encodeURIComponent(qualification) + '%0ACity: ' + encodeURIComponent(city) + '%0ATeaching Mode: ' + encodeURIComponent(teachingMode) + '%0AExperience: ' + encodeURIComponent(experience) + ' years%0A%0AMotivation:%0A' + encodeURIComponent(motivation) + (resumeFile ? '%0A%0A(I will email my resume to info@brightnest-academy.com)' : '');
-            window.open('https://wa.me/916363464005?text=' + text, '_blank');
+            const formData = new FormData();
+            formData.append('fullName', fullName);
+            formData.append('email', email);
+            formData.append('phone', phone);
+            formData.append('subjectExpertise', subject);
+            formData.append('qualification', qualification);
+            formData.append('city', city);
+            formData.append('teachingMode', teachingMode);
+            formData.append('experience', experience);
+            formData.append('motivation', motivation);
+            if (resumeFile) {
+                formData.append('resume', resumeFile);
+            }
 
-            msgDiv.style.background = '#f0fdf4';
-            msgDiv.style.color = '#16a34a';
-            msgDiv.style.border = '1px solid #bbf7d0';
-            msgDiv.textContent = resumeFile ? 'Opening WhatsApp! Please also email your resume to info@brightnest-academy.com' : 'Opening WhatsApp to submit your application!';
-            msgDiv.style.display = 'block';
-            this.reset();
-            fileInfo.style.display = 'none';
-            modeToggle.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active'); });
-            modeInput.value = '';
-            btn.disabled = false;
-            btn.textContent = originalText;
+            try {
+                const response = await API.submitTeacherApplicationForm(formData);
+                msgDiv.style.background = '#f0fdf4';
+                msgDiv.style.color = '#16a34a';
+                msgDiv.style.border = '1px solid #bbf7d0';
+                msgDiv.textContent = response?.message || 'Application submitted successfully. Our team will review it and get back to you.';
+                msgDiv.style.display = 'block';
+                this.reset();
+                fileInfo.style.display = 'none';
+                modeToggle.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active'); });
+                modeInput.value = '';
+            } catch (error) {
+                msgDiv.style.background = '#fef2f2';
+                msgDiv.style.color = '#dc2626';
+                msgDiv.style.border = '1px solid #fecaca';
+                msgDiv.textContent = error.message || 'Unable to submit your application right now. Please try again.';
+                msgDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         });
     </script>
 </body>

@@ -810,7 +810,7 @@ async function loadDemosAdmin() {
                             ${["PENDING", "SCHEDULED", "COMPLETED", "CANCELLED"].map((s) => `<option value="${s}" ${d.status === s ? "selected" : ""}>${s}</option>`).join("")}
                         </select></td>
                         <td>${fmt(d.createdAt)}</td>
-                        <td><a href="https://wa.me/${(d.phone || "").replace(/[^0-9]/g, "")}" target="_blank" title="WhatsApp" style="font-size:1.2rem;">ðŸ’¬</a></td>
+                        <td><a href="tel:${d.phone}" title="Call student" style="font-size:1.2rem;">📞</a></td>
                     </tr>`,
         )
         .join("") || '<tr><td colspan="8">No demo bookings yet</td></tr>';

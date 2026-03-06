@@ -52,8 +52,12 @@ const API = {
     return this.getCookie("XSRF-TOKEN");
   },
 
-  getHeaders(includeAuth = false) {
-    const headers = { "Content-Type": "application/json" };
+  getHeaders(includeAuth = false, includeJsonContentType = true) {
+    const headers = {};
+
+    if (includeJsonContentType) {
+      headers["Content-Type"] = "application/json";
+    }
 
     // Multi-tenant API: default to the single-tenant key used by this app.
     // Can be overridden by setting localStorage.tenantKey.
@@ -296,6 +300,23 @@ const API = {
     });
   },
 
+  // ===== CONTACT / COUNSELING (Public) =====
+  async submitContact(data) {
+    return this.request("/contact", {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+  },
+
+  async submitCounseling(data) {
+    return this.request("/counseling", {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+  },
+
   // ===== DEMO BOOKING (Public) =====
   async submitDemoBooking(data) {
     return this.request("/demo-booking", {
@@ -332,6 +353,14 @@ const API = {
       method: "POST",
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+    });
+  },
+
+  async submitTeacherApplicationForm(formData) {
+    return this.request("/teacher-applications", {
+      method: "POST",
+      headers: this.getHeaders(false, false),
+      body: formData,
     });
   },
 
