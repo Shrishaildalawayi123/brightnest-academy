@@ -28,6 +28,8 @@ desktop.ini
 .env
 .env.*
 *.env
+# But we DO want to track the template (no real secrets inside)
+!.env.example
 application-local.properties
 
 # Logs

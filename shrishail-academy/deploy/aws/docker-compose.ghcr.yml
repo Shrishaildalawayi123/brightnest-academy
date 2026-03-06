@@ -1,6 +1,12 @@
-# Production compose (pulls image from GHCR)
+# Production compose — pulls image from GHCR (GitHub Container Registry)
 # Intended location on server: /opt/brightnest/docker-compose.yml
 # Requires: /opt/brightnest/.env
+#
+# Replace REPLACE_ME_OWNER with your GitHub username/org, e.g.:
+#   image: ghcr.io/shrishaildalawayi123/brightnest-academy:latest
+#
+# Login to GHCR before pulling on EC2:
+#   echo "$GITHUB_TOKEN" | docker login ghcr.io -u USERNAME --password-stdin
 
 version: "3.8"
 
@@ -10,15 +16,31 @@ services:
     container_name: brightnest-academy
     env_file:
       - /opt/brightnest/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     ports:
       # bind only to localhost; Nginx reverse-proxies to this
       - "127.0.0.1:8080:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
     restart: unless-stopped
     read_only: true
     tmpfs:
       - /tmp:size=100M
     security_opt:
       - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+        tag: "brightnest-academy"
     healthcheck:
       test:
         [
