@@ -121,6 +121,42 @@ jobs:
           source: "shrishail-academy/docker-compose.prod.yml"
           target: "/opt/brightnest"
 
+      - name: Write /opt/brightnest/.env from GitHub Secrets
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            mkdir -p /opt/brightnest
+            # Write .env atomically (tmp file then move = no partial reads)
+            cat > /opt/brightnest/.env.tmp << 'ENVEOF'
+            SPRING_PROFILES_ACTIVE=prod
+            DB_HOST=${{ secrets.PROD_DB_HOST }}
+            DB_PORT=3306
+            DB_NAME=brightnest_academy
+            DB_USER=brightnest_app
+            DB_PASS=${{ secrets.PROD_DB_PASS }}
+            JWT_SECRET=${{ secrets.PROD_JWT_SECRET }}
+            JWT_EXPIRATION=3600000
+            JWT_REFRESH_PEPPER=${{ secrets.PROD_JWT_REFRESH_PEPPER }}
+            ADMIN_EMAIL=${{ secrets.PROD_ADMIN_EMAIL }}
+            ADMIN_PASSWORD=${{ secrets.PROD_ADMIN_PASSWORD }}
+            PORT=8080
+            HTTPS_REQUIRED=true
+            COOKIE_SECURE=true
+            CORS_ORIGINS=${{ secrets.PROD_CORS_ORIGINS }}
+            REDIS_HOST=${{ secrets.PROD_REDIS_HOST }}
+            REDIS_PORT=6379
+            RATE_LIMIT_BACKEND=${{ secrets.PROD_REDIS_HOST != '' && 'redis' || 'inmemory' }}
+            HIKARI_MAX_POOL=15
+            HIKARI_MIN_IDLE=5
+            ENVEOF
+            chmod 600 /opt/brightnest/.env.tmp
+            mv /opt/brightnest/.env.tmp /opt/brightnest/.env
+
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
