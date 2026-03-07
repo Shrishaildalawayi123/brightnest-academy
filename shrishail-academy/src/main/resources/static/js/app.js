@@ -139,7 +139,9 @@ function getFixedTopOffset() {
   const announcementHeight = parseFloat(
     rootStyles.getPropertyValue("--announcement-height"),
   );
-  const headerHeight = parseFloat(rootStyles.getPropertyValue("--header-height"));
+  const headerHeight = parseFloat(
+    rootStyles.getPropertyValue("--header-height"),
+  );
 
   return (announcementHeight || 0) + (headerHeight || 0);
 }

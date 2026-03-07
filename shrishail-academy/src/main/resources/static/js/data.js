@@ -3,6 +3,27 @@
  * Team members, FAQ, testimonials, course info used across pages
  */
 
+// ---------------------------------------------------------------------------
+// Backend API URL bootstrap
+// Loaded before api.js on every page, so this is the right place to set the
+// backend URL for split deployments (e.g. Amplify frontend + EC2 API).
+//
+// Priority (highest first):
+//   1. window.__API_BASE_URL__  — set by api-config.js or programmatically
+//   2. <meta name="x-api-base-url" content="...">  — set at server / CI time
+//   3. BACKEND_API_URL injected at Amplify build time into api.js (fallback)
+//
+// For same-origin deployments (EC2 monolith) leave everything untouched;
+// api.js will use "/api" by default.
+// ---------------------------------------------------------------------------
+(function () {
+  if (window.__API_BASE_URL__) return; // already set
+  var metaTag = document.querySelector('meta[name="x-api-base-url"]');
+  if (metaTag && metaTag.content) {
+    window.__API_BASE_URL__ = metaTag.content.replace(/\/+$/, "");
+  }
+})();
+
 const TEAM_DATA = [
   {
     id: "founder",
