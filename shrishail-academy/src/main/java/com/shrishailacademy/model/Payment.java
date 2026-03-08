@@ -17,7 +17,10 @@ import java.time.LocalDateTime;
         @Index(name = "idx_payment_tenant", columnList = "tenant_id"),
         @Index(name = "idx_payment_user_created_at", columnList = "user_id,created_at"),
         @Index(name = "idx_payment_enrollment_status", columnList = "enrollment_id,status"),
-        @Index(name = "idx_payment_status_paid_at", columnList = "status,paid_at")
+        @Index(name = "idx_payment_status_paid_at", columnList = "status,paid_at"),
+        @Index(name = "idx_payment_idempotency", columnList = "tenant_id,idempotency_key")
+}, uniqueConstraints = {
+        @UniqueConstraint(name = "uk_payment_tenant_idempotency", columnNames = { "tenant_id", "idempotency_key" })
 })
 @Data
 @NoArgsConstructor
@@ -73,6 +76,9 @@ public class Payment extends BaseAuditableEntity {
 
     @Column(name = "receipt_number", length = 50, unique = true)
     private String receiptNumber;
+
+    @Column(name = "idempotency_key", length = 128)
+    private String idempotencyKey;
 
     @Column(columnDefinition = "TEXT")
     private String remarks;

@@ -39,6 +39,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByTransactionIdAndTenantId(String transactionId, Long tenantId);
 
+    Optional<Payment> findByIdempotencyKeyAndTenantId(String idempotencyKey, Long tenantId);
+
     Optional<Payment> findByReceiptNumber(String receiptNumber);
 
     Optional<Payment> findByGatewayOrderId(String gatewayOrderId);

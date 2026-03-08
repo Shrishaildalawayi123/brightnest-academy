@@ -35,13 +35,17 @@ public class PaymentController {
 
     /**
      * Student initiates a payment.
+     * Supports optional Idempotency-Key header for duplicate prevention.
+     * If the same key is used multiple times, returns the original payment.
      */
     @PostMapping("/initiate")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<ApiResponse> initiatePayment(@Valid @RequestBody PaymentRequest request,
+    public ResponseEntity<ApiResponse> initiatePayment(
+            @Valid @RequestBody PaymentRequest request,
+            @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
             Authentication authentication) {
         User user = userService.getUserByEmail(authentication.getName());
-        Payment payment = paymentService.initiatePayment(user.getId(), request);
+        Payment payment = paymentService.initiatePayment(user.getId(), request, idempotencyKey);
         return ResponseEntity.ok(ApiResponse.success("Payment initiated", PaymentResponse.fromEntity(payment)));
     }
 

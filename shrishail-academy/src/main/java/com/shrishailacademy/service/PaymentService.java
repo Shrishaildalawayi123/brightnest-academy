@@ -54,7 +54,34 @@ public class PaymentService {
      */
     @Transactional
     public Payment initiatePayment(Long userId, PaymentRequest request) {
+        return initiatePayment(userId, request, null);
+    }
+
+    /**
+     * Initiate a payment for a course enrollment with idempotency key support.
+     * If an idempotency key is provided and a payment with that key already exists,
+     * returns the existing payment instead of creating a duplicate.
+     *
+     * @param userId the user initiating payment
+     * @param request payment details
+     * @param idempotencyKey optional client-provided key for duplicate prevention
+     * @return created or existing payment
+     */
+    @Transactional
+    public Payment initiatePayment(Long userId, PaymentRequest request, String idempotencyKey) {
         Long tenantId = TenantContext.requireTenantId();
+
+        // Idempotency check: if key provided and payment exists, return it
+        String sanitizedIdempotencyKey = InputSanitizer.sanitizeAndTruncateNullable(idempotencyKey, 128);
+        if (sanitizedIdempotencyKey != null && !sanitizedIdempotencyKey.isBlank()) {
+            Optional<Payment> existingPayment = paymentRepository
+                    .findByIdempotencyKeyAndTenantId(sanitizedIdempotencyKey, tenantId);
+            if (existingPayment.isPresent()) {
+                log.info("PAYMENT_IDEMPOTENT_RETURN: key={} receipt={}", 
+                        sanitizedIdempotencyKey, existingPayment.get().getReceiptNumber());
+                return existingPayment.get();
+            }
+        }
 
         User user = userRepository.findByIdAndTenantId(userId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
@@ -110,12 +137,14 @@ public class PaymentService {
         payment.setPaymentMethod(method);
         payment.setTransactionId(sanitizedTransactionId);
         payment.setReceiptNumber(receiptNumber);
+        payment.setIdempotencyKey(sanitizedIdempotencyKey);
         payment.setRemarks(InputSanitizer.sanitizeNullable(request.getRemarks()));
         payment.setStatus(Payment.Status.PENDING);
 
         Payment saved = paymentRepository.save(payment);
-        log.info("PAYMENT_INITIATED: receipt={} user={} course='{}' amount=₹{}",
-                receiptNumber, user.getEmail(), course.getTitle(), request.getAmount());
+        log.info("PAYMENT_INITIATED: receipt={} user={} course='{}' amount=₹{} idempotency={}",
+                receiptNumber, user.getEmail(), course.getTitle(), request.getAmount(), 
+                sanitizedIdempotencyKey != null ? sanitizedIdempotencyKey : "none");
 
         return saved;
     }

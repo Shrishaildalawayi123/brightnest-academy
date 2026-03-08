@@ -245,6 +245,7 @@ CREATE TABLE IF NOT EXISTS payments (
     gateway_order_id VARCHAR(100),
     gateway_payment_id VARCHAR(100),
     receipt_number VARCHAR(50) UNIQUE,
+    idempotency_key VARCHAR(128),
     remarks TEXT,
     paid_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -254,13 +255,15 @@ CREATE TABLE IF NOT EXISTS payments (
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE RESTRICT,
     FOREIGN KEY (enrollment_id) REFERENCES enrollments(id) ON DELETE SET NULL,
     CHECK (amount > 0),
+    UNIQUE KEY uk_payment_tenant_idempotency (tenant_id, idempotency_key),
     INDEX idx_payment_user (user_id),
     INDEX idx_payment_course (course_id),
     INDEX idx_payment_status (status),
     INDEX idx_payment_receipt (receipt_number),
     INDEX idx_payment_user_created_at (user_id, created_at),
     INDEX idx_payment_enrollment_status (enrollment_id, status),
-    INDEX idx_payment_tenant (tenant_id)
+    INDEX idx_payment_tenant (tenant_id),
+    INDEX idx_payment_idempotency (tenant_id, idempotency_key)
 );
 
 -- =====================================================

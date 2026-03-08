@@ -1,0 +1,121 @@
+# ================================================
+# Alertmanager Configuration for BrightNest Academy
+# Handles notification routing for Prometheus alerts
+# ================================================
+
+global:
+  # SMTP configuration for email notifications
+  smtp_smarthost: '${SMTP_HOST:-smtp.gmail.com}:${SMTP_PORT:-587}'
+  smtp_from: '${SMTP_FROM:-alerts@brightnest-academy.com}'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+# Route tree for alert notifications
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s        # Wait 30s to batch alerts
+  group_interval: 5m     # Send summary every 5 minutes
+  repeat_interval: 4h    # Resend unresolved alerts every 4 hours
+  receiver: 'ops-team'   # Default receiver
+
+  # Child routes for specific alert types
+  routes:
+    # Critical alerts go to both email and Slack immediately
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 1h
+
+    # Warning alerts go to ops team
+    - match:
+        severity: warning
+      receiver: 'ops-team'
+      group_wait: 1m
+
+    # Database alerts get special attention
+    - match:
+        component: database
+      receiver: 'database-team'
+
+# Inhibition rules (silence certain alerts when others fire)
+inhibit_rules:
+  # Silence warning if critical is firing for same alert
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+
+# Notification receivers
+receivers:
+  # Operations team - receives all non-critical alerts
+  - name: 'ops-team'
+    email_configs:
+      - to: '${OPS_EMAIL:-ops@brightnest-academy.com}'
+        send_resolved: true
+        headers:
+          Subject: '[BrightNest Alert] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Severity:</strong> {{ .CommonLabels.severity }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Time:</strong> {{ .StartsAt }}</p>
+
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts'
+        send_resolved: true
+        title: 'BrightNest Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          *Severity:* {{ .CommonLabels.severity }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+          {{ .CommonAnnotations.description }}
+
+  # Critical alerts - email + Slack + SMS (via Twilio webhook)
+  - name: 'critical-alerts'
+    email_configs:
+      - to: '${OPS_EMAIL:-ops@brightnest-academy.com}'
+        send_resolved: true
+        headers:
+          Subject: '[CRITICAL] BrightNest Alert - {{ .GroupLabels.alertname }}'
+        html: |
+          <h1 style="color: red;">CRITICAL ALERT</h1>
+          <h2>{{ .GroupLabels.alertname }}</h2>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Started:</strong> {{ .StartsAt }}</p>
+          <p style="color: red; font-weight: bold;">Immediate action required!</p>
+
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#critical-alerts'
+        send_resolved: true
+        username: 'BrightNest Alertmanager'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          @channel CRITICAL ALERT
+          *{{ .CommonAnnotations.summary }}*
+          {{ .CommonAnnotations.description }}
+          
+          Time: {{ .StartsAt }}
+        color: 'danger'
+
+    # Optional: SMS via Twilio webhook
+    webhook_configs:
+      - url: '${TWILIO_WEBHOOK_URL}'
+        send_resolved: false
+
+  # Database team - DB-specific alerts
+  - name: 'database-team'
+    email_configs:
+      - to: '${DB_ADMIN_EMAIL:-dba@brightnest-academy.com}'
+        send_resolved: true
+        headers:
+          Subject: '[Database Alert] {{ .GroupLabels.alertname }}'
+
+# Templates for custom notification formatting (optional)
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

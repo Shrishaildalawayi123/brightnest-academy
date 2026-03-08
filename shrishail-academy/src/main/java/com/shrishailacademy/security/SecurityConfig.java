@@ -196,6 +196,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/admin-dashboard.html").hasAnyRole("TEACHER", "ADMIN")
                                                 .requestMatchers("/health", "/actuator/health", "/actuator/info")
                                                 .permitAll()
+                                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                                                .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/auth/login",
                                                                 "/api/auth/register",

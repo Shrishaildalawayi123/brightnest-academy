@@ -10,12 +10,12 @@ global:
     cluster: "brightnest-prod"
     environment: "production"
 
-# Alertmanager configuration (optional)
+# Alertmanager configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          # - 'alertmanager:9093'
+          - 'alertmanager:9093'
 
 # Load rules once and periodically evaluate them
 rule_files:

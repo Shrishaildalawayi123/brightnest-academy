@@ -17,6 +17,7 @@ networks:
 volumes:
   prometheus_data:
   grafana_data:
+  alertmanager_data:
 
 services:
   # =============================================
@@ -87,6 +88,48 @@ services:
           "--tries=1",
           "--spider",
           "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================
+  # Alertmanager - Alert Notification Routing
+  # =============================================
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.external-url=https://alerts.brightnest-academy.com"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    networks:
+      - monitoring
+    environment:
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_FROM=${SMTP_FROM:-alerts@brightnest-academy.com}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - OPS_EMAIL=${OPS_EMAIL:-ops@brightnest-academy.com}
+      - DB_ADMIN_EMAIL=${DB_ADMIN_EMAIL:-dba@brightnest-academy.com}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - TWILIO_WEBHOOK_URL=${TWILIO_WEBHOOK_URL}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9093/-/healthy",
         ]
       interval: 30s
       timeout: 10s
