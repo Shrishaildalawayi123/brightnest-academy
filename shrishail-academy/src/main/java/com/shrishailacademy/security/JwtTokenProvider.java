@@ -92,13 +92,13 @@ public class JwtTokenProvider {
         validateSecret();
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .requireIssuer("brightnest-academy")
                 .requireAudience("brightnest-api")
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
 
         return claims.getSubject();
     }
@@ -110,13 +110,13 @@ public class JwtTokenProvider {
         validateSecret();
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .requireIssuer("brightnest-academy")
                 .requireAudience("brightnest-api")
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
 
         Object tenantId = claims.get("tenantId");
         if (tenantId instanceof Number n) {
@@ -133,12 +133,12 @@ public class JwtTokenProvider {
             validateSecret();
             SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
 
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
+            Jwts.parser()
+                    .verifyWith(key)
                     .requireIssuer("brightnest-academy")
                     .requireAudience("brightnest-api")
                     .build()
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);
 
             return true;
         } catch (io.jsonwebtoken.security.SignatureException ex) {
