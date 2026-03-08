@@ -57,41 +57,41 @@
                     <p class="text-muted">Join hundreds of students learning with us</p>
                 </div>
 
-                <div class="alert alert-error" id="errorAlert" style="display:none;background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;padding:0.85rem 1rem;border-radius:8px;margin-bottom:1rem;font-weight:500;"></div>
-                <div class="alert alert-success" id="successAlert" style="display:none;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;padding:0.85rem 1rem;border-radius:8px;margin-bottom:1rem;font-weight:500;"></div>
+                <div class="alert alert-error" id="errorAlert" role="alert" aria-live="assertive" aria-atomic="true" style="display:none;background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;padding:0.85rem 1rem;border-radius:8px;margin-bottom:1rem;font-weight:500;"></div>
+                <div class="alert alert-success" id="successAlert" role="status" aria-live="polite" aria-atomic="true" style="display:none;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;padding:0.85rem 1rem;border-radius:8px;margin-bottom:1rem;font-weight:500;"></div>
 
                 <form id="registerForm" novalidate>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Full Name *</label>
-                            <input type="text" id="name" class="form-input" placeholder="Your name" required minlength="2">
-                            <div class="field-error" id="nameError">Name must be at least 2 characters</div>
+                            <input type="text" id="name" class="form-input" placeholder="Your name" required minlength="2" aria-describedby="nameError">
+                            <div class="field-error" id="nameError" aria-live="polite">Name must be at least 2 characters</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Phone Number</label>
-                            <input type="tel" id="phone" class="form-input" placeholder="9876543210">
-                            <div class="field-error" id="phoneError">Enter valid 10-digit phone number</div>
+                            <input type="tel" id="phone" class="form-input" placeholder="9876543210" aria-describedby="phoneError">
+                            <div class="field-error" id="phoneError" aria-live="polite">Enter valid 10-digit phone number</div>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Email Address *</label>
-                        <input type="email" id="email" class="form-input" placeholder="you@example.com" required>
-                        <div class="field-error" id="emailError">Please enter a valid email address</div>
+                        <input type="email" id="email" class="form-input" placeholder="you@example.com" required aria-describedby="emailError">
+                        <div class="field-error" id="emailError" aria-live="polite">Please enter a valid email address</div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Password *</label>
-                        <input type="password" id="password" class="form-input" placeholder="Min 8 chars with A-z, 0-9 & symbol" required minlength="8" oninput="checkStrength(this.value)">
+                        <input type="password" id="password" class="form-input" placeholder="Min 8 chars with A-z, 0-9 & symbol" required minlength="8" oninput="checkStrength(this.value)" aria-describedby="passwordError">
                         <div class="password-strength" id="strengthBar"></div>
                         <div class="strength-text" id="strengthText"></div>
-                        <div class="field-error" id="passwordError">Use 8+ characters with uppercase, lowercase, number and special character</div>
+                        <div class="field-error" id="passwordError" aria-live="polite">Use 8+ characters with uppercase, lowercase, number and special character</div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Confirm Password *</label>
-                        <input type="password" id="confirmPassword" class="form-input" placeholder="Re-enter password" required>
-                        <div class="field-error" id="confirmError">Passwords do not match</div>
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="Re-enter password" required aria-describedby="confirmError">
+                        <div class="field-error" id="confirmError" aria-live="polite">Passwords do not match</div>
                     </div>
 
                     <div class="terms">
@@ -144,7 +144,10 @@
             const el = document.getElementById(id + 'Error');
             const input = document.getElementById(id);
             if (el) el.style.display = show ? 'block' : 'none';
-            if (input) input.classList.toggle('error', show);
+            if (input) {
+                input.classList.toggle('error', show);
+                input.setAttribute('aria-invalid', show ? 'true' : 'false');
+            }
         }
 
         function showError(msg) {

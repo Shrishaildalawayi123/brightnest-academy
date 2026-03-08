@@ -25,6 +25,7 @@ const ANNOUNCEMENT_MESSAGES = [
 ];
 
 function initializeApp() {
+  initializeAccessibilityEnhancements();
   initializeAnnouncementBar();
 
   // Set current year in footer
@@ -46,6 +47,56 @@ function initializeApp() {
   updateNavigation();
 
   console.log("🎓 BrightNest Academy initialized");
+}
+
+function initializeAccessibilityEnhancements() {
+  ensureSkipLink();
+  ensureMainLandmark();
+  initializeLiveRegions();
+}
+
+function ensureSkipLink() {
+  if (document.querySelector(".skip-link")) {
+    return;
+  }
+
+  const skipLink = document.createElement("a");
+  skipLink.className = "skip-link";
+  skipLink.href = "#main-content";
+  skipLink.textContent = "Skip to main content";
+  document.body.prepend(skipLink);
+}
+
+function ensureMainLandmark() {
+  const existingMain = document.getElementById("main-content");
+  if (existingMain) {
+    existingMain.setAttribute("tabindex", "-1");
+    return;
+  }
+
+  const mainTarget = document.querySelector(
+    "main, section, [role='main'], .auth-page, .page-hero",
+  );
+
+  if (mainTarget) {
+    mainTarget.id = "main-content";
+    mainTarget.setAttribute("tabindex", "-1");
+  }
+}
+
+function initializeLiveRegions() {
+  const regions = document.querySelectorAll(
+    "#errorAlert, #successAlert, #demoFormMessage, [data-live-region]",
+  );
+
+  regions.forEach((region) => {
+    const isError =
+      region.id.toLowerCase().includes("error") ||
+      region.classList.contains("alert-error");
+    region.setAttribute("role", isError ? "alert" : "status");
+    region.setAttribute("aria-live", isError ? "assertive" : "polite");
+    region.setAttribute("aria-atomic", "true");
+  });
 }
 
 function initializeAnnouncementBar() {

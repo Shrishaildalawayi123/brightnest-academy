@@ -2,24 +2,41 @@
   function showError(message) {
     const errorAlert = document.getElementById("errorAlert");
     const successAlert = document.getElementById("successAlert");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
     if (successAlert) {
       successAlert.style.display = "none";
     }
     if (errorAlert) {
       errorAlert.textContent = message;
       errorAlert.style.display = "block";
+      errorAlert.focus?.();
+    }
+    if (emailInput) {
+      emailInput.setAttribute("aria-invalid", "true");
+    }
+    if (passwordInput) {
+      passwordInput.setAttribute("aria-invalid", "true");
     }
   }
 
   function showSuccess(message) {
     const errorAlert = document.getElementById("errorAlert");
     const successAlert = document.getElementById("successAlert");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
     if (errorAlert) {
       errorAlert.style.display = "none";
     }
     if (successAlert) {
       successAlert.textContent = message;
       successAlert.style.display = "block";
+    }
+    if (emailInput) {
+      emailInput.setAttribute("aria-invalid", "false");
+    }
+    if (passwordInput) {
+      passwordInput.setAttribute("aria-invalid", "false");
     }
   }
 
@@ -163,6 +180,15 @@
     }
 
     loginForm.addEventListener("submit", onSubmit);
+    ["email", "password"].forEach((fieldId) => {
+      const field = document.getElementById(fieldId);
+      if (!field) {
+        return;
+      }
+      field.addEventListener("input", () => {
+        field.setAttribute("aria-invalid", "false");
+      });
+    });
     restoreExistingSession();
   });
 })();

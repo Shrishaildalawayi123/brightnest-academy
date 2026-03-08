@@ -248,6 +248,47 @@ a:hover {
   color: var(--primary-500);
 }
 
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.75rem;
+  transform: translateY(-140%);
+  z-index: 5000;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.5rem;
+  background: var(--navy-900);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ========== Layout ========== */
 .container {
   max-width: var(--container-max);

@@ -1,0 +1,57 @@
+name: Post-Launch Observability
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  weekly-load-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Validate staging URL secret
+        run: |
+          if [ -z "${{ secrets.STAGING_BASE_URL }}" ]; then
+            echo "STAGING_BASE_URL secret is not set"
+            exit 1
+          fi
+
+      - name: Run weekly staging load test
+        working-directory: shrishail-academy
+        env:
+          BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+        run: k6 run --summary-export=weekly-load-summary.json performance/k6/load-staging.js
+
+      - name: Upload weekly load summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-k6-load-summary
+          path: shrishail-academy/weekly-load-summary.json
+
+  weekly-accessibility-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Lighthouse accessibility audit
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            ${{ secrets.STAGING_BASE_URL }}/
+            ${{ secrets.STAGING_BASE_URL }}/register.html
+            ${{ secrets.STAGING_BASE_URL }}/login.html
+            ${{ secrets.STAGING_BASE_URL }}/demo.html
+          uploadArtifacts: true
+          temporaryPublicStorage: false
+          configPath: ./shrishail-academy/qa/lighthouse/lighthouserc.json
