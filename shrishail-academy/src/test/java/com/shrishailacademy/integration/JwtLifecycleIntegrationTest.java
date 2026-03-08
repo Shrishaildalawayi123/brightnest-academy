@@ -44,7 +44,7 @@ class JwtLifecycleIntegrationTest {
                                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(registerPayload))
-                                .andExpect(status().isOk())
+                                .andExpect(status().isCreated())
                                 .andExpect(cookie().exists("AUTH_TOKEN"))
                                 .andExpect(cookie().exists("REFRESH_TOKEN"))
                                 .andReturn();

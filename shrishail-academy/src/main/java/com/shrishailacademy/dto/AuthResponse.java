@@ -19,6 +19,7 @@ public class AuthResponse {
     private String name;
     private String email;
     private String role;
+    private Boolean requiresEmailVerification;
 
     /**
      * Frontends often want a "username" field; we use email as the username.
@@ -34,5 +35,14 @@ public class AuthResponse {
         this.name = name;
         this.email = email;
         this.role = role;
+    }
+
+    public AuthResponse(String token, Long id, String name, String email, String role, Boolean requiresEmailVerification) {
+        this.token = token;
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.requiresEmailVerification = requiresEmailVerification;
     }
 }

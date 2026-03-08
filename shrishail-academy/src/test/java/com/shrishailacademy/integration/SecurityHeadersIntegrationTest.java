@@ -74,7 +74,7 @@ class SecurityHeadersIntegrationTest {
                 .content("""
                         {"name":"CookieTest","email":"%s","password":"Cookie@123!","phone":"9999999999"}
                         """.formatted(email)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         // Login
         MvcResult result = mockMvc.perform(post("/api/auth/login")

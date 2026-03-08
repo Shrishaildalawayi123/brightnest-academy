@@ -74,13 +74,8 @@ public class AuthController {
             }
             auditLogService.logEvent(TenantContext.getTenantId(), response.getId(), "REGISTER",
                     "New user registered: " + request.getEmail(), httpRequest);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponse.success("Registration successful. Please verify your email before login.",
-                            Map.of(
-                                    "id", response.getId(),
-                                    "email", response.getEmail(),
-                                    "role", response.getRole(),
-                                    "requiresEmailVerification", true)));
+                return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("User registered successfully", response));
         } catch (Exception e) {
             log.warn("Registration failed for email: {}", request.getEmail());
             auditLogService.logEvent(TenantContext.getTenantId(), null, "REGISTER_FAILED",

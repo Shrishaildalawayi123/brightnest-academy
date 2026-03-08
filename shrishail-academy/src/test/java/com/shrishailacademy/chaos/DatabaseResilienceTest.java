@@ -50,7 +50,7 @@ class DatabaseResilienceTest {
                 .header("X-Tenant-ID", TENANT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         // Duplicate — should return conflict, not 500
         mockMvc.perform(post("/api/auth/register")
@@ -79,7 +79,7 @@ class DatabaseResilienceTest {
                     .content("""
                             {"name":"User %d","email":"%s","password":"Secure@123!","phone":"55555%05d"}
                             """.formatted(i, email, i)))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isCreated());
         }
     }
 
@@ -129,7 +129,7 @@ class DatabaseResilienceTest {
                 .content("""
                         {"name":"Transaction Test","email":"%s","password":"Secure@123!","phone":"1111111111"}
                         """.formatted(email)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         // Health check must still respond immediately
         mockMvc.perform(get("/health"))

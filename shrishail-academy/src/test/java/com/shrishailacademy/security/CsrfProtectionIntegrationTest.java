@@ -44,7 +44,7 @@ class CsrfProtectionIntegrationTest {
         .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
         .contentType(MediaType.APPLICATION_JSON)
         .content(registerPayload))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andReturn();
 
     Cookie authCookie = registerResult.getResponse().getCookie("AUTH_TOKEN");
@@ -75,7 +75,7 @@ class CsrfProtectionIntegrationTest {
         .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
         .contentType(MediaType.APPLICATION_JSON)
         .content(registerPayload))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andReturn();
 
     Cookie authCookie = registerResult.getResponse().getCookie("AUTH_TOKEN");

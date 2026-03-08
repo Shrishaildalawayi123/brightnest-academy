@@ -88,7 +88,7 @@ class SecurityPenetrationIntegrationTest {
                           "phone":"9876543210"
                         }
                         """.formatted(email)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value(
                         org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("<script>"))));
     }
@@ -162,7 +162,7 @@ class SecurityPenetrationIntegrationTest {
                 .header("X-Tenant-ID", TENANT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/auth/register")
                 .header("X-Tenant-ID", TENANT)

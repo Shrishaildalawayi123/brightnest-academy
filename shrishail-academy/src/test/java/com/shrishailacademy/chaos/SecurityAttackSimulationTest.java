@@ -56,7 +56,7 @@ class SecurityAttackSimulationTest {
                                 {"name":"'; DROP TABLE users; --","email":"sqlinj@evil.com","password":"Secure@123!","phone":"0000000000"}
                                 """))
                 .andReturn().getResponse().getStatus();
-        assertThat(status).isIn(200, 400);
+        assertThat(status).isIn(201, 400);
 
         // Tables must still exist — health endpoint works
         mockMvc.perform(get("/api/courses").header("X-Tenant-ID", TENANT))

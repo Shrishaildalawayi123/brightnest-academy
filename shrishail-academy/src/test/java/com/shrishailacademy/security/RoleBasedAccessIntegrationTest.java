@@ -69,7 +69,7 @@ class RoleBasedAccessIntegrationTest {
                                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(registerPayload))
-                                .andExpect(status().isOk())
+                                .andExpect(status().isCreated())
                                 .andReturn();
 
                 Cookie[] cookies = registerResult.getResponse().getCookies();

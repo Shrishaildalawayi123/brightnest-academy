@@ -46,6 +46,9 @@ public class AuthService {
     @Value("${auth.verification.expiry-hours:24}")
     private long verificationExpiryHours;
 
+    @Value("${auth.require-email-verification:true}")
+    private boolean requireEmailVerification;
+
     public AuthService(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
@@ -73,16 +76,21 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(InputSanitizer.sanitizeAndTruncateNullable(request.getPhone(), 20));
         user.setRole(User.Role.STUDENT);
-        user.setEmailVerified(false);
-        user.setEmailVerificationToken(generateVerificationToken());
-        user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusHours(verificationExpiryHours));
+        user.setEmailVerified(!requireEmailVerification);
+        user.setEmailVerificationToken(requireEmailVerification ? generateVerificationToken() : null);
+        user.setEmailVerificationTokenExpiry(
+                requireEmailVerification ? LocalDateTime.now().plusHours(verificationExpiryHours) : null);
         user.setFailedLoginAttempts(0);
         user.setLockedUntil(null);
 
         user = userRepository.save(user);
-        log.info("User registered: email={} role={} verificationRequired=true", user.getEmail(), user.getRole());
+        String token = requireEmailVerification
+                ? null
+                : tokenProvider.generateTokenFromUsername(user.getEmail(), "ROLE_" + user.getRole().name(), tenantId);
+        log.info("User registered: email={} role={} verificationRequired={}",
+                user.getEmail(), user.getRole(), requireEmailVerification);
 
-        return new AuthResponse(null, user.getId(), user.getName(), user.getEmail(), "ROLE_" + user.getRole().name());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), "ROLE_" + user.getRole().name(), requireEmailVerification);
     }
 
     @Transactional
@@ -98,7 +106,7 @@ public class AuthService {
                     "Account is temporarily locked. Please try again later.");
         }
 
-        if (!user.isEmailVerified()) {
+        if (requireEmailVerification && !user.isEmailVerified()) {
             throw new BusinessException("EMAIL_NOT_VERIFIED",
                     "Please verify your email before logging in.");
         }
@@ -117,8 +125,12 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
 
-        log.info("User logged in: email={}", user.getEmail());
-        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), "ROLE_" + user.getRole().name());
+        // Verify user still exists (in case of concurrent deletion)
+        User refreshedUser = userRepository.findByEmailAndTenantId(email, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+        log.info("User logged in: email={}", refreshedUser.getEmail());
+        return new AuthResponse(token, refreshedUser.getId(), refreshedUser.getName(), refreshedUser.getEmail(), "ROLE_" + refreshedUser.getRole().name());
     }
 
     @Transactional

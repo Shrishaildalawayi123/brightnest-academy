@@ -54,7 +54,7 @@ class TenantSecurityIntegrationTest {
                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(registerPayload))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         String authToken = extractCookieValue(registerResult.getResponse().getHeaders(HttpHeaders.SET_COOKIE),

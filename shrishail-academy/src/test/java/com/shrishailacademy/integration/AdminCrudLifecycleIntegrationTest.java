@@ -32,230 +32,231 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class AdminCrudLifecycleIntegrationTest {
 
-    private static final String TENANT = "default";
+        private static final String TENANT = "default";
 
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TenantRepository tenantRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+        @Autowired
+        private MockMvc mockMvc;
+        @Autowired
+        private JwtTokenProvider jwtTokenProvider;
+        @Autowired
+        private UserRepository userRepository;
+        @Autowired
+        private TenantRepository tenantRepository;
+        @Autowired
+        private PasswordEncoder passwordEncoder;
 
-    private String adminBearerToken;
-    private String studentBearerToken;
-    private Long tenantId;
+        private String adminBearerToken;
+        private String studentBearerToken;
+        private Long tenantId;
 
-    @BeforeEach
-    void setup() throws Exception {
-        // Ensure default tenant exists
-        Tenant tenant = tenantRepository.findByTenantKey(TENANT).orElseGet(() -> {
-            Tenant t = new Tenant();
-            t.setTenantKey(TENANT);
-            t.setName("Default Tenant");
-            return tenantRepository.save(t);
-        });
-        tenantId = tenant.getId();
+        @BeforeEach
+        void setup() throws Exception {
+                // Ensure default tenant exists
+                Tenant tenant = tenantRepository.findByTenantKey(TENANT).orElseGet(() -> {
+                        Tenant t = new Tenant();
+                        t.setTenantKey(TENANT);
+                        t.setName("Default Tenant");
+                        return tenantRepository.save(t);
+                });
+                tenantId = tenant.getId();
 
-        // Create admin user in DB
-        String adminEmail = "lifecycle-admin-" + UUID.randomUUID() + "@example.com";
-        User admin = new User();
-        admin.setTenant(tenant);
-        admin.setName("Lifecycle Admin");
-        admin.setEmail(adminEmail);
-        admin.setPassword(passwordEncoder.encode("Admin@123!"));
-        admin.setPhone("9999999999");
-        admin.setRole(User.Role.ADMIN);
-        userRepository.save(admin);
+                // Create admin user in DB
+                String adminEmail = "lifecycle-admin-" + UUID.randomUUID() + "@example.com";
+                User admin = new User();
+                admin.setTenant(tenant);
+                admin.setName("Lifecycle Admin");
+                admin.setEmail(adminEmail);
+                admin.setPassword(passwordEncoder.encode("Admin@123!"));
+                admin.setPhone("9999999999");
+                admin.setRole(User.Role.ADMIN);
+                userRepository.save(admin);
 
-        adminBearerToken = jwtTokenProvider.generateTokenFromUsername(
-                adminEmail, "ROLE_ADMIN", tenantId);
+                adminBearerToken = jwtTokenProvider.generateTokenFromUsername(
+                                adminEmail, "ROLE_ADMIN", tenantId);
 
-        // Register student via API and extract token from response
-        String studentEmail = "lifecycle-student-" + UUID.randomUUID() + "@example.com";
-        MvcResult studentReg = mockMvc.perform(post("/api/auth/register")
-                .header("X-Tenant-ID", TENANT)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"name":"Lifecycle Student","email":"%s","password":"Student@123!","phone":"8888888888"}
-                        """.formatted(studentEmail)))
-                .andExpect(status().isOk())
-                .andReturn();
-        String studentJson = studentReg.getResponse().getContentAsString();
-        studentBearerToken = com.jayway.jsonpath.JsonPath.parse(studentJson).read("$.token", String.class);
-    }
+                // Register student via API and extract token from response
+                String studentEmail = "lifecycle-student-" + UUID.randomUUID() + "@example.com";
+                MvcResult studentReg = mockMvc.perform(post("/api/auth/register")
+                                .header("X-Tenant-ID", TENANT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {"name":"Lifecycle Student","email":"%s","password":"Student@123!","phone":"8888888888"}
+                                                """
+                                                .formatted(studentEmail)))
+                                .andExpect(status().isCreated())
+                                .andReturn();
+                String studentJson = studentReg.getResponse().getContentAsString();
+                studentBearerToken = com.jayway.jsonpath.JsonPath.parse(studentJson).read("$.token", String.class);
+        }
 
-    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder withAdmin(
-            org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder req) {
-        return req.header("X-Tenant-ID", TENANT)
-                .header("Authorization", "Bearer " + adminBearerToken);
-    }
+        private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder withAdmin(
+                        org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder req) {
+                return req.header("X-Tenant-ID", TENANT)
+                                .header("Authorization", "Bearer " + adminBearerToken);
+        }
 
-    private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder withStudent(
-            org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder req) {
-        return req.header("X-Tenant-ID", TENANT)
-                .header("Authorization", "Bearer " + studentBearerToken);
-    }
+        private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder withStudent(
+                        org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder req) {
+                return req.header("X-Tenant-ID", TENANT)
+                                .header("Authorization", "Bearer " + studentBearerToken);
+        }
 
-    // ===== COURSE CRUD =====
+        // ===== COURSE CRUD =====
 
-    @Test
-    void adminShouldCreateUpdateAndDeleteCourse() throws Exception {
-        // Create
-        MvcResult createResult = mockMvc.perform(withAdmin(post("/api/courses"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                        """
-                                {"title":"Integration Test Course","description":"A test course","duration":"3 months","fee":2500}
-                                """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.title").value("Integration Test Course"))
-                .andReturn();
+        @Test
+        void adminShouldCreateUpdateAndDeleteCourse() throws Exception {
+                // Create
+                MvcResult createResult = mockMvc.perform(withAdmin(post("/api/courses"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                                """
+                                                                {"title":"Integration Test Course","description":"A test course","duration":"3 months","fee":2500}
+                                                                """))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.title").value("Integration Test Course"))
+                                .andReturn();
 
-        String json = createResult.getResponse().getContentAsString();
-        Long courseId = com.jayway.jsonpath.JsonPath.parse(json).read("$.data.id", Long.class);
+                String json = createResult.getResponse().getContentAsString();
+                Long courseId = com.jayway.jsonpath.JsonPath.parse(json).read("$.data.id", Long.class);
 
-        // Read by ID
-        mockMvc.perform(get("/api/courses/" + courseId)
-                .header("X-Tenant-ID", TENANT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Integration Test Course"));
+                // Read by ID
+                mockMvc.perform(get("/api/courses/" + courseId)
+                                .header("X-Tenant-ID", TENANT))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.title").value("Integration Test Course"));
 
-        // Update
-        mockMvc.perform(withAdmin(put("/api/courses/" + courseId))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"title":"Updated Course Title","fee":3000}
-                        """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.title").value("Updated Course Title"));
+                // Update
+                mockMvc.perform(withAdmin(put("/api/courses/" + courseId))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {"title":"Updated Course Title","fee":3000}
+                                                """))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.title").value("Updated Course Title"));
 
-        // Delete
-        mockMvc.perform(withAdmin(delete("/api/courses/" + courseId)))
-                .andExpect(status().isOk());
+                // Delete
+                mockMvc.perform(withAdmin(delete("/api/courses/" + courseId)))
+                                .andExpect(status().isOk());
 
-        // Verify deleted
-        mockMvc.perform(get("/api/courses/" + courseId)
-                .header("X-Tenant-ID", TENANT))
-                .andExpect(status().isNotFound());
-    }
+                // Verify deleted
+                mockMvc.perform(get("/api/courses/" + courseId)
+                                .header("X-Tenant-ID", TENANT))
+                                .andExpect(status().isNotFound());
+        }
 
-    // ===== ENROLLMENT LIFECYCLE =====
+        // ===== ENROLLMENT LIFECYCLE =====
 
-    @Test
-    void studentShouldEnrollAndViewCourses() throws Exception {
-        // Admin creates a course
-        MvcResult courseResult = mockMvc.perform(withAdmin(post("/api/courses"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"title":"Enrollable Course","description":"Test","duration":"6 months","fee":1500}
-                        """))
-                .andExpect(status().isCreated())
-                .andReturn();
+        @Test
+        void studentShouldEnrollAndViewCourses() throws Exception {
+                // Admin creates a course
+                MvcResult courseResult = mockMvc.perform(withAdmin(post("/api/courses"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {"title":"Enrollable Course","description":"Test","duration":"6 months","fee":1500}
+                                                """))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        Long courseId = com.jayway.jsonpath.JsonPath.parse(
-                courseResult.getResponse().getContentAsString()).read("$.data.id", Long.class);
+                Long courseId = com.jayway.jsonpath.JsonPath.parse(
+                                courseResult.getResponse().getContentAsString()).read("$.data.id", Long.class);
 
-        // Student enrolls
-        mockMvc.perform(withStudent(post("/api/enrollments/" + courseId)))
-                .andExpect(status().isOk());
+                // Student enrolls
+                mockMvc.perform(withStudent(post("/api/enrollments/" + courseId)))
+                                .andExpect(status().isOk());
 
-        // Student views their enrollments
-        mockMvc.perform(withStudent(get("/api/enrollments/my-courses")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
-    }
+                // Student views their enrollments
+                mockMvc.perform(withStudent(get("/api/enrollments/my-courses")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$").isArray())
+                                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
+        }
 
-    @Test
-    void duplicateEnrollmentShouldBeRejected() throws Exception {
-        // Create course
-        MvcResult courseResult = mockMvc.perform(withAdmin(post("/api/courses"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"title":"No-Dup Course","fee":1000}
-                        """))
-                .andExpect(status().isCreated())
-                .andReturn();
+        @Test
+        void duplicateEnrollmentShouldBeRejected() throws Exception {
+                // Create course
+                MvcResult courseResult = mockMvc.perform(withAdmin(post("/api/courses"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {"title":"No-Dup Course","fee":1000}
+                                                """))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        Long courseId = com.jayway.jsonpath.JsonPath.parse(
-                courseResult.getResponse().getContentAsString()).read("$.data.id", Long.class);
+                Long courseId = com.jayway.jsonpath.JsonPath.parse(
+                                courseResult.getResponse().getContentAsString()).read("$.data.id", Long.class);
 
-        // First enrollment
-        mockMvc.perform(withStudent(post("/api/enrollments/" + courseId)))
-                .andExpect(status().isOk());
+                // First enrollment
+                mockMvc.perform(withStudent(post("/api/enrollments/" + courseId)))
+                                .andExpect(status().isOk());
 
-        // Duplicate enrollment — should fail
-        mockMvc.perform(withStudent(post("/api/enrollments/" + courseId)))
-                .andExpect(status().isConflict());
-    }
+                // Duplicate enrollment — should fail
+                mockMvc.perform(withStudent(post("/api/enrollments/" + courseId)))
+                                .andExpect(status().isConflict());
+        }
 
-    // ===== BLOG CRUD =====
+        // ===== BLOG CRUD =====
 
-    @Test
-    void adminShouldManageBlogPosts() throws Exception {
-        // Create post
-        MvcResult createResult = mockMvc.perform(withAdmin(post("/api/blog"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                          "title":"Test Blog Post",
-                          "content":"This is test content for the blog post.",
-                          "category":"LEARNING_TIPS",
-                          "author":"Test Admin",
-                          "published":true
-                        }
-                        """))
-                .andExpect(status().isCreated())
-                .andReturn();
+        @Test
+        void adminShouldManageBlogPosts() throws Exception {
+                // Create post
+                MvcResult createResult = mockMvc.perform(withAdmin(post("/api/blog"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                  "title":"Test Blog Post",
+                                                  "content":"This is test content for the blog post.",
+                                                  "category":"LEARNING_TIPS",
+                                                  "author":"Test Admin",
+                                                  "published":true
+                                                }
+                                                """))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        Long postId = com.jayway.jsonpath.JsonPath.parse(
-                createResult.getResponse().getContentAsString()).read("$.data.id", Long.class);
+                Long postId = com.jayway.jsonpath.JsonPath.parse(
+                                createResult.getResponse().getContentAsString()).read("$.data.id", Long.class);
 
-        // Public blog list
-        mockMvc.perform(get("/api/blog")
-                .header("X-Tenant-ID", TENANT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
+                // Public blog list
+                mockMvc.perform(get("/api/blog")
+                                .header("X-Tenant-ID", TENANT))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content").isArray());
 
-        // Admin can view all posts
-        mockMvc.perform(withAdmin(get("/api/blog/all")))
-                .andExpect(status().isOk());
+                // Admin can view all posts
+                mockMvc.perform(withAdmin(get("/api/blog/all")))
+                                .andExpect(status().isOk());
 
-        // Toggle publish
-        mockMvc.perform(withAdmin(put("/api/blog/" + postId + "/publish")))
-                .andExpect(status().isOk());
+                // Toggle publish
+                mockMvc.perform(withAdmin(put("/api/blog/" + postId + "/publish")))
+                                .andExpect(status().isOk());
 
-        // Delete
-        mockMvc.perform(withAdmin(delete("/api/blog/" + postId)))
-                .andExpect(status().isOk());
-    }
+                // Delete
+                mockMvc.perform(withAdmin(delete("/api/blog/" + postId)))
+                                .andExpect(status().isOk());
+        }
 
-    // ===== USER ENDPOINTS =====
+        // ===== USER ENDPOINTS =====
 
-    @Test
-    void authenticatedUserShouldAccessMeEndpoint() throws Exception {
-        mockMvc.perform(withStudent(get("/api/users/me")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").exists())
-                .andExpect(jsonPath("$.name").exists())
-                .andExpect(jsonPath("$.role").value("STUDENT"));
-    }
+        @Test
+        void authenticatedUserShouldAccessMeEndpoint() throws Exception {
+                mockMvc.perform(withStudent(get("/api/users/me")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.email").exists())
+                                .andExpect(jsonPath("$.name").exists())
+                                .andExpect(jsonPath("$.role").value("STUDENT"));
+        }
 
-    @Test
-    void adminShouldListAllUsers() throws Exception {
-        mockMvc.perform(withAdmin(get("/api/users")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-    }
+        @Test
+        void adminShouldListAllUsers() throws Exception {
+                mockMvc.perform(withAdmin(get("/api/users")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$").isArray());
+        }
 
-    @Test
-    void adminShouldListStudents() throws Exception {
-        mockMvc.perform(withAdmin(get("/api/users/students")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-    }
+        @Test
+        void adminShouldListStudents() throws Exception {
+                mockMvc.perform(withAdmin(get("/api/users/students")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$").isArray());
+        }
 }

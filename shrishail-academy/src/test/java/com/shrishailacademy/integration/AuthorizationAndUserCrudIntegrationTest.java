@@ -234,7 +234,7 @@ class AuthorizationAndUserCrudIntegrationTest {
                                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(registerPayload))
-                                .andExpect(status().isOk());
+                                .andExpect(status().isCreated());
 
                 return loginAndExtractToken(email, password);
         }
