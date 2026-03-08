@@ -108,88 +108,13 @@ CREATE TABLE IF NOT EXISTS enrollments (
 );
 
 -- =====================================================
--- Insert Default Admin User
--- Password: admin123 (BCrypt encoded)
+-- NOTE: User admin and teachers are created by DataInitializer at startup
+-- using environment variables (ADMIN_EMAIL, ADMIN_PASSWORD)
+-- Do NOT add hardcoded user credentials to this schema.
 -- =====================================================
-INSERT INTO users (tenant_id, name, email, password, phone, role) 
-VALUES (
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Admin', 
-    'admin@academy.com', 
-    '$2a$10$xQGE5BhYV5YOB.YLhXGze.8FqLHKCKLLPWYVLLqhL5GQpLUzKqz4G',
-    '+91 98765 43210',
-    'ADMIN'
-) ON DUPLICATE KEY UPDATE email=email;
-
-INSERT INTO users (tenant_id, name, email, password, phone, role) VALUES
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Bharati R Satappagol',
-    'bharati@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '6363464005',
-    'TEACHER'
-),
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Chetana',
-    'chetana@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '9000000001',
-    'TEACHER'
-),
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Mahadev S',
-    'mahadev@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '9000000002',
-    'TEACHER'
-),
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Pooja',
-    'pooja@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '9000000003',
-    'TEACHER'
-),
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Nagesh Kumar M U',
-    'nagesh@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '9000000004',
-    'TEACHER'
-),
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Preeti R S',
-    'preeti@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '9000000005',
-    'TEACHER'
-),
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Prema G',
-    'prema@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '9000000006',
-    'TEACHER'
-),
-(
-    (SELECT id FROM tenants WHERE tenant_key = 'default'),
-    'Mr. Shrishail Dalawayi',
-    'shrishail@brightnest-academy.com',
-    '$2a$10$R6wC1yPwNQvWf1mCz7SlvOD4aB1EkQ6PhD9UE0vN4d5gRZ9q40x1W',
-    '9000000007',
-    'TEACHER'
-)
-ON DUPLICATE KEY UPDATE name = VALUES(name), phone = VALUES(phone), role = VALUES(role);
 
 -- =====================================================
--- Insert Default Courses
+-- Insert Default Courses (teachers will be linked by DataInitializer)
 -- =====================================================
 INSERT INTO courses (tenant_id, title, description, duration, icon, color, subject_key, fee, teacher_id) VALUES
 (
@@ -201,7 +126,7 @@ INSERT INTO courses (tenant_id, title, description, duration, icon, color, subje
     '#3B82F6',
     'maths',
     3000.00,
-    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'nagesh@brightnest-academy.com')
+    NULL
 ),
 (
     (SELECT id FROM tenants WHERE tenant_key = 'default'),
@@ -212,7 +137,7 @@ INSERT INTO courses (tenant_id, title, description, duration, icon, color, subje
     '#10B981',
     'science',
     3500.00,
-    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'pooja@brightnest-academy.com')
+    NULL
 ),
 (
     (SELECT id FROM tenants WHERE tenant_key = 'default'),
@@ -223,7 +148,7 @@ INSERT INTO courses (tenant_id, title, description, duration, icon, color, subje
     '#8B5CF6',
     'english',
     2500.00,
-    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'chetana@brightnest-academy.com')
+    NULL
 ),
 (
     (SELECT id FROM tenants WHERE tenant_key = 'default'),
@@ -234,7 +159,7 @@ INSERT INTO courses (tenant_id, title, description, duration, icon, color, subje
     '#F59E0B',
     'kannada',
     2000.00,
-    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'bharati@brightnest-academy.com')
+    NULL
 ),
 (
     (SELECT id FROM tenants WHERE tenant_key = 'default'),
@@ -245,7 +170,7 @@ INSERT INTO courses (tenant_id, title, description, duration, icon, color, subje
     '#EF4444',
     'hindi',
     2500.00,
-    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'mahadev@brightnest-academy.com')
+    NULL
 ),
 (
     (SELECT id FROM tenants WHERE tenant_key = 'default'),
@@ -256,7 +181,7 @@ INSERT INTO courses (tenant_id, title, description, duration, icon, color, subje
     '#EC4899',
     'sanskrit',
     2000.00,
-    (SELECT id FROM users WHERE tenant_id = (SELECT id FROM tenants WHERE tenant_key = 'default') AND email = 'bharati@brightnest-academy.com')
+    NULL
 ),
 (
     (SELECT id FROM tenants WHERE tenant_key = 'default'),
@@ -266,8 +191,8 @@ INSERT INTO courses (tenant_id, title, description, duration, icon, color, subje
     '🇩🇪',
     '#06B6D4',
     'german',
-    3000.00
-    4000.00
+    3000.00,
+    NULL
 )
 ON DUPLICATE KEY UPDATE
     title = VALUES(title),
@@ -276,8 +201,7 @@ ON DUPLICATE KEY UPDATE
     icon = VALUES(icon),
     color = VALUES(color),
     subject_key = VALUES(subject_key),
-    fee = VALUES(fee),
-    teacher_id = VALUES(teacher_id);
+    fee = VALUES(fee);
 
 -- =====================================================
 -- Table: attendance

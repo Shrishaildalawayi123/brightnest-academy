@@ -1,18 +1,18 @@
 # =============================================
 # Monitoring Stack for BrightNest Academy
 # Prometheus + Grafana + Exporters
-# 
+#
 # Usage:
 #   docker compose -f docker-compose.monitoring.yml up -d
 # =============================================
 
-version: '3.8'
+version: "3.8"
 
 networks:
   monitoring:
     driver: bridge
   app_network:
-    external: true  # Connect to main app network
+    external: true # Connect to main app network
 
 volumes:
   prometheus_data:
@@ -27,11 +27,11 @@ services:
     container_name: prometheus
     restart: unless-stopped
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./alerts:/etc/prometheus/alerts:ro
@@ -42,7 +42,15 @@ services:
       - monitoring
       - app_network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -71,7 +79,15 @@ services:
     depends_on:
       - prometheus
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,10 +100,10 @@ services:
     container_name: node-exporter
     restart: unless-stopped
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -112,11 +128,11 @@ services:
     ports:
       - "127.0.0.1:9104:9104"
     command:
-      - '--collect.info_schema.processlist'
-      - '--collect.info_schema.innodb_metrics'
-      - '--collect.info_schema.tablestats'
-      - '--collect.info_schema.userstats'
-      - '--collect.perf_schema.tablelocks'
+      - "--collect.info_schema.processlist"
+      - "--collect.info_schema.innodb_metrics"
+      - "--collect.info_schema.tablestats"
+      - "--collect.info_schema.userstats"
+      - "--collect.perf_schema.tablelocks"
 
   # =============================================
   # Redis Exporter - Cache Metrics (if using Redis)
@@ -153,5 +169,5 @@ services:
     networks:
       - monitoring
     command:
-      - '--docker_only=true'
-      - '--housekeeping_interval=30s'
+      - "--docker_only=true"
+      - "--housekeeping_interval=30s"

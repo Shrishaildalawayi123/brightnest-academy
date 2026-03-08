@@ -76,11 +76,15 @@ docker compose -f docker-compose.monitoring.yml up -d
 ### 4. Verify Metrics Collection
 
 Check Prometheus targets:
+
 ```bash
-curl http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {job:.labels.job, instance:.labels.instance, health:.health}'
+curl http://localfeat: add comprehensive monitoring stack (Prometheus + Grafana)
+Production Readiness: 78% → 85%feat: add comprehensive monitoring stack (Prometheus + Grafana)
+Production Readiness: 78% → 85%host:9090/api/v1/targets | jq '.data.activeTargets[] | {job:.labels.job, instance:.labels.instance, health:.health}'
 ```
 
 Expected output (all `health: "up"`):
+
 ```json
 {"job":"brightnest-spring-boot","instance":"prod-1","health":"up"}
 {"job":"prometheus","instance":"localhost:9090","health":"up"}
@@ -97,7 +101,7 @@ Expected output (all `health: "up"`):
 
 | Metric Category          | Examples                                               |
 | ------------------------ | ------------------------------------------------------ |
-| **HTTP Requests**        | Request count, latency (p50/p95/p99), status codes    |
+| **HTTP Requests**        | Request count, latency (p50/p95/p99), status codes     |
 | **JVM Memory**           | Heap usage, GC pause time, GC count                    |
 | **Thread Pool**          | Active threads, queued tasks, thread creation rate     |
 | **Database Connections** | Active, idle, pending, timeout, max pool size          |
@@ -109,35 +113,35 @@ Expected output (all `health: "up"`):
 
 ### Infrastructure Metrics (Node Exporter)
 
-| Metric            | Description                          |
-| ----------------- | ------------------------------------ |
-| **CPU**           | Usage by core, load average          |
-| **Memory**        | Total, available, buffer/cache       |
-| **Disk**          | Usage, I/O, read/write rates         |
-| **Network**       | Bytes in/out, errors, dropped        |
-| **System Uptime** | Time since boot                      |
-| **File Systems**  | Mount points, inodes, free space     |
+| Metric            | Description                      |
+| ----------------- | -------------------------------- |
+| **CPU**           | Usage by core, load average      |
+| **Memory**        | Total, available, buffer/cache   |
+| **Disk**          | Usage, I/O, read/write rates     |
+| **Network**       | Bytes in/out, errors, dropped    |
+| **System Uptime** | Time since boot                  |
+| **File Systems**  | Mount points, inodes, free space |
 
 ### Database Metrics (MySQL Exporter)
 
-| Metric               | Description                          |
-| -------------------- | ------------------------------------ |
-| **Connections**      | Active, max, aborted                 |
-| **Queries**          | QPS, slow queries, full table scans  |
-| **InnoDB**           | Buffer pool usage, row operations    |
-| **Replication**      | Lag, status (if using Multi-AZ)      |
-| **Table Locks**      | Wait time, lock contention           |
-| **Performance**      | Query execution time distribution    |
+| Metric          | Description                         |
+| --------------- | ----------------------------------- |
+| **Connections** | Active, max, aborted                |
+| **Queries**     | QPS, slow queries, full table scans |
+| **InnoDB**      | Buffer pool usage, row operations   |
+| **Replication** | Lag, status (if using Multi-AZ)     |
+| **Table Locks** | Wait time, lock contention          |
+| **Performance** | Query execution time distribution   |
 
 ### Container Metrics (cAdvisor)
 
-| Metric             | Description                          |
-| ------------------ | ------------------------------------ |
-| **CPU**            | Per-container CPU usage              |
-| **Memory**         | Usage, limit, cache                  |
-| **Network**        | RX/TX bytes per container            |
-| **Disk I/O**       | Read/write operations                |
-| **Restart Count**  | Container restarts (indicates crashes)|
+| Metric            | Description                            |
+| ----------------- | -------------------------------------- |
+| **CPU**           | Per-container CPU usage                |
+| **Memory**        | Usage, limit, cache                    |
+| **Network**       | RX/TX bytes per container              |
+| **Disk I/O**      | Read/write operations                  |
+| **Restart Count** | Container restarts (indicates crashes) |
 
 ---
 
@@ -145,18 +149,18 @@ Expected output (all `health: "up"`):
 
 Pre-configured alerts in `alerts/application-alerts.yml`:
 
-| Alert                        | Condition                              | Severity |
-| ---------------------------- | -------------------------------------- | -------- |
-| ApplicationDown              | App unreachable for 2 minutes          | Critical |
-| HighErrorRate                | 5xx errors > 5% of requests            | Warning  |
-| HighResponseTime             | p95 latency > 2 seconds                | Warning  |
-| HighMemoryUsage              | JVM heap > 85% for 10 minutes          | Warning  |
-| DatabaseConnectionPool       | DB connections > 90% of max            | Critical |
-| HighCPUUsage                 | Server CPU > 80% for 10 minutes        | Warning  |
-| DiskSpaceLow                 | Free disk space < 15%                  | Warning  |
-| MySQLDown                    | Database unreachable                   | Critical |
-| MySQLSlowQueries             | Slow queries > 0.5/sec                 | Warning  |
-| FailedLoginSpike             | Failed logins > 5/sec for 5 minutes    | Warning  |
+| Alert                  | Condition                           | Severity |
+| ---------------------- | ----------------------------------- | -------- |
+| ApplicationDown        | App unreachable for 2 minutes       | Critical |
+| HighErrorRate          | 5xx errors > 5% of requests         | Warning  |
+| HighResponseTime       | p95 latency > 2 seconds             | Warning  |
+| HighMemoryUsage        | JVM heap > 85% for 10 minutes       | Warning  |
+| DatabaseConnectionPool | DB connections > 90% of max         | Critical |
+| HighCPUUsage           | Server CPU > 80% for 10 minutes     | Warning  |
+| DiskSpaceLow           | Free disk space < 15%               | Warning  |
+| MySQLDown              | Database unreachable                | Critical |
+| MySQLSlowQueries       | Slow queries > 0.5/sec              | Warning  |
+| FailedLoginSpike       | Failed logins > 5/sec for 5 minutes | Warning  |
 
 ### Configure Alertmanager (Optional)
 
@@ -169,35 +173,35 @@ global:
   resolve_timeout: 5m
 
 route:
-  receiver: 'email-admin'
-  group_by: ['alertname', 'severity']
+  receiver: "email-admin"
+  group_by: ["alertname", "severity"]
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 4h
 
 receivers:
-  - name: 'email-admin'
+  - name: "email-admin"
     email_configs:
-      - to: 'ops@brightnest-academy.com'
-        from: 'alerts@brightnest-academy.com'
-        smarthost: 'smtp.gmail.com:587'
-        auth_username: 'alerts@brightnest-academy.com'
-        auth_password: 'your-smtp-password'
+      - to: "ops@brightnest-academy.com"
+        from: "alerts@brightnest-academy.com"
+        smarthost: "smtp.gmail.com:587"
+        auth_username: "alerts@brightnest-academy.com"
+        auth_password: "your-smtp-password"
 ```
 
 2. Add to `docker-compose.monitoring.yml`:
 
 ```yaml
-  alertmanager:
-    image: prom/alertmanager:v0.26.0
-    container_name: alertmanager
-    restart: unless-stopped
-    volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-    ports:
-      - "127.0.0.1:9093:9093"
-    networks:
-      - monitoring
+alertmanager:
+  image: prom/alertmanager:v0.26.0
+  container_name: alertmanager
+  restart: unless-stopped
+  volumes:
+    - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+  ports:
+    - "127.0.0.1:9093:9093"
+  networks:
+    - monitoring
 ```
 
 ---
@@ -243,7 +247,7 @@ import io.micrometer.core.instrument.Counter;
 
 @Service
 public class PaymentService {
-    
+
     private final Counter paymentCounter;
     private final Counter paymentFailedCounter;
 
@@ -252,7 +256,7 @@ public class PaymentService {
                 .description("Total payment attempts")
                 .tag("tenant", "all")
                 .register(registry);
-        
+
         this.paymentFailedCounter = Counter.builder("payment_failed_total")
                 .description("Failed payment attempts")
                 .tag("tenant", "all")
@@ -272,6 +276,7 @@ public class PaymentService {
 ```
 
 Metrics will automatically appear in Prometheus at:
+
 ```
 payment_total{tenant="all"} 1234
 payment_failed_total{tenant="all"} 5
@@ -312,6 +317,7 @@ server {
 ```
 
 Enable and reload:
+
 ```bash
 sudo ln -s /etc/nginx/sites-available/monitor.brightnest-academy.com /etc/nginx/sites-enabled/
 sudo certbot certonly --nginx -d monitor.brightnest-academy.com
@@ -350,6 +356,7 @@ mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -e "SHOW VARIABLES LIKE 'version';"
 ### High cardinality warnings
 
 If Prometheus shows "cardinality too high" warnings:
+
 - Avoid unbounded labels (e.g., user IDs, email addresses)
 - Use histogram buckets instead of many gauges
 - Limit custom tags to low-cardinality values (e.g., tenant, region)
@@ -363,10 +370,11 @@ If Prometheus shows "cardinality too high" warnings:
 Default: 30 days (configured in `prometheus.yml`)
 
 To change:
+
 ```yaml
 command:
-  - '--storage.tsdb.retention.time=90d'  # 90 days
-  - '--storage.tsdb.retention.size=50GB'  # or 50GB limit
+  - "--storage.tsdb.retention.time=90d" # 90 days
+  - "--storage.tsdb.retention.size=50GB" # or 50GB limit
 ```
 
 ### Grafana Dashboard Backup
@@ -386,11 +394,11 @@ grafana-backup save \
 
 ## 💰 Cost Estimate (AWS CloudWatch Alternative)
 
-| Service          | Cost (Monthly)                  |
-| ---------------- | ------------------------------- |
-| EC2 t3.small     | ~$15 (shared with monitoring)   |
-| EBS 20GB         | ~$2                             |
-| **Total**        | **~$17/month**                  |
+| Service      | Cost (Monthly)                |
+| ------------ | ----------------------------- |
+| EC2 t3.small | ~$15 (shared with monitoring) |
+| EBS 20GB     | ~$2                           |
+| **Total**    | **~$17/month**                |
 
 Compare to AWS CloudWatch custom metrics: ~$0.30/metric/month = $150-300/month for equivalent coverage.
 
