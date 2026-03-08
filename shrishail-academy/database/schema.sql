@@ -42,6 +42,11 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(20) NOT NULL DEFAULT 'STUDENT',
     refresh_token VARCHAR(255),
     refresh_token_expiry TIMESTAMP NULL,
+    failed_login_attempts INT NOT NULL DEFAULT 0,
+    locked_until TIMESTAMP NULL,
+    email_verified BOOLEAN NOT NULL DEFAULT TRUE,
+    email_verification_token VARCHAR(128),
+    email_verification_token_expiry TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id),
@@ -49,6 +54,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_email (email),
     INDEX idx_role (role),
     INDEX idx_refresh_token (refresh_token),
+    INDEX idx_email_verification_token (email_verification_token),
     INDEX idx_user_tenant (tenant_id)
 );
 

@@ -200,30 +200,60 @@ public class SecurityConfig {
                                                                 "/api/auth/login",
                                                                 "/api/auth/register",
                                                                 "/api/auth/refresh",
-                                                                "/api/auth/logout")
+                                                                "/api/auth/logout",
+                                                                "/api/v1/auth/login",
+                                                                "/api/v1/auth/register",
+                                                                "/api/v1/auth/refresh",
+                                                                "/api/v1/auth/logout")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/auth/verify-email",
+                                                                "/api/v1/auth/verify-email")
                                                 .permitAll()
                                                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/contact")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/contact")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/demo-booking")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/demo-booking")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/counseling")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/counseling")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/teacher-applications")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/v1/teacher-applications")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
                                                                 "/api/courses", "/api/courses/**")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/courses", "/api/v1/courses/**")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
                                                                 "/api/testimonials")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/testimonials")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/blog",
                                                                 "/api/blog/categories",
                                                                 "/api/blog/{slug}")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/blog",
+                                                                "/api/v1/blog/categories",
+                                                                "/api/v1/blog/{slug}")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/users/**")

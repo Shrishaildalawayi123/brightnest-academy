@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/testimonials")
+@RequestMapping({"/api/testimonials", "/api/v1/testimonials"})
 public class TestimonialController {
 
     private final TestimonialService testimonialService;
@@ -56,3 +56,6 @@ public class TestimonialController {
         return ResponseEntity.ok(ApiResponse.success("Testimonial deleted"));
     }
 }
+
+
+

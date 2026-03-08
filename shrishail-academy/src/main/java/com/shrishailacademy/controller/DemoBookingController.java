@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * Admin: view all bookings, update status
  */
 @RestController
-@RequestMapping("/api/demo-booking")
+@RequestMapping({"/api/demo-booking", "/api/v1/demo-booking"})
 public class DemoBookingController {
 
     private final DemoBookingService demoBookingService;
@@ -29,7 +29,7 @@ public class DemoBookingController {
     public ResponseEntity<ApiResponse> submitBooking(@Valid @RequestBody DemoBookingRequest request) {
         DemoBooking booking = demoBookingService.submitBooking(request);
         return ResponseEntity.ok(ApiResponse.success(
-                "Demo class booked successfully! We'll contact you within 24 hours to schedule your session. Demo fee: ₹100 (adjustable in first month or refundable within 30 days).",
+            "Demo class booked successfully! We'll contact you within 24 hours to schedule your session. Demo fee: INR 100 (adjustable in first month or refundable within 30 days).",
                 booking.getId()));
     }
 
@@ -54,3 +54,8 @@ public class DemoBookingController {
         return ResponseEntity.ok(ApiResponse.success("Stats retrieved", demoBookingService.getStats()));
     }
 }
+
+
+
+
+

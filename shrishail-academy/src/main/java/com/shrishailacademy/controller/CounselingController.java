@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/counseling")
+@RequestMapping({"/api/counseling", "/api/v1/counseling"})
 public class CounselingController {
 
     private final CounselingService counselingService;
@@ -66,3 +66,6 @@ public class CounselingController {
         return ResponseEntity.ok(ApiResponse.success("Stats retrieved", counselingService.getStats()));
     }
 }
+
+
+

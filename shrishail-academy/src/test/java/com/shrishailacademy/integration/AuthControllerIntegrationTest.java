@@ -1,5 +1,7 @@
 package com.shrishailacademy.integration;
 
+import com.shrishailacademy.model.User;
+import com.shrishailacademy.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,6 +28,9 @@ class AuthControllerIntegrationTest {
 
         @Autowired
         private MockMvc mockMvc;
+
+        @Autowired
+        private UserRepository userRepository;
 
         @Test
         void loginShouldSucceedForRegisteredUser() throws Exception {
@@ -44,6 +50,15 @@ class AuthControllerIntegrationTest {
                                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(registerPayload))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.requiresEmailVerification").value(true));
+
+                User registered = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new AssertionError("User not persisted"));
+
+                mockMvc.perform(get("/api/auth/verify-email")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+                                .param("token", registered.getEmailVerificationToken()))
                                 .andExpect(status().isOk());
 
                 String loginPayload = """
@@ -82,6 +97,15 @@ class AuthControllerIntegrationTest {
                                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(registerPayload))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.requiresEmailVerification").value(true));
+
+                User registered = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new AssertionError("User not persisted"));
+
+                mockMvc.perform(get("/api/auth/verify-email")
+                                .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
+                                .param("token", registered.getEmailVerificationToken()))
                                 .andExpect(status().isOk());
 
                 String loginPayload = """

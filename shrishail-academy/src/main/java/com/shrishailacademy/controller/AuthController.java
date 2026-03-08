@@ -1,5 +1,6 @@
 package com.shrishailacademy.controller;
 
+import com.shrishailacademy.dto.ApiResponse;
 import com.shrishailacademy.dto.ApiErrorResponse;
 import com.shrishailacademy.dto.AuthResponse;
 import com.shrishailacademy.dto.LoginRequest;
@@ -29,7 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping({"/api/auth", "/api/v1/auth"})
 public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
@@ -67,17 +68,34 @@ public class AuthController {
             HttpServletResponse httpResponse) {
         try {
             AuthResponse response = authService.register(request);
-            String refreshToken = refreshTokenService.createRefreshToken(response.getId());
-            setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
+            if (response.getToken() != null && !response.getToken().isBlank()) {
+                String refreshToken = refreshTokenService.createRefreshToken(response.getId());
+                setAuthCookies(httpRequest, httpResponse, response.getToken(), refreshToken);
+            }
             auditLogService.logEvent(TenantContext.getTenantId(), response.getId(), "REGISTER",
                     "New user registered: " + request.getEmail(), httpRequest);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Registration successful. Please verify your email before login.",
+                            Map.of(
+                                    "id", response.getId(),
+                                    "email", response.getEmail(),
+                                    "role", response.getRole(),
+                                    "requiresEmailVerification", true)));
         } catch (Exception e) {
             log.warn("Registration failed for email: {}", request.getEmail());
             auditLogService.logEvent(TenantContext.getTenantId(), null, "REGISTER_FAILED",
                     "Registration attempt: " + request.getEmail(), httpRequest);
             throw e;
         }
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<ApiResponse> verifyEmail(@RequestParam("token") String token,
+            HttpServletRequest request) {
+        authService.verifyEmail(token);
+        auditLogService.logEvent(TenantContext.getTenantId(), null, "EMAIL_VERIFIED",
+                "User completed email verification", request);
+        return ResponseEntity.ok(ApiResponse.success("Email verified successfully. You can now login."));
     }
 
     @PostMapping("/login")
@@ -184,7 +202,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(isSecure)
                 .sameSite(sameSite)
-                .path("/api/auth/refresh")
+            .path("/api")
                 .maxAge(refreshMaxAge)
                 .build();
 
@@ -218,7 +236,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(isSecure)
                 .sameSite(sameSite)
-                .path("/api/auth/refresh")
+            .path("/api")
                 .maxAge(0)
                 .build();
 
@@ -267,3 +285,8 @@ public class AuthController {
         return "Lax";
     }
 }
+
+
+
+
+

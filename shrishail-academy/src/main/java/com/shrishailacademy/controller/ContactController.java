@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/contact")
+@RequestMapping({"/api/contact", "/api/v1/contact"})
 public class ContactController {
 
     private final ContactService contactService;
@@ -65,3 +65,6 @@ public class ContactController {
         return ResponseEntity.ok(ApiResponse.success("Stats retrieved", contactService.getStats()));
     }
 }
+
+
+

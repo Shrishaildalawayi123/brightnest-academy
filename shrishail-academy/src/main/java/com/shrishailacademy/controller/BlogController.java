@@ -24,7 +24,7 @@ import java.util.Map;
  * Admin: full CRUD, publish/unpublish
  */
 @RestController
-@RequestMapping("/api/blog")
+@RequestMapping({"/api/blog", "/api/v1/blog"})
 public class BlogController {
 
     private final BlogService blogService;
@@ -95,3 +95,6 @@ public class BlogController {
         return ResponseEntity.ok(ApiResponse.success("Blog post deleted successfully"));
     }
 }
+
+
+

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping({"/api/notifications", "/api/v1/notifications"})
 public class NotificationController {
 
     private final NotificationRepository notificationRepository;
@@ -75,3 +75,6 @@ public class NotificationController {
                 .getId();
     }
 }
+
+
+

@@ -16,7 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping({"/api/courses", "/api/v1/courses"})
 public class CourseController {
 
     private final CourseService courseService;
@@ -70,3 +70,6 @@ public class CourseController {
         return ResponseEntity.ok(ApiResponse.success("Course deleted successfully"));
     }
 }
+
+
+

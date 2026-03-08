@@ -136,6 +136,14 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(BusinessException.class)
         public ResponseEntity<ApiErrorResponse> handleBusinessError(BusinessException ex, HttpServletRequest request) {
                 log.warn("Business error [{}]: {}", ex.getErrorCode(), ex.getMessage());
+                if ("ACCOUNT_LOCKED".equals(ex.getErrorCode())) {
+                        return ResponseEntity.status(HttpStatus.LOCKED)
+                                        .body(apiError(HttpStatus.LOCKED, "Locked", ex.getMessage()));
+                }
+                if ("EMAIL_NOT_VERIFIED".equals(ex.getErrorCode())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                        .body(apiError(HttpStatus.FORBIDDEN, "Forbidden", ex.getMessage()));
+                }
                 return ResponseEntity.badRequest()
                                 .body(apiError(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()));
         }

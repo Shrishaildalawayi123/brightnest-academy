@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/attendance")
+@RequestMapping({"/api/attendance", "/api/v1/attendance"})
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
@@ -121,3 +121,6 @@ public class AttendanceController {
         return ResponseEntity.ok(records);
     }
 }
+
+
+

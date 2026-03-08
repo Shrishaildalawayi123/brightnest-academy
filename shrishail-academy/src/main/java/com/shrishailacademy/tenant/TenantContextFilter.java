@@ -54,7 +54,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
             return false;
         }
 
-        String path = request.getRequestURI();
+        String path = normalizeApiPath(request.getRequestURI());
         if (!path.startsWith("/api/")) {
             return true;
         }
@@ -143,7 +143,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
     }
 
     private boolean allowDefaultTenantFallback(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = normalizeApiPath(request.getRequestURI());
         String method = request.getMethod();
 
         if (!path.startsWith("/api/")) {
@@ -172,6 +172,16 @@ public class TenantContextFilter extends OncePerRequestFilter {
         }
 
         return false;
+    }
+
+    private String normalizeApiPath(String path) {
+        if (path != null && path.startsWith("/api/v1/")) {
+            return "/api/" + path.substring("/api/v1/".length());
+        }
+        if ("/api/v1".equals(path)) {
+            return "/api";
+        }
+        return path;
     }
 
     private void writeError(HttpServletResponse response, int status, String error, String message) throws IOException {

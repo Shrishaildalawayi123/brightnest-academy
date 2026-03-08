@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/enrollments")
+@RequestMapping({"/api/enrollments", "/api/v1/enrollments"})
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
@@ -66,3 +66,6 @@ public class EnrollmentController {
         return ResponseEntity.ok(ApiResponse.success("Enrollment cancelled"));
     }
 }
+
+
+

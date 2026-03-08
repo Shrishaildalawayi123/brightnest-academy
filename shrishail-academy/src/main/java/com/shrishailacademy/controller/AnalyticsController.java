@@ -14,7 +14,7 @@ import java.util.Map;
  * Provides real-time stats for the admin dashboard
  */
 @RestController
-@RequestMapping("/api/admin/analytics")
+@RequestMapping({"/api/admin/analytics", "/api/v1/admin/analytics"})
 @PreAuthorize("hasRole('ADMIN')")
 public class AnalyticsController {
 
@@ -29,3 +29,6 @@ public class AnalyticsController {
                 return ResponseEntity.ok(analyticsService.getDashboardStats());
         }
 }
+
+
+

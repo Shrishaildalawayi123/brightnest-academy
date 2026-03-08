@@ -30,7 +30,8 @@ import java.util.List;
         @Index(name = "idx_user_tenant", columnList = "tenant_id"),
         @Index(name = "idx_user_role", columnList = "role"),
         @Index(name = "idx_user_tenant_email", columnList = "tenant_id,email"),
-        @Index(name = "idx_user_refresh_token", columnList = "refresh_token")
+    @Index(name = "idx_user_refresh_token", columnList = "refresh_token"),
+    @Index(name = "idx_user_email_verification_token", columnList = "email_verification_token")
 })
 @Data
 @NoArgsConstructor
@@ -75,6 +76,22 @@ public class User extends BaseAuditableEntity {
     @JsonIgnore
     @Column(name = "refresh_token_expiry")
     private LocalDateTime refreshTokenExpiry;
+
+    @Column(name = "failed_login_attempts", nullable = false)
+    private Integer failedLoginAttempts = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = true;
+
+    @JsonIgnore
+    @Column(name = "email_verification_token", length = 128)
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_token_expiry")
+    private LocalDateTime emailVerificationTokenExpiry;
 
     // Relationships - @JsonIgnore prevents circular serialization
     @JsonIgnore
