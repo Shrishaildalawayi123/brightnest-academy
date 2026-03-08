@@ -31,6 +31,8 @@ public interface BlogPostRepository extends JpaRepository<BlogPost, Long> {
 
     void deleteByIdAndTenantId(Long id, Long tenantId);
 
+    long countByTenantId(Long tenantId);
+
     long countByTenantIdAndPublished(Long tenantId, boolean published);
 
     // ========== LEGACY (non-tenant) — retained for backward compatibility

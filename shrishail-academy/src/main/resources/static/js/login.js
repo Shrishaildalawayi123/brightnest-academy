@@ -130,13 +130,22 @@
     const email = emailInput.value.trim();
     const password = passwordInput.value;
 
+    if (!email || !password) {
+      showError("Email and password are required.");
+      return;
+    }
+
     debugLog("login:submit", { email });
 
     loginButton.disabled = true;
     loginButton.textContent = "Signing in...";
 
     try {
+      // Sends POST /api/auth/login with JSON body { email, password }
       const response = await Auth.login(email, password);
+      if (!response || !response.token) {
+        throw new Error("Login response did not include JWT token.");
+      }
       debugLog("login:success", { email, role: response && response.role });
       showSuccess("Login successful! Redirecting...");
       setTimeout(() => redirectToDashboard(response), 400);

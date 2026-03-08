@@ -2,6 +2,7 @@ package com.shrishailacademy.service;
 
 import com.shrishailacademy.model.*;
 import com.shrishailacademy.repository.*;
+import com.shrishailacademy.tenant.TenantContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,43 +51,44 @@ public class AnalyticsService {
     }
 
     public Map<String, Object> getDashboardStats() {
+        Long tenantId = TenantContext.requireTenantId();
         Map<String, Object> stats = new LinkedHashMap<>();
 
         // User stats
-        stats.put("totalUsers", userRepository.count());
-        stats.put("totalStudents", userRepository.countByRole(User.Role.STUDENT));
+        stats.put("totalUsers", userRepository.countByTenantId(tenantId));
+        stats.put("totalStudents", userRepository.countByRoleAndTenantId(User.Role.STUDENT, tenantId));
 
         // Course stats
-        stats.put("totalCourses", courseRepository.count());
+        stats.put("totalCourses", courseRepository.countByTenantId(tenantId));
 
         // Enrollment stats
-        stats.put("totalEnrollments", enrollmentRepository.count());
-        stats.put("activeEnrollments", enrollmentRepository.countByStatus(Enrollment.Status.ACTIVE));
+        stats.put("totalEnrollments", enrollmentRepository.countByTenantId(tenantId));
+        stats.put("activeEnrollments", enrollmentRepository.countByStatusAndTenantId(Enrollment.Status.ACTIVE, tenantId));
 
         // Payment stats
-        stats.put("totalPayments", paymentRepository.count());
-        stats.put("successPayments", paymentRepository.countByStatus(Payment.Status.SUCCESS));
-        stats.put("pendingPayments", paymentRepository.countByStatus(Payment.Status.PENDING));
+        stats.put("totalPayments", paymentRepository.countByTenantId(tenantId));
+        stats.put("successPayments", paymentRepository.countByStatusAndTenantId(Payment.Status.SUCCESS, tenantId));
+        stats.put("pendingPayments", paymentRepository.countByStatusAndTenantId(Payment.Status.PENDING, tenantId));
 
         // Attendance stats
-        stats.put("totalAttendanceRecords", attendanceRepository.count());
+        stats.put("totalAttendanceRecords", attendanceRepository.countByTenantId(tenantId));
 
         // Contact message stats
-        stats.put("totalContactMessages", contactRepo.count());
-        stats.put("unreadContactMessages", contactRepo.countByStatus(ContactMessage.Status.NEW));
+        stats.put("totalContactMessages", contactRepo.countByTenantId(tenantId));
+        stats.put("unreadContactMessages", contactRepo.countByTenantIdAndStatus(tenantId, ContactMessage.Status.NEW));
 
         // Blog stats
-        stats.put("totalBlogPosts", blogPostRepository.count());
-        stats.put("publishedBlogPosts", blogPostRepository.countByPublished(true));
+        stats.put("totalBlogPosts", blogPostRepository.countByTenantId(tenantId));
+        stats.put("publishedBlogPosts", blogPostRepository.countByTenantIdAndPublished(tenantId, true));
 
         // Demo booking stats
-        stats.put("totalDemoBookings", demoBookingRepository.count());
-        stats.put("pendingDemoBookings", demoBookingRepository.countByStatus(DemoBooking.Status.PENDING));
+        stats.put("totalDemoBookings", demoBookingRepository.countByTenantId(tenantId));
+        stats.put("pendingDemoBookings", demoBookingRepository.countByTenantIdAndStatus(tenantId, DemoBooking.Status.PENDING));
 
         // Teacher application stats
-        stats.put("totalTeacherApplications", teacherApplicationRepository.count());
+        stats.put("totalTeacherApplications", teacherApplicationRepository.countByTenantId(tenantId));
         stats.put("newTeacherApplications",
-                teacherApplicationRepository.countByStatus(TeacherApplication.Status.NEW));
+            teacherApplicationRepository.countByTenantIdAndStatus(tenantId, TeacherApplication.Status.NEW));
 
         // Visitor analytics
         java.time.LocalDateTime now = java.time.LocalDateTime.now();

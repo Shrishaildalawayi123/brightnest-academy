@@ -62,8 +62,8 @@ public class PaymentService {
      * If an idempotency key is provided and a payment with that key already exists,
      * returns the existing payment instead of creating a duplicate.
      *
-     * @param userId the user initiating payment
-     * @param request payment details
+     * @param userId         the user initiating payment
+     * @param request        payment details
      * @param idempotencyKey optional client-provided key for duplicate prevention
      * @return created or existing payment
      */
@@ -77,7 +77,7 @@ public class PaymentService {
             Optional<Payment> existingPayment = paymentRepository
                     .findByIdempotencyKeyAndTenantId(sanitizedIdempotencyKey, tenantId);
             if (existingPayment.isPresent()) {
-                log.info("PAYMENT_IDEMPOTENT_RETURN: key={} receipt={}", 
+                log.info("PAYMENT_IDEMPOTENT_RETURN: key={} receipt={}",
                         sanitizedIdempotencyKey, existingPayment.get().getReceiptNumber());
                 return existingPayment.get();
             }
@@ -143,7 +143,7 @@ public class PaymentService {
 
         Payment saved = paymentRepository.save(payment);
         log.info("PAYMENT_INITIATED: receipt={} user={} course='{}' amount=₹{} idempotency={}",
-                receiptNumber, user.getEmail(), course.getTitle(), request.getAmount(), 
+                receiptNumber, user.getEmail(), course.getTitle(), request.getAmount(),
                 sanitizedIdempotencyKey != null ? sanitizedIdempotencyKey : "none");
 
         return saved;

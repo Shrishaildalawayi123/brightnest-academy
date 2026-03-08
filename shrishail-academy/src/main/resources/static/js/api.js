@@ -24,6 +24,7 @@ function resolveApiBaseUrl() {
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
+window.API_BASE_URL = API_BASE_URL;
 
 const API = {
   unwrapCollection(payload) {
@@ -54,6 +55,8 @@ const API = {
 
   getHeaders(includeAuth = false, includeJsonContentType = true) {
     const headers = {};
+
+    headers["Accept"] = "application/json";
 
     if (includeJsonContentType) {
       headers["Content-Type"] = "application/json";
@@ -243,6 +246,14 @@ const API = {
   },
   async getUsers() {
     return this.getAllUsers();
+  },
+
+  async getAdminUsers() {
+    // Example protected call with Authorization: Bearer <token>
+    return this.request("/users", {
+      method: "GET",
+      headers: this.getHeaders(true),
+    });
   },
 
   // ===== BLOG (Public) =====

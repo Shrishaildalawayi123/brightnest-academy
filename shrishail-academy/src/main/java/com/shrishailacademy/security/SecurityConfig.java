@@ -44,7 +44,7 @@ public class SecurityConfig {
         private final SecurityHeaderFilter securityHeaderFilter;
         private final AuthEntryPointJwt unauthorizedHandler;
 
-        @Value("${cors.allowed.origins:http://localhost:3000,http://localhost:8080}")
+        @Value("${cors.allowed.origins:http://localhost:3000,http://localhost:5173,http://localhost:5500,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5500,http://localhost:8080,null}")
         private String corsAllowedOrigins;
 
         @Value("${https.required:false}")
@@ -117,7 +117,15 @@ public class SecurityConfig {
 
                 if (allowedOrigins.isEmpty()) {
                         log.warn("No CORS origins configured. Falling back to localhost development defaults.");
-                        allowedOrigins = List.of("http://localhost:3000", "http://localhost:8080");
+                        allowedOrigins = List.of(
+                                        "http://localhost:3000",
+                                        "http://localhost:5173",
+                                        "http://localhost:5500",
+                                        "http://127.0.0.1:3000",
+                                        "http://127.0.0.1:5173",
+                                        "http://127.0.0.1:5500",
+                                        "http://localhost:8080",
+                                        "null");
                 }
 
                 configuration.setAllowedOrigins(allowedOrigins);
@@ -196,7 +204,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/admin-dashboard.html").hasAnyRole("TEACHER", "ADMIN")
                                                 .requestMatchers("/health", "/actuator/health", "/actuator/info")
                                                 .permitAll()
-                                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**",
+                                                                "/swagger-ui.html")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/auth/login",
@@ -253,7 +262,8 @@ public class SecurityConfig {
                                                                 "/api/blog/categories",
                                                                 "/api/blog/{slug}")
                                                 .permitAll()
-                                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/blog",
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/blog",
                                                                 "/api/v1/blog/categories",
                                                                 "/api/v1/blog/{slug}")
                                                 .permitAll()

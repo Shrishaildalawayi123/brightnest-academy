@@ -20,7 +20,7 @@ public class ShrishailAcademyApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ShrishailAcademyApplication.class, args);
-        
+
         log.info("========================================");
         log.info("BrightNest Academy API Started!");
         log.info("========================================");

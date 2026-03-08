@@ -3,15 +3,34 @@ USE shrishail_academy;
 -- Fix icon column size
 ALTER TABLE courses MODIFY COLUMN icon VARCHAR(50);
 
--- Insert Admin user (password: admin123)
-INSERT INTO users (name, email, password, phone, role)
-VALUES ('Admin', 'admin@academy.com', '$2a$10$xQGE5BhYV5YOB.YLhXGze.8FqLHKCKLLPWYVLLqhL5GQpLUzKqz4G', '+91 98765 43210', 'ADMIN')
-ON DUPLICATE KEY UPDATE name=name;
+-- Insert/update admin users (password: admin123)
+-- BCrypt generated on 2026-03-08 via BcryptHashGenerator
+SET @admin_hash = '$2a$10$N5/3W2cMFcUtqVhYrNBj7O51PQs6A0ziazfkDB3XwTa.NNDzOaSSa';
+
+INSERT INTO users (tenant_id, name, email, password, phone, role, email_verified)
+SELECT t.id, 'BrightNest Admin', 'admin@brightnest.com', @admin_hash, '+91 98765 43210', 'ADMIN', 1
+FROM tenants t WHERE t.tenant_key = 'default'
+ON DUPLICATE KEY UPDATE
+password = VALUES(password),
+email_verified = 1,
+role = 'ADMIN';
+
+INSERT INTO users (tenant_id, name, email, password, phone, role, email_verified)
+SELECT t.id, 'Example Admin', 'admin@example.com', @admin_hash, '+91 98765 43212', 'ADMIN', 1
+FROM tenants t WHERE t.tenant_key = 'default'
+ON DUPLICATE KEY UPDATE
+password = VALUES(password),
+email_verified = 1,
+role = 'ADMIN';
 
 -- Insert Test Student (password: student123)
-INSERT INTO users (name, email, password, phone, role)
-VALUES ('Test Student', 'student@test.com', '$2a$10$N.5Wh4fPPHFDl15f0dN7C.1YMHKqidqrT3hGpFQqiVp0jUq3hDMSi', '+91 98765 43211', 'STUDENT')
-ON DUPLICATE KEY UPDATE name=name;
+INSERT INTO users (tenant_id, name, email, password, phone, role, email_verified)
+SELECT t.id, 'Test Student', 'student@test.com', '$2a$10$N.5Wh4fPPHFDl15f0dN7C.1YMHKqidqrT3hGpFQqiVp0jUq3hDMSi', '+91 98765 43211', 'STUDENT', 1
+FROM tenants t WHERE t.tenant_key = 'default'
+ON DUPLICATE KEY UPDATE
+password = VALUES(password),
+email_verified = 1,
+role = 'STUDENT';
 
 -- Insert Courses
 INSERT INTO courses (title, description, duration, icon, color, fee) VALUES

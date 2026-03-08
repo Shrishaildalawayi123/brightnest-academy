@@ -66,4 +66,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             Long tenantId);
 
     List<Attendance> findAllByTenantId(Long tenantId);
+
+        long countByTenantId(Long tenantId);
 }

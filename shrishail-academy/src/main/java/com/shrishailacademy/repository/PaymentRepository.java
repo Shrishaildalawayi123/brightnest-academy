@@ -33,6 +33,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findAllByTenantId(Long tenantId);
 
+    long countByTenantId(Long tenantId);
+
     Page<Payment> findAllByTenantId(Long tenantId, Pageable pageable);
 
     Optional<Payment> findByTransactionId(String transactionId);

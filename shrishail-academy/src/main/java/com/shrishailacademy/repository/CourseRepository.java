@@ -40,6 +40,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @EntityGraph(attributePaths = "teacher")
     Page<Course> findAllByTenantId(Long tenantId, Pageable pageable);
 
+    long countByTenantId(Long tenantId);
+
     @EntityGraph(attributePaths = "teacher")
     Optional<Course> findByIdAndTenantId(Long id, Long tenantId);
 

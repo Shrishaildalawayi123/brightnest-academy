@@ -260,8 +260,10 @@ docker compose -f docker-compose.monitoring.yml up -d
 ## 🎯 Remaining Production Gaps (for future work)
 
 1. **Multi-Tenant Isolation** (High Priority)
-   - 6 entities missing `tenant_id`: ContactMessage, DemoBooking, CounselingRequest, TeacherApplication, Testimonial, AuditLog
-   - Risk: Admin can see data across all tenants
+   - Status: PARTIALLY RESOLVED in continuation (Mar 8, 2026)
+   - Dashboard analytics now tenant-scoped (`AnalyticsService` uses `countByTenantId*` instead of global counts)
+   - ContactMessage, DemoBooking, TeacherApplication, Blog metrics no longer leak cross-tenant totals
+   - Follow-up: run targeted integration tests to verify tenant isolation for all admin endpoints
 
 2. **Performance Optimization**
    - Load test shows p95 latency at 500ms (target: <200ms)

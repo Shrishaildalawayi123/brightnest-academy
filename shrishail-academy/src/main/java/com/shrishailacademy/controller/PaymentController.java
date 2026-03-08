@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping({"/api/payments", "/api/v1/payments"})
+@RequestMapping({ "/api/payments", "/api/v1/payments" })
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -140,6 +140,3 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success("Revenue statistics", stats));
     }
 }
-
-
-

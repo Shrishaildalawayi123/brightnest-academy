@@ -78,6 +78,25 @@ function toggleSidebar() {
 function authHeaders() {
   return API.getHeaders(true);
 }
+
+function resolveApiRequestUrl(url) {
+  if (typeof url !== "string") {
+    return url;
+  }
+
+  if (!url.startsWith("/api/")) {
+    return url;
+  }
+
+  const base = (window.API_BASE_URL || "/api").replace(/\/$/, "");
+  if (base.startsWith("http://") || base.startsWith("https://")) {
+    const suffix = url.substring(4); // remove leading "/api"
+    return `${base}${suffix}`;
+  }
+
+  return url;
+}
+
 const nativeFetch = window.fetch.bind(window);
 function getCookie(name) {
   const cookie = document.cookie
@@ -91,6 +110,7 @@ window.fetch = async (url, options = {}) => {
   const token = localStorage.getItem("token");
   const requestUrl =
     typeof url === "string" ? url : url && url.url ? url.url : String(url);
+  const resolvedUrl = resolveApiRequestUrl(requestUrl);
   if (token && token.trim() && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token.trim()}`;
   }
@@ -102,7 +122,7 @@ window.fetch = async (url, options = {}) => {
 
   let response;
   try {
-    response = await nativeFetch(url, {
+    response = await nativeFetch(resolvedUrl, {
       credentials: "include",
       ...options,
       method,
@@ -118,7 +138,11 @@ window.fetch = async (url, options = {}) => {
     throw error;
   }
 
-  debugAdmin("response", { method, url: requestUrl, status: response.status });
+  debugAdmin("response", {
+    method,
+    url: resolvedUrl,
+    status: response.status,
+  });
   if (response.status === 401) {
     localStorage.removeItem("user");
     localStorage.removeItem("token");

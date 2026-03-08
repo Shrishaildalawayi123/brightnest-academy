@@ -59,6 +59,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByTenantId(Long tenantId);
 
+    long countByTenantId(Long tenantId);
+
     /**
      * Count users by role
      */

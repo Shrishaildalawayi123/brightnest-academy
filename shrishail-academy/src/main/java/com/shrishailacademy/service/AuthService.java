@@ -97,9 +97,17 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
         Long tenantId = TenantContext.requireTenantId();
         String email = InputSanitizer.sanitizeEmailAndTruncate(request.getEmail(), 100);
+        
+        log.debug("Login attempt: email={}, tenantId={}", email, tenantId);
 
         User user = userRepository.findByEmailAndTenantId(email, tenantId)
-                .orElseThrow(() -> new BadCredentialsException("Invalid email or password."));
+                .orElseThrow(() -> {
+                    log.warn("User not found: email={}, tenantId={}", email, tenantId);
+                    return new BadCredentialsException("Invalid email or password.");
+                });
+        
+        log.debug("User found: id={}, email={}, role={}, emailVerified={}, locked={}", 
+                user.getId(), user.getEmail(), user.getRole(), user.isEmailVerified(), isCurrentlyLocked(user));
 
         if (isCurrentlyLocked(user)) {
             throw new BusinessException("ACCOUNT_LOCKED",
@@ -113,9 +121,12 @@ public class AuthService {
 
         Authentication authentication;
         try {
+            log.debug("Attempting authentication for: {}", email);
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+            log.debug("Authentication successful for: {}", email);
         } catch (BadCredentialsException ex) {
+            log.warn("Authentication failed for: {} - Bad credentials", email);
             recordFailedLogin(user);
             throw ex;
         }

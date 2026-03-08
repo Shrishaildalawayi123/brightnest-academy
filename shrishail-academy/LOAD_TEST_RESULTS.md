@@ -1,4 +1,6 @@
-# Load Testing Results - BrightNest Academy
+-- Regenerate password hash for known credentials
+UPDATE users SET password='$2a$10$[NEW_HASH]' WHERE email='testadmin@test.com';# Load Testing Results - BrightNest Academy
+
 **Date**: March 8, 2026  
 **Environment**: Local development (H2 in-memory database)  
 **Tool**: k6 v1.6.1  
@@ -13,6 +15,7 @@
 ⚠️ **Load Test**: PARTIAL PASS (50% timeout rate at peak load)
 
 **Key Findings:**
+
 - Application performs excellently under moderate load (5-25 concurrent users)
 - H2 in-memory database becomes bottleneck at 100 concurrent users
 - Successful requests maintain excellent p(95) latency (< 200ms)
@@ -25,6 +28,7 @@
 ## Test 1: Smoke Test (5 VUs, 30 seconds)
 
 ### Configuration
+
 ```javascript
 {
   vus: 5,
@@ -38,13 +42,13 @@
 
 ### Results ✅ ALL THRESHOLDS PASSED
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| **Error Rate** | < 1% | **0.00%** | ✅ PASS |
-| **p(95) Latency** | < 800ms | **69.65ms** | ✅ PASS |
-| **Success Rate** | > 99% | **100%** | ✅ PASS |
-| **Total Requests** | - | 272 | - |
-| **Throughput** | - | 8.77 req/s | - |
+| Metric             | Target  | Actual      | Status  |
+| ------------------ | ------- | ----------- | ------- |
+| **Error Rate**     | < 1%    | **0.00%**   | ✅ PASS |
+| **p(95) Latency**  | < 800ms | **69.65ms** | ✅ PASS |
+| **Success Rate**   | > 99%   | **100%**    | ✅ PASS |
+| **Total Requests** | -       | 272         | -       |
+| **Throughput**     | -       | 8.77 req/s  | -       |
 
 ### Performance Breakdown
 
@@ -68,6 +72,7 @@ Network:
 ```
 
 ### Verdict ✅ EXCELLENT
+
 - Zero errors under moderate concurrent load
 - p(95) latency 8.6x better than threshold (69ms vs 800ms target)
 - All health checks passed
@@ -78,6 +83,7 @@ Network:
 ## Test 2: Load Test (Ramp to 100 VUs, 9 minutes)
 
 ### Configuration
+
 ```javascript
 {
   stages: [
@@ -95,14 +101,14 @@ Network:
 
 ### Results ⚠️ PARTIAL PASS
 
-| Metric | Target | Actual | Status | Notes |
-|--------|--------|--------|--------|-------|
-| **p(95) Latency** | < 500ms | **372.79ms** | ✅ PASS | Successful requests only |
-| **Error Rate** | < 1% | **50.53%** | ❌ FAIL | Timeouts at peak (100 VUs) |
-| **Check Success** | > 99% | **49.46%** | ❌ FAIL | 50% timeouts |
-| **Total Requests** | - | 20,336 | - | 35.7 req/s |
-| **Total Iterations** | - | 10,138 | - | 17.8 iterations/s |
-| **Max VUs** | 100 | **100** | ✅ | Peak load reached |
+| Metric               | Target  | Actual       | Status  | Notes                      |
+| -------------------- | ------- | ------------ | ------- | -------------------------- |
+| **p(95) Latency**    | < 500ms | **372.79ms** | ✅ PASS | Successful requests only   |
+| **Error Rate**       | < 1%    | **50.53%**   | ❌ FAIL | Timeouts at peak (100 VUs) |
+| **Check Success**    | > 99%   | **49.46%**   | ❌ FAIL | 50% timeouts               |
+| **Total Requests**   | -       | 20,336       | -       | 35.7 req/s                 |
+| **Total Iterations** | -       | 10,138       | -       | 17.8 iterations/s          |
+| **Max VUs**          | 100     | **100**      | ✅      | Peak load reached          |
 
 ### Performance Breakdown
 
@@ -136,7 +142,7 @@ Checks:
 Virtual Users:
   Min VUs: 0
   Max VUs: 100 (sustained for ~5 minutes)
-  
+
 Timeline:
   0-2 min:   Ramp 0→25 VUs   (Stable, 100% success)
   2-7 min:   Hold at 100 VUs (Timeouts started ~6.5 min)
@@ -168,17 +174,20 @@ Evidence This is Environmental:
 ### Verdict ⚠️ ACCEPTABLE FOR DEVELOPMENT TESTING
 
 **✅ GOOD NEWS:**
+
 - Application code handles requests efficiently (p95=194ms when not timing out)
 - No application crashes or exceptions during peak load
 - Successful requests maintain excellent performance
 - Throughput: 35.7 requests/second sustained
 
 **⚠️ EXPECTED LIMITATIONS:**
+
 - H2 in-memory database cannot handle 100 concurrent users
 - Timeouts are database-related, not application code issues
 - This is a known H2 limitation, not a production concern
 
 **🎯 PRODUCTION READINESS:**
+
 - **READY**: Application code proven stable and performant
 - **EXPECTED**: Production MySQL with HikariCP connection pooling will eliminate timeouts
 - **ACTION**: Re-run load tests in staging environment with MySQL before production launch
@@ -187,11 +196,11 @@ Evidence This is Environmental:
 
 ## Performance Comparison
 
-| Test | VUs | Duration | Success Rate | p(95) Latency | Error Rate | Requests/sec |
-|------|-----|----------|--------------|---------------|------------|--------------|
-| **Smoke Test** | 5 | 30s | **100%** | **69.65ms** | **0%** | 8.77 |
-| **Load Test (Overall)** | 0→100 | 9m | 49.46% | 372.79ms | 50.53% | 35.7 |
-| **Load Test (Success Only)** | - | - | - | **194.68ms** | - | - |
+| Test                         | VUs   | Duration | Success Rate | p(95) Latency | Error Rate | Requests/sec |
+| ---------------------------- | ----- | -------- | ------------ | ------------- | ---------- | ------------ |
+| **Smoke Test**               | 5     | 30s      | **100%**     | **69.65ms**   | **0%**     | 8.77         |
+| **Load Test (Overall)**      | 0→100 | 9m       | 49.46%       | 372.79ms      | 50.53%     | 35.7         |
+| **Load Test (Success Only)** | -     | -        | -            | **194.68ms**  | -          | -            |
 
 ### Key Observations
 
@@ -220,6 +229,7 @@ Evidence This is Environmental:
 ### ✅ Application Code: PRODUCTION READY
 
 **Evidence:**
+
 - Smoke test: 100% success, excellent latency
 - Load test (successful requests): p(95) = 194ms (well below 500ms target)
 - No application crashes, exceptions, or memory leaks
@@ -229,18 +239,20 @@ Evidence This is Environmental:
 ### ⚠️ Database Configuration: PRODUCTION MIGRATION REQUIRED
 
 **Current Limitations:**
+
 - H2 in-memory database not suitable for production
 - Concurrent connection limit reached at ~50 simultaneous users
 - Expected behavior for development/testing tool
 
 **Production Mitigation:**
+
 ```yaml
 Production Database Stack:
   ✅ MySQL 8.0 (production-grade RDBMS)
   ✅ HikariCP connection pooling (configured in application)
   ✅ AWS RDS Multi-AZ (high availability)
   ✅ Read replicas for scaling
-  
+
 Expected Production Performance:
   - 100 VUs: 0% timeout rate (vs 50% with H2)
   - p(95): < 200ms (proven achievable in smoke test)
@@ -250,6 +262,7 @@ Expected Production Performance:
 ### 🎯 Production Deployment Checklist
 
 **Before Production Launch:**
+
 - [x] ✅ Application code load tested (validated)
 - [x] ✅ H2 limitations documented (this report)
 - [ ] ⏳ Run load tests in staging with MySQL
@@ -259,6 +272,7 @@ Expected Production Performance:
 - [ ] ⏳ Test auto-scaling policies
 
 **Expected Staging Results (MySQL):**
+
 ```
 Target Metrics (100 VUs):
   Error Rate:     < 1%    (vs 50.53% with H2)
@@ -272,11 +286,13 @@ Target Metrics (100 VUs):
 ## Recommendations
 
 ### 1. **IMMEDIATE: Document H2 Limitations** ✅ DONE
+
 - This report serves as documentation
 - H2 timeouts expected and acceptable for local testing
 - No application code changes needed
 
 ### 2. **HIGH PRIORITY: Staging Environment Load Test**
+
 ```bash
 # Run load test in AWS staging with MySQL
 export BASE_URL=https://staging.brightnestacademy.com
@@ -290,6 +306,7 @@ k6 run --vus 100 --duration 10m load.js
 ```
 
 ### 3. **MEDIUM PRIORITY: Production Monitoring**
+
 ```yaml
 # Configure Prometheus alerts
 - alert: HighLatency
@@ -302,6 +319,7 @@ k6 run --vus 100 --duration 10m load.js
 ```
 
 ### 4. **LOW PRIORITY: Stress Testing**
+
 ```bash
 # After MySQL validation, run stress test
 cd performance/k6
@@ -309,6 +327,7 @@ k6 run stress.js  # Ramp to 200 VUs to find breaking point
 ```
 
 ### 5. **OPTIONAL: Optimize for High Concurrency**
+
 ```properties
 # If staging tests show issues > 100 VUs, tune connection pool:
 spring.datasource.hikari.maximum-pool-size=50
@@ -323,17 +342,20 @@ spring.datasource.hikari.connection-timeout=20000
 ### Summary
 
 ✅ **Application Code: PRODUCTION READY**
+
 - Smoke test: 100% success rate, p(95) = 69ms
 - Load test (successful requests): p(95) = 194ms
 - No crashes, exceptions, or memory leaks
 - Stable under sustained load
 
 ⚠️ **Database: MIGRATION TO MYSQL REQUIRED**
+
 - H2 in-memory database cannot handle 100 concurrent users
 - Expected limitation for development tool
 - Production MySQL will resolve timeout issues
 
 🎯 **Production Readiness: 96%**
+
 - Application code validated ✅
 - Infrastructure ready (Docker, Terraform, monitoring) ✅
 - Database migration planned ⏳
@@ -348,36 +370,37 @@ spring.datasource.hikari.connection-timeout=20000
 
 ### Performance Targets (Production)
 
-| Metric | Target | Confidence |
-|--------|--------|------------|
-| Error Rate | < 1% | HIGH (proven at low VUs) |
-| p(95) Latency | < 300ms | HIGH (194ms achieved) |
-| Throughput | > 50 req/s | MEDIUM (35.7/s with H2) |
-| Success Rate | > 99% | HIGH (100% at 5 VUs) |
-| Max Concurrent Users | > 100 | MEDIUM (requires MySQL test) |
+| Metric               | Target     | Confidence                   |
+| -------------------- | ---------- | ---------------------------- |
+| Error Rate           | < 1%       | HIGH (proven at low VUs)     |
+| p(95) Latency        | < 300ms    | HIGH (194ms achieved)        |
+| Throughput           | > 50 req/s | MEDIUM (35.7/s with H2)      |
+| Success Rate         | > 99%      | HIGH (100% at 5 VUs)         |
+| Max Concurrent Users | > 100      | MEDIUM (requires MySQL test) |
 
 ---
 
 ## Test Environment Details
 
 ### Hardware
+
 - **OS**: Windows 11
 - **CPU**: Intel/AMD x64
 - **Memory**: Available for JVM
 - **Network**: Localhost loopback
 
 ### Software Stack
-```yaml
-Spring Boot:    3.2.4
-Java:           21.0.1
-Database:       H2 2.2.224 (in-memory)
-k6:             v1.6.1
-Maven:          3.x
-Profile:        loadtest
 
-JVM Settings:
-  -Dspring.profiles.active=loadtest
-  
+```yaml
+Spring Boot: 3.2.4
+Java: 21.0.1
+Database: H2 2.2.224 (in-memory)
+k6: v1.6.1
+Maven: 3.x
+Profile: loadtest
+
+JVM Settings: -Dspring.profiles.active=loadtest
+
 Application Properties:
   spring.datasource.url: jdbc:h2:mem:loadtest
   spring.jpa.hibernate.ddl-auto: create-drop
@@ -389,30 +412,32 @@ Application Properties:
 ### Test Scripts
 
 **Smoke Test** (`smoke.js`):
+
 ```javascript
 export const options = {
   vus: 5,
   duration: "30s",
   thresholds: {
     http_req_failed: ["rate<0.01"],
-    http_req_duration: ["p(95)<800"]
-  }
+    http_req_duration: ["p(95)<800"],
+  },
 };
 ```
 
 **Load Test** (`load.js`):
+
 ```javascript
 export const options = {
   stages: [
     { duration: "2m", target: 25 },
     { duration: "5m", target: 100 },
-    { duration: "2m", target: 0 }
+    { duration: "2m", target: 0 },
   ],
   thresholds: {
     http_req_failed: ["rate<0.01"],
     http_req_duration: ["p(95)<500"],
-    checks: ["rate>0.99"]
-  }
+    checks: ["rate>0.99"],
+  },
 };
 ```
 
@@ -433,6 +458,7 @@ export const options = {
 ## Appendix: Raw Test Output
 
 ### Smoke Test Output
+
 ```
 ✓ p(95)<800: p(95)=69.65ms
 ✓ rate<0.01: rate=0.00%
@@ -448,6 +474,7 @@ vus................: 5       min=1 max=5
 ```
 
 ### Load Test Output
+
 ```
 ✓ p(95)<500: p(95)=372.79ms
 ✗ rate<0.01: rate=50.53%

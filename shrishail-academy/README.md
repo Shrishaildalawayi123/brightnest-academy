@@ -298,7 +298,7 @@ npx serve frontend -p 3000
 ### Admin Login
 
 ```
-Email: admin@academy.com
+Email: admin@brightnest.com
 Password: admin123
 ```
 
@@ -336,7 +336,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@academy.com",
+   "email": "admin@brightnest.com",
   "password": "admin123"
 }
 
@@ -346,7 +346,7 @@ Response:
   "type": "Bearer",
   "id": 1,
   "name": "Admin",
-  "email": "admin@academy.com",
+   "email": "admin@brightnest.com",
   "role": "ADMIN"
 }
 ```
@@ -535,7 +535,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 # Login
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@academy.com","password":"admin123"}'
+   -d '{"email":"admin@brightnest.com","password":"admin123"}'
 
 # Get Courses
 curl http://localhost:8080/api/courses
