@@ -158,11 +158,11 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- H2 for isolated integration tests -->
+        <!-- H2 for isolated integration tests and load testing -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
     
