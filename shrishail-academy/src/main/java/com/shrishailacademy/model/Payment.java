@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@lombok.EqualsAndHashCode(callSuper = false)
 public class Payment extends BaseAuditableEntity {
 
     @Id

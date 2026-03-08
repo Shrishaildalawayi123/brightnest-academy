@@ -1,5 +1,7 @@
 package com.shrishailacademy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -14,12 +16,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ShrishailAcademyApplication {
 
+    private static final Logger log = LoggerFactory.getLogger(ShrishailAcademyApplication.class);
+
     public static void main(String[] args) {
         SpringApplication.run(ShrishailAcademyApplication.class, args);
-        System.out.println("\n========================================");
-        System.out.println("BrightNest Academy API Started!");
-        System.out.println("========================================");
-        System.out.println("Health: /health");
-        System.out.println("========================================\n");
+        
+        log.info("========================================");
+        log.info("BrightNest Academy API Started!");
+        log.info("========================================");
+        log.info("Health Check: /health");
+        log.info("API Documentation: /swagger-ui.html");
+        log.info("Actuator: /actuator (ADMIN only)");
+        log.info("========================================");
     }
 }
