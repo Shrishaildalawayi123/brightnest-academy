@@ -76,10 +76,10 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(InputSanitizer.sanitizeAndTruncateNullable(request.getPhone(), 20));
         user.setRole(User.Role.STUDENT);
-        user.setEmailVerified(!requireEmailVerification);
-        user.setEmailVerificationToken(requireEmailVerification ? generateVerificationToken() : null);
-        user.setEmailVerificationTokenExpiry(
-                requireEmailVerification ? LocalDateTime.now().plusHours(verificationExpiryHours) : null);
+        // Always create users as unverified with email verification token
+        user.setEmailVerified(false);
+        user.setEmailVerificationToken(generateVerificationToken());
+        user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusHours(verificationExpiryHours));
         user.setFailedLoginAttempts(0);
         user.setLockedUntil(null);
 
@@ -90,7 +90,7 @@ public class AuthService {
         log.info("User registered: email={} role={} verificationRequired={}",
                 user.getEmail(), user.getRole(), requireEmailVerification);
 
-        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), "ROLE_" + user.getRole().name(), requireEmailVerification);
+        return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), "ROLE_" + user.getRole().name(), !user.isEmailVerified());
     }
 
     @Transactional
@@ -141,7 +141,7 @@ public class AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
         log.info("User logged in: email={}", refreshedUser.getEmail());
-        return new AuthResponse(token, refreshedUser.getId(), refreshedUser.getName(), refreshedUser.getEmail(), "ROLE_" + refreshedUser.getRole().name());
+        return new AuthResponse(token, refreshedUser.getId(), refreshedUser.getName(), refreshedUser.getEmail(), "ROLE_" + refreshedUser.getRole().name(), !refreshedUser.isEmailVerified());
     }
 
     @Transactional

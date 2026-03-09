@@ -63,7 +63,8 @@ public class AnalyticsService {
 
         // Enrollment stats
         stats.put("totalEnrollments", enrollmentRepository.countByTenantId(tenantId));
-        stats.put("activeEnrollments", enrollmentRepository.countByStatusAndTenantId(Enrollment.Status.ACTIVE, tenantId));
+        stats.put("activeEnrollments",
+                enrollmentRepository.countByStatusAndTenantId(Enrollment.Status.ACTIVE, tenantId));
 
         // Payment stats
         stats.put("totalPayments", paymentRepository.countByTenantId(tenantId));
@@ -83,12 +84,13 @@ public class AnalyticsService {
 
         // Demo booking stats
         stats.put("totalDemoBookings", demoBookingRepository.countByTenantId(tenantId));
-        stats.put("pendingDemoBookings", demoBookingRepository.countByTenantIdAndStatus(tenantId, DemoBooking.Status.PENDING));
+        stats.put("pendingDemoBookings",
+                demoBookingRepository.countByTenantIdAndStatus(tenantId, DemoBooking.Status.PENDING));
 
         // Teacher application stats
         stats.put("totalTeacherApplications", teacherApplicationRepository.countByTenantId(tenantId));
         stats.put("newTeacherApplications",
-            teacherApplicationRepository.countByTenantIdAndStatus(tenantId, TeacherApplication.Status.NEW));
+                teacherApplicationRepository.countByTenantIdAndStatus(tenantId, TeacherApplication.Status.NEW));
 
         // Visitor analytics
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
