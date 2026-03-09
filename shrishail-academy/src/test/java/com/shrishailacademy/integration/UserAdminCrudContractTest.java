@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shrishailacademy.model.Tenant;
 import com.shrishailacademy.model.User;
+import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.security.JwtTokenProvider;
 import com.shrishailacademy.service.TenantService;
@@ -42,6 +43,9 @@ class UserAdminCrudContractTest {
         private UserRepository userRepository;
 
         @Autowired
+        private CourseRepository courseRepository;
+
+        @Autowired
         private JwtTokenProvider jwtTokenProvider;
 
         @Autowired
@@ -52,6 +56,7 @@ class UserAdminCrudContractTest {
 
         @BeforeEach
         void setup() {
+                courseRepository.deleteAll();
                 userRepository.deleteAll();
         }
 

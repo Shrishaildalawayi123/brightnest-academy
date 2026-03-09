@@ -46,6 +46,7 @@ public class Course extends BaseAuditableEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id")
     @JsonIgnoreProperties({ "enrollments", "password", "hibernateLazyInitializer" })
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private User teacher;
 
     @NotBlank(message = "Course title is required")

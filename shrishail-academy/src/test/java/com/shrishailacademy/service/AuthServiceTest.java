@@ -140,10 +140,22 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("missing@example.com", "Password@123");
         Authentication authentication = mock(Authentication.class);
 
+        // Create a mock user for the first findByEmailAndTenantId call
+        User mockUser = new User();
+        mockUser.setId(2L);
+        mockUser.setEmail("missing@example.com");
+        mockUser.setRole(User.Role.STUDENT);
+        mockUser.setEmailVerified(true);
+        mockUser.setFailedLoginAttempts(0);
+
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(tokenProvider.generateToken(authentication)).thenReturn("token-xyz");
-        when(userRepository.findByEmailAndTenantId("missing@example.com", TENANT_ID)).thenReturn(Optional.empty());
+        // First call returns the user, second call returns empty (simulating concurrent
+        // deletion)
+        when(userRepository.findByEmailAndTenantId("missing@example.com", TENANT_ID))
+                .thenReturn(Optional.of(mockUser))
+                .thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.login(request));
 
