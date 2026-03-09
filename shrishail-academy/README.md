@@ -1,4 +1,4 @@
-# 🎓 Shrishail Academy - Full-Stack Education Management System
+# 🎓 BrightNest-Academy.com - Full-Stack Education Management System
 
 A complete education institute management web application built with **Spring Boot** backend and **HTML/CSS/JavaScript** frontend.
 
