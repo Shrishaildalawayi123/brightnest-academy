@@ -1,0 +1,216 @@
+# =============================================
+# Monitoring Stack for BrightNest Academy
+# Prometheus + Grafana + Exporters
+#
+# Usage:
+#   docker compose -f docker-compose.monitoring.yml up -d
+# =============================================
+
+version: "3.8"
+
+networks:
+  monitoring:
+    driver: bridge
+  app_network:
+    external: true # Connect to main app network
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:
+
+services:
+  # =============================================
+  # Prometheus - Metrics Collection
+  # =============================================
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerts:/etc/prometheus/alerts:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - monitoring
+      - app_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================
+  # Grafana - Visualization & Dashboards
+  # =============================================
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SERVER_ROOT_URL=https://monitor.brightnest-academy.com
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================
+  # Alertmanager - Alert Notification Routing
+  # =============================================
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.external-url=https://alerts.brightnest-academy.com"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    networks:
+      - monitoring
+    environment:
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_FROM=${SMTP_FROM:-alerts@brightnest-academy.com}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - OPS_EMAIL=${OPS_EMAIL:-ops@brightnest-academy.com}
+      - DB_ADMIN_EMAIL=${DB_ADMIN_EMAIL:-dba@brightnest-academy.com}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - TWILIO_WEBHOOK_URL=${TWILIO_WEBHOOK_URL}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9093/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================
+  # Node Exporter - System Metrics (CPU, Memory, Disk)
+  # =============================================
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitoring
+    ports:
+      - "127.0.0.1:9100:9100"
+
+  # =============================================
+  # MySQL Exporter - Database Metrics
+  # =============================================
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    container_name: mysql-exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=${DB_USER}:${DB_PASS}@(${DB_HOST}:${DB_PORT})/${DB_NAME}
+    networks:
+      - monitoring
+      - app_network
+    ports:
+      - "127.0.0.1:9104:9104"
+    command:
+      - "--collect.info_schema.processlist"
+      - "--collect.info_schema.innodb_metrics"
+      - "--collect.info_schema.tablestats"
+      - "--collect.info_schema.userstats"
+      - "--collect.perf_schema.tablelocks"
+
+  # =============================================
+  # Redis Exporter - Cache Metrics (if using Redis)
+  # =============================================
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.56.0
+    container_name: redis-exporter
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    networks:
+      - monitoring
+      - app_network
+    ports:
+      - "127.0.0.1:9121:9121"
+
+  # =============================================
+  # cAdvisor - Container Metrics (Docker stats)
+  # =============================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "127.0.0.1:8088:8080"
+    networks:
+      - monitoring
+    command:
+      - "--docker_only=true"
+      - "--housekeeping_interval=30s"
