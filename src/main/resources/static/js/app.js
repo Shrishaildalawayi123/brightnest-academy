@@ -495,23 +495,15 @@ function updateNavigation() {
 // ========== Dark Mode ==========
 
 function initializeDarkMode() {
-  // Check for saved theme preference or default to light mode
+  // Default to light mode for first-time visitors
   const savedTheme = localStorage.getItem('theme');
-  const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  const initialTheme = savedTheme || systemPreference;
+  const initialTheme = savedTheme || 'light';
   
   // Apply theme
   applyTheme(initialTheme);
   
   // Create theme toggle button if not exists
   createThemeToggle();
-  
-  // Listen for system preference changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
-      applyTheme(e.matches ? 'dark' : 'light');
-    }
-  });
 }
 
 function applyTheme(theme) {
@@ -537,35 +529,24 @@ function toggleTheme() {
 function createThemeToggle() {
   // Check if toggle already exists
   if (document.getElementById('themeToggle')) return;
-  
-  const header = document.getElementById('header');
-  if (!header) return;
-  
-  const navLinks = header.querySelector('.nav-links');
-  if (!navLinks) return;
-  
-  const toggleLi = document.createElement('li');
+
+  const toggleContainer = document.createElement('div');
+  toggleContainer.className = 'theme-toggle-fab';
   const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  
-  toggleLi.innerHTML = `
+
+  toggleContainer.innerHTML = `
     <button 
       id="themeToggle" 
       class="theme-toggle-btn"
-      aria-label="Toggle dark mode"
-      title="Toggle dark mode"
+      aria-label="Switch color theme"
+      title="Switch color theme"
       onclick="toggleTheme()"
     >
       <span class="theme-icon">${currentTheme === 'dark' ? '☀️' : '🌙'}</span>
     </button>
   `;
-  
-  // Insert before the login button
-  const loginButton = navLinks.querySelector('a[href="login.html"]');
-  if (loginButton && loginButton.parentElement) {
-    loginButton.parentElement.before(toggleLi);
-  } else {
-    navLinks.appendChild(toggleLi);
-  }
+
+  document.body.appendChild(toggleContainer);
 }
 
 // Make toggleTheme globally accessible

@@ -559,6 +559,13 @@ textarea:focus-visible,
 }
 
 /* Theme Toggle Button */
+.theme-toggle-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1200;
+}
+
 .theme-toggle-btn {
   display: flex;
   align-items: center;
@@ -600,6 +607,12 @@ textarea:focus-visible,
 [data-theme="dark"] .theme-toggle-btn:hover {
   background: var(--dark-bg-tertiary);
   border-color: var(--primary-400);
+}
+
+@media (max-width: 900px) {
+  .theme-toggle-fab {
+    bottom: 5.25rem;
+  }
 }
 
 /* ========== Hero Section ========== */
