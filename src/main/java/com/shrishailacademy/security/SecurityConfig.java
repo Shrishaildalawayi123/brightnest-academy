@@ -1,4 +1,4 @@
-package com.shrishailacademy.security;
+﻿package com.shrishailacademy.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,7 +165,7 @@ public class SecurityConfig {
                                                 })
                                                 .contentSecurityPolicy(csp -> csp
                                                                 .policyDirectives(
-                                                                                "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"))
+                                                                                "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"))
                                                 .frameOptions(frame -> frame.deny())
                                                 .referrerPolicy(referrer -> referrer
                                                                 .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
@@ -291,3 +291,4 @@ public class SecurityConfig {
                 return http.build();
         }
 }
+
