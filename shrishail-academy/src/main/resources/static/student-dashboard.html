@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+?<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -491,7 +491,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-logo">
-                <span>ðŸŽ“</span>
+                <span>🎓</span>
                 <h2>BrightNest Academy</h2>
                 <p>Student Portal</p>
             </div>
@@ -500,28 +500,28 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Main</div>
                     <button class="sidebar-link active" onclick="showSection('overview')">
-                        <span class="icon">ðŸ“Š</span> Overview
+                        <span class="icon">📊</span> Overview
                     </button>
                     <button class="sidebar-link" onclick="showSection('myCourses')">
-                        <span class="icon">ðŸ“š</span> My Courses
+                        <span class="icon">📚</span> My Courses
                     </button>
                     <button class="sidebar-link" onclick="showSection('allCourses')">
-                        <span class="icon">ðŸ”</span> Browse Courses
+                        <span class="icon">🔍</span> Browse Courses
                     </button>
                     <button class="sidebar-link" onclick="showSection('myAttendance')">
-                        <span class="icon">âœ…</span> Attendance
+                        <span class="icon">✅</span> Attendance
                     </button>
                     <button class="sidebar-link" onclick="showSection('myPayments')">
-                        <span class="icon">ðŸ’°</span> Payments
+                        <span class="icon">💰</span> Payments
                     </button>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Account</div>
                     <button class="sidebar-link" onclick="showSection('profile')">
-                        <span class="icon">ðŸ‘¤</span> My Profile
+                        <span class="icon">👤</span> My Profile
                     </button>
                     <button class="sidebar-link" onclick="Auth.logout()">
-                        <span class="icon">ðŸšª</span> Logout
+                        <span class="icon">🚪</span> Logout
                     </button>
                 </div>
             </nav>
@@ -541,8 +541,8 @@
         <main class="main-content">
             <div class="top-bar">
                 <div style="display:flex;align-items:center;gap:0.75rem;">
-                    <button class="mobile-toggle" onclick="toggleSidebar()" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:var(--neutral-100);border-radius:8px;cursor:pointer;font-size:1.25rem;">â˜°</button>
-                    <h1 id="pageTitle">ðŸ“Š Overview</h1>
+                    <button class="mobile-toggle" onclick="toggleSidebar()" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:var(--neutral-100);border-radius:8px;cursor:pointer;font-size:1.25rem;">☰</button>
+                    <h1 id="pageTitle">📊 Overview</h1>
                 </div>
                 <div style="display:flex;gap:1rem;align-items:center;">
                     <span style="color:var(--neutral-500);font-size:0.9rem;" id="dateDisplay"></span>
@@ -555,17 +555,17 @@
             <div id="section-overview" class="page-section active">
                 <div class="stats-row">
                     <div class="stat-card blue">
-                        <div class="stat-icon">ðŸ“š</div>
+                        <div class="stat-icon">📚</div>
                         <div class="stat-number" id="enrolledCount">0</div>
                         <div class="stat-label">Enrolled Courses</div>
                     </div>
                     <div class="stat-card green">
-                        <div class="stat-icon">âœ…</div>
+                        <div class="stat-icon">✅</div>
                         <div class="stat-number" id="activeCount">0</div>
                         <div class="stat-label">Active Enrollments</div>
                     </div>
                     <div class="stat-card purple">
-                        <div class="stat-icon">ðŸŽ¯</div>
+                        <div class="stat-icon">🎯</div>
                         <div class="stat-number" id="availableCount">0</div>
                         <div class="stat-label">Available Courses</div>
                     </div>
@@ -607,19 +607,19 @@
             <!-- My Attendance Section -->
             <div id="section-myAttendance" class="page-section">
                 <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.5rem;">
-                    <div class="stat-card blue"><span class="stat-icon">ðŸ“…</span>
+                    <div class="stat-card blue"><span class="stat-icon">📅</span>
                         <div class="stat-number" id="attTotal">-</div>
                         <div class="stat-label">Total Classes</div>
                     </div>
-                    <div class="stat-card green"><span class="stat-icon">âœ…</span>
+                    <div class="stat-card green"><span class="stat-icon">✅</span>
                         <div class="stat-number" id="attPresent">-</div>
                         <div class="stat-label">Present</div>
                     </div>
-                    <div class="stat-card orange"><span class="stat-icon">â°</span>
+                    <div class="stat-card orange"><span class="stat-icon">⏰</span>
                         <div class="stat-number" id="attLate">-</div>
                         <div class="stat-label">Late</div>
                     </div>
-                    <div class="stat-card purple"><span class="stat-icon">âŒ</span>
+                    <div class="stat-card purple"><span class="stat-icon">❌</span>
                         <div class="stat-number" id="attAbsent">-</div>
                         <div class="stat-label">Absent</div>
                     </div>

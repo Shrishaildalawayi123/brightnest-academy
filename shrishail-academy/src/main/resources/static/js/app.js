@@ -1,12 +1,3 @@
-// Inject Tailwind CSS CDN for utility classes
-(function () {
-  if (!document.querySelector('script[src*="tailwindcss"]')) {
-    var s = document.createElement("script");
-    s.src = "https://cdn.tailwindcss.com";
-    document.head.appendChild(s);
-  }
-})();
-
 /**
  * BrightNest Academy - Main JavaScript
  * Handles UI interactions, navigation, and dynamic content
@@ -28,6 +19,7 @@ function initializeApp() {
   initializeAccessibilityEnhancements();
   initializeAnnouncementBar();
   initializeDarkMode();
+  initializeCursorEnhancements();
 
   // Set current year in footer
   const yearElement = document.getElementById("currentYear");
@@ -286,6 +278,43 @@ function initializeScrollEffects() {
           behavior: "smooth",
         });
       }
+    });
+  });
+}
+
+// ========== Cursor & Hover Enhancements ==========
+function initializeCursorEnhancements() {
+  const supportsFinePointer = window.matchMedia(
+    "(hover: hover) and (pointer: fine)",
+  ).matches;
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (!supportsFinePointer || prefersReducedMotion) {
+    return;
+  }
+
+  document.documentElement.classList.add("cursor-enhanced");
+
+  const magneticTargets = document.querySelectorAll(
+    ".hero .btn, .location-quick .btn",
+  );
+
+  magneticTargets.forEach((target) => {
+    target.addEventListener("mousemove", (event) => {
+      const rect = target.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      const strength = 7;
+
+      target.style.setProperty("--magnetic-x", `${(x * strength).toFixed(2)}px`);
+      target.style.setProperty("--magnetic-y", `${(y * strength).toFixed(2)}px`);
+    });
+
+    target.addEventListener("mouseleave", () => {
+      target.style.removeProperty("--magnetic-x");
+      target.style.removeProperty("--magnetic-y");
     });
   });
 }

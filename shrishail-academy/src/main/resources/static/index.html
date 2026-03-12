@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,11 +49,11 @@
     <style>
         section.hero { padding-top: calc(var(--fixed-top-offset) + 4rem) !important; }
 
-        /* ─── Skip link ─── */
+        /* --- Skip link --- */
         .skip-link { position: absolute; left: -9999px; top: 0.5rem; background: var(--primary-600); color: #fff; padding: 0.5rem 1rem; border-radius: 4px; z-index: 9999; font-size: 0.9rem; }
         .skip-link:focus { left: 1rem; }
 
-        /* ─── Hero 2-column grid ─── */
+        /* --- Hero 2-column grid --- */
         .hero-grid { display: grid; grid-template-columns: 11fr 9fr; gap: 2.5rem; align-items: center; }
         .hero-grid .hero-content { max-width: none; margin: 0; }
         .hero-copy { text-align: left; }
@@ -61,12 +61,12 @@
         .hero-copy .hero-tagline { margin-left: 0; margin-right: 0; max-width: 540px; }
         .hero-copy .hero-buttons { justify-content: flex-start; }
 
-        /* ─── Hero bullet points ─── */
+        /* --- Hero bullet points --- */
         .hero-points { margin-top: 1.5rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
         .hero-points li { padding-left: 1.75rem; position: relative; color: rgba(255,255,255,0.85); font-size: 0.9rem; line-height: 1.5; }
-        .hero-points li::before { content: "✓"; position: absolute; left: 0; color: #fb923c; font-weight: 800; font-size: 0.85rem; }
+        .hero-points li::before { content: "?"; position: absolute; left: 0; color: #fb923c; font-weight: 800; font-size: 0.85rem; }
 
-        /* ─── Inquiry form card ─── */
+        /* --- Inquiry form card --- */
         .hero-form-card {
             background: rgba(255,255,255,0.98);
             border-radius: 1.25rem;
@@ -93,10 +93,10 @@
         .inquiry-form input::placeholder { color: #94a3b8; font-size: 0.85rem; }
         .btn-block { width: 100%; text-align: center; display: block; margin-top: 0.25rem; }
 
-        /* ─── Eyebrow labels ─── */
+        /* --- Eyebrow labels --- */
         .eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #fb923c; margin-bottom: 0.5rem; }
 
-        /* ─── Trust band ─── */
+        /* --- Trust band --- */
         .trust-band { padding: 2.25rem 0; background: #fff; border-bottom: 1px solid rgba(99,102,241,0.1); }
         .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; text-align: center; }
         .trust-grid article { padding: 0.5rem 1rem; border-right: 1px solid rgba(99,102,241,0.1); }
@@ -104,7 +104,7 @@
         .trust-grid article h3 { font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 800; color: #4f46e5; margin-bottom: 0.2rem; line-height: 1; font-family: 'Poppins', sans-serif; }
         .trust-grid article p { font-size: 0.8rem; color: #64748b; margin: 0; font-weight: 500; letter-spacing: 0.01em; }
 
-        /* ─── About panel ─── */
+        /* --- About panel --- */
         .about-stat-panel {
             background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
             border-radius: 1.25rem;
@@ -121,7 +121,7 @@
         .about-stat strong { font-size: 1.4rem; color: #4f46e5; display: block; line-height: 1.1; font-family: 'Poppins', sans-serif; }
         .about-stat small { font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; display: block; font-weight: 500; }
 
-        /* ─── Responsive overrides ─── */
+        /* --- Responsive overrides --- */
         @media (max-width: 1024px) {
             .hero-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
         }
@@ -237,7 +237,7 @@
                         <p class="eyebrow">About Us</p>
                         <h2>Who We Are</h2>
                         <p>BrightNest Academy is a premier tutoring center based in Bengaluru. We specialize in teaching Kannada, English, Hindi, Mathematics and Science with a personalized approach that builds confidence and delivers results.</p>
-                        <p>Our team of 11+ experienced educators supports school students from grades 1 to 10 across CBSE, ICSE, and Karnataka State Board curricula — both online and offline.</p>
+                        <p>Our team of 11+ experienced educators supports school students from grades 1 to 10 across CBSE, ICSE, and Karnataka State Board curricula � both online and offline.</p>
                         <div class="about-preview-features">
                             <div class="about-feature"><div class="about-feature-icon"></div><div><h4>Personalized Learning</h4><p>Tailored to each student's pace</p></div></div>
                             <div class="about-feature"><div class="about-feature-icon"></div><div><h4>All Major Boards</h4><p>CBSE, ICSE, State Board</p></div></div>
@@ -247,7 +247,7 @@
                     </div>
                     <div class="about-preview-image" style="display:flex;align-items:center;justify-content:center;">
                         <div class="about-stat-panel">
-                            <span class="panel-icon">🏫</span>
+                            <span class="panel-icon">??</span>
                             <h3>15+ Years</h3>
                             <p>of excellence in education</p>
                             <div class="about-stats-grid">
@@ -279,6 +279,34 @@
                     <a href="german.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#127465;&#127466;</span><h3 class="card-title">German</h3><p class="card-description">Learn one of Europe's most spoken languages with interactive grammar, speaking and writing sessions.</p><span class="btn btn-outline btn-sm">View More</span></a>
                 </div>
                 <div style="text-align:center;margin-top:var(--space-2xl);"><a href="courses.html" class="btn btn-primary">View All Courses</a></div>
+            </div>
+        </section>
+
+        <!-- Location Snapshot -->
+        <section class="section location-quick" aria-label="Visit BrightNest Academy">
+            <div class="container location-quick__grid">
+                <div class="location-quick__content">
+                    <p class="eyebrow">Our Location</p>
+                    <h2 class="section-title">Visit Our Bengaluru Learning Center</h2>
+                    <p class="section-subtitle">Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage. Easy to find, parent-friendly, and open all days from 9:00 AM to 9:00 PM.</p>
+                    <ul class="location-quick__list" aria-label="Location highlights">
+                        <li>Walk-in counseling available</li>
+                        <li>Dedicated classroom environment</li>
+                        <li>Quick support via phone and WhatsApp</li>
+                    </ul>
+                    <div class="location-quick__actions">
+                        <a href="https://maps.google.com/?q=Kumaraswamy+Layout+Banashankari+Bengaluru+560078" target="_blank" rel="noopener" class="btn btn-accent">Get Directions</a>
+                        <a href="tel:+916363464005" class="btn btn-outline">Call Now</a>
+                    </div>
+                </div>
+                <div class="location-quick__map-wrap">
+                    <iframe
+                        src="https://maps.google.com/maps?q=Kumaraswamy+Layout%2C+Banashankari+1st+Stage%2C+Bengaluru%2C+Karnataka+560078&output=embed&z=16"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="BrightNest Academy Location – Kumaraswamy Layout, Bengaluru"
+                        class="location-quick__map"></iframe>
+                </div>
             </div>
         </section>
 
@@ -365,7 +393,7 @@
         const menuToggle = document.getElementById('menuToggle');
         if (menuToggle) { menuToggle.addEventListener('click', function() { const expanded = this.getAttribute('aria-expanded') === 'true'; this.setAttribute('aria-expanded', String(!expanded)); }); }
 
-        // Counseling form → backend API
+        // Counseling form ? backend API
         const counselingForm = document.getElementById('counselingForm');
         if (counselingForm) {
             counselingForm.addEventListener('submit', async function(e) {
