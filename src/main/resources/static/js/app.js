@@ -345,7 +345,7 @@ function initializeMobileStickyCta() {
   }
 
   const directionsUrl =
-    "https://www.google.com/maps/dir/?api=1&destination=12.907025,77.566184";
+    "https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019";
 
   bar.innerHTML = `
     <a class="mobile-cta-bar__item" href="tel:+916363464005" aria-label="Call BrightNest Academy">Call</a>

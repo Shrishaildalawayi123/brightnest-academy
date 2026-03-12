@@ -866,7 +866,7 @@ function getFooterHTML() {
             <ul>
               <li><a href="tel:+916363464005">+91-6363464005</a></li>
               <li><a href="mailto:info@brightnest-academy.com">info@brightnest-academy.com</a></li>
-              <li><a href="https://www.google.com/maps/dir/?api=1&destination=12.907025,77.566184" target="_blank" rel="noopener">Get Directions</a></li>
+              <li><a href="https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019" target="_blank" rel="noopener">Get Directions</a></li>
             </ul>
             <div class="footer-nap">
               <strong>BrightNest Academy</strong>
@@ -879,7 +879,7 @@ function getFooterHTML() {
         <div class="footer-contact">
           <span><a href="tel:+916363464005">Call: +91-6363464005</a></span>
           <span><a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy%2C%20I%20need%20more%20information%20about%20your%20courses." target="_blank" rel="noopener">WhatsApp</a></span>
-          <span><a href="https://www.google.com/maps/dir/?api=1&destination=12.907025,77.566184" target="_blank" rel="noopener">Directions</a></span>
+          <span><a href="https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019" target="_blank" rel="noopener">Directions</a></span>
         </div>
 
         <div class="footer-bottom">
