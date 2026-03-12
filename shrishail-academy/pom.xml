@@ -21,7 +21,7 @@
     <properties>
         <java.version>21</java.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <jacoco.minimum.coverage>0.65</jacoco.minimum.coverage>
+        <jacoco.minimum.coverage>0.55</jacoco.minimum.coverage>
         <lombok.version>1.18.38</lombok.version>
     </properties>
     

@@ -1,0 +1,97 @@
+# =============================================================
+# amplify.yml — AWS Amplify Build Configuration
+# BrightNest Academy — Vanilla HTML/CSS/JS Frontend
+#
+# Architecture:
+#   Amplify Hosting (static frontend)  ←  this file governs
+#   EC2 + Docker + Nginx (Spring Boot API backend)
+#
+# Environment variable to set in Amplify Console:
+#   BACKEND_API_URL = https://api.brightnest-academy.com/api
+#   (leave blank when backend is on same origin, e.g. EC2 monolith)
+# =============================================================
+version: 1
+
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Verify static assets are present
+        - echo "=== BrightNest Academy — Amplify Build ==="
+        - ls src/main/resources/static/
+
+    build:
+      commands:
+        # ------------------------------------------------
+        # Inject backend API URL into api.js
+        # When BACKEND_API_URL env var is set (Amplify split
+        # deployment), patch the default fallback so all
+        # API calls go to the Spring Boot EC2 backend.
+        # No npm/Node.js build step needed — pure static HTML.
+        # ------------------------------------------------
+        - |
+          if [ -n "${BACKEND_API_URL}" ]; then
+            echo "Injecting BACKEND_API_URL=${BACKEND_API_URL} into api.js"
+            sed -i "s|return \"/api\";|return \"${BACKEND_API_URL}\";|g" \
+              src/main/resources/static/js/api.js
+          else
+            echo "BACKEND_API_URL not set — using relative /api (monolith mode)"
+          fi
+        - echo "Build complete (no npm build needed for Vanilla HTML/CSS/JS)"
+
+  artifacts:
+    # Serve the contents of the Spring Boot static resources folder
+    baseDirectory: src/main/resources/static
+    files:
+      - '**/*'
+
+  cache:
+    # No node_modules — nothing to cache
+    paths: []
+
+  # -------------------------------------------------------
+  # Custom rewrite / redirect rules
+  # - Proxy /api/* to the Spring Boot backend (optional;
+  #   only needed if you want same-domain API calls instead
+  #   of cross-origin calls to api.brightnest-academy.com)
+  # - 404 → custom error page
+  # -------------------------------------------------------
+  customRules:
+    # Preserve direct navigation to HTML pages
+    - source: /admin-dashboard
+      target: /admin-dashboard.html
+      status: "200"
+    - source: /student-dashboard
+      target: /student-dashboard.html
+      status: "200"
+    - source: /login
+      target: /login.html
+      status: "200"
+    - source: /register
+      target: /register.html
+      status: "200"
+    - source: /contact
+      target: /contact.html
+      status: "200"
+    - source: /blog
+      target: /blog.html
+      status: "200"
+    - source: /careers
+      target: /careers.html
+      status: "200"
+    - source: /courses
+      target: /courses.html
+      status: "200"
+    - source: /about
+      target: /about.html
+      status: "200"
+    - source: /faq
+      target: /faq.html
+      status: "200"
+    - source: /pricing-cancellation
+      target: /pricing-cancellation.html
+      status: "200"
+    # 404 fallback
+    - source: "/<*>"
+      target: /404.html
+      status: "404"

@@ -54,6 +54,17 @@ jobs:
           JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
         run: mvn clean verify -B -Dspring.profiles.active=test
 
+      - name: Run admin credentials smoke test
+        working-directory: shrishail-academy
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: shrishail_academy
+          DB_USER: root
+          DB_PASS: testroot
+          JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
+        run: mvn -B -Dspring.profiles.active=test -Dtest=AdminCredentialsSmokeTest test
+
       - name: Upload JaCoCo coverage report
         if: always()
         uses: actions/upload-artifact@v4

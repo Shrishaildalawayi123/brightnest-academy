@@ -178,7 +178,7 @@
             showFieldError('email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) valid = false;
             showFieldError('phone', phone && !/^\d{10}$/.test(phone)); if (phone && !/^\d{10}$/.test(phone)) valid = false;
             showFieldError('password', !passwordRegex.test(password)); if (!passwordRegex.test(password)) valid = false;
-            showFieldError('confirm', password !== confirm); if (password !== confirm) valid = false;
+            showFieldError('confirmPassword', password !== confirm); if (password !== confirm) valid = false;
             if (!agreed) { showError('Please agree to the Terms of Service to continue.'); valid = false; }
             if (!valid) return;
 
@@ -187,6 +187,12 @@
             btn.innerHTML = 'Creating account...';
             try {
                 const response = await Auth.register({ name, email, password, phone });
+                if (response && response.requiresEmailVerification === true) {
+                    showSuccess('Account created successfully. Please verify your email before logging in. Redirecting to sign in...');
+                    setTimeout(() => { window.location.href = '/login.html'; }, 1400);
+                    return;
+                }
+
                 showSuccess('Welcome, ' + response.name + '! Account created successfully. Redirecting...');
                 setTimeout(() => { window.location.href = '/student-dashboard.html'; }, 1000);
             } catch (err) {

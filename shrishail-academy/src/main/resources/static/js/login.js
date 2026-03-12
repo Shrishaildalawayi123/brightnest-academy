@@ -143,7 +143,8 @@
     try {
       // Sends POST /api/auth/login with JSON body { email, password }
       const response = await Auth.login(email, password);
-      if (!response || !response.token) {
+      const token = Auth.extractToken ? Auth.extractToken(response) : response && response.token;
+      if (!response || !token) {
         throw new Error("Login response did not include JWT token.");
       }
       debugLog("login:success", { email, role: response && response.role });
@@ -161,6 +162,8 @@
         showError(
           "Cannot reach the backend. Verify the Spring Boot server is running.",
         );
+      } else if (message.includes("verify your email")) {
+        showError("Please verify your email first, then sign in.");
       } else if (message.includes("Too many")) {
         showError("Too many login attempts. Please wait and try again.");
       } else {

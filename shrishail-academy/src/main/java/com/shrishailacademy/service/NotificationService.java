@@ -3,6 +3,10 @@ package com.shrishailacademy.service;
 import com.shrishailacademy.model.Enrollment;
 import com.shrishailacademy.model.Payment;
 import com.shrishailacademy.model.User;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +39,8 @@ public class NotificationService {
 
     @Value("${whatsapp.sender.number:}")
     private String senderNumber;
+
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     /**
      * Send enrollment confirmation via WhatsApp
@@ -122,15 +128,7 @@ public class NotificationService {
 
         if (whatsappEnabled && !whatsappApiUrl.isBlank()) {
             try {
-                // TODO: Implement actual WhatsApp API call
-                // Example with Twilio:
-                // Twilio.init(accountSid, authToken);
-                // Message.creator(
-                // new PhoneNumber("whatsapp:+91" + phone),
-                // new PhoneNumber("whatsapp:" + senderNumber),
-                // message
-                // ).create();
-
+                sendViaApi(phone, message);
                 log.info("[WhatsApp-{}] SENT to {}: {}", type, maskPhone(phone), truncate(message));
             } catch (Exception e) {
                 // Never let notification failure crash the main flow
@@ -149,8 +147,47 @@ public class NotificationService {
         return whatsappEnabled;
     }
 
+    private void sendViaApi(String phone, String message) throws Exception {
+        if (whatsappApiKey.isBlank()) {
+            throw new IllegalStateException("whatsapp.api.key is required when WhatsApp is enabled");
+        }
+
+        String payload = "{" +
+                "\"to\":\"" + escapeJson(phone) + "\"," +
+                "\"message\":\"" + escapeJson(message) + "\"" +
+                (senderNumber == null || senderNumber.isBlank() ? "" : ",\"from\":\"" + escapeJson(senderNumber) + "\"") +
+                "}";
+
+        HttpRequest request = HttpRequest.newBuilder(URI.create(whatsappApiUrl))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + whatsappApiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int status = response.statusCode();
+        if (status < 200 || status >= 300) {
+            throw new IllegalStateException("WhatsApp API returned " + status + ": " + truncate(response.body()));
+        }
+    }
+
     private String truncate(String text) {
+        if (text == null) {
+            return "";
+        }
         return text.length() > 100 ? text.substring(0, 100) + "..." : text;
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     /**

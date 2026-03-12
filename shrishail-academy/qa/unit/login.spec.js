@@ -21,7 +21,7 @@ describe("login page flow", () => {
 
     window.API = {};
     window.Auth = {
-      login: vi.fn().mockResolvedValue({ role: "ADMIN" }),
+      login: vi.fn().mockResolvedValue({ role: "ADMIN", token: "mock-jwt-token" }),
       isLoggedIn: vi.fn().mockReturnValue(false),
     };
     window.getFooterHTML = vi.fn().mockReturnValue("<footer>Footer</footer>");

@@ -258,6 +258,19 @@ bash deploy/aws/scripts/rollback-release.sh
 bash deploy/aws/scripts/verify-health.sh
 ```
 
+- Run database backup with retention cleanup:
+
+```bash
+DB_HOST=<rds-endpoint> DB_PORT=3306 DB_NAME=shrishail_academy DB_USER=<user> DB_PASS=<password> \
+bash deploy/aws/scripts/backup-mysql.sh
+```
+
+Recommended cron (daily backup at 02:30 server time):
+
+```bash
+30 2 * * * DB_HOST=<rds-endpoint> DB_PORT=3306 DB_NAME=shrishail_academy DB_USER=<user> DB_PASS=<password> BACKUP_DIR=/opt/brightnest/backups RETENTION_DAYS=14 /bin/bash /opt/brightnest/deploy/aws/scripts/backup-mysql.sh >> /var/log/brightnest-db-backup.log 2>&1
+```
+
 - Create MySQL backup:
 
 ```bash

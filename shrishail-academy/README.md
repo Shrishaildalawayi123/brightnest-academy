@@ -164,6 +164,14 @@ Before running the application, ensure you have:
    mvn -v
    ```
 
+   If your system `java` still points to another JDK, use the repo helper script:
+
+   ```bat
+   run-java21.bat java -version
+   run-java21.bat javac -version
+   run-java21.bat mvn clean verify
+   ```
+
 2. **Maven 3.6+**
 
    ```bash
@@ -245,6 +253,12 @@ mvn clean install -DskipTests
 
 ```bash
 mvn spring-boot:run
+```
+
+On Windows, if your default `java` is not JDK 21, use:
+
+```bat
+run-java21.bat mvn spring-boot:run
 ```
 
 ### Method 2: Using Java JAR

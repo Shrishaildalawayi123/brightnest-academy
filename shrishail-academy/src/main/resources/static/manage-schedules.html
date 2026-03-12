@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Schedules - BrightNest Academy</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">BrightNest Academy</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/admin-dashboard.html">Dashboard</a>
+                <a href="/manage-schedules.html" class="active">Schedules</a>
+                <a href="/manage-sessions.html">Sessions</a>
+                <a href="/manage-assignments.html">Assignments</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <div class="page-header">
+            <h1>Class Schedules</h1>
+            <button id="addScheduleBtn" class="btn btn-primary">+ Add Schedule</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Filter by Course</label>
+                        <select id="courseFilter" class="form-control">
+                            <option value="">All Courses</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Filter by Teacher</label>
+                        <select id="teacherFilter" class="form-control">
+                            <option value="">All Teachers</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Filter by Day</label>
+                        <select id="dayFilter" class="form-control">
+                            <option value="">All Days</option>
+                            <option value="MONDAY">Monday</option>
+                            <option value="TUESDAY">Tuesday</option>
+                            <option value="WEDNESDAY">Wednesday</option>
+                            <option value="THURSDAY">Thursday</option>
+                            <option value="FRIDAY">Friday</option>
+                            <option value="SATURDAY">Saturday</option>
+                            <option value="SUNDAY">Sunday</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedules Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table" id="schedulesTable">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Teacher</th>
+                                <th>Day</th>
+                                <th>Time</th>
+                                <th>Room</th>
+                                <th>Capacity</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedulesBody">
+                            <tr>
+                                <td colspan="8" class="text-center">Loading schedules...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Schedule Modal -->
+    <div id="scheduleModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Class Schedule</h2>
+                <span class="close" onclick="closeScheduleModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    <input type="hidden" id="scheduleId">
+                    
+                    <div class="form-group">
+                        <label for="courseId">Course *</label>
+                        <select id="courseId" class="form-control" required>
+                            <option value="">Select Course</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="teacherId">Teacher *</label>
+                        <select id="teacherId" class="form-control" required>
+                            <option value="">Select Teacher</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dayOfWeek">Day of Week *</label>
+                        <select id="dayOfWeek" class="form-control" required>
+                            <option value="">Select Day</option>
+                            <option value="MONDAY">Monday</option>
+                            <option value="TUESDAY">Tuesday</option>
+                            <option value="WEDNESDAY">Wednesday</option>
+                            <option value="THURSDAY">Thursday</option>
+                            <option value="FRIDAY">Friday</option>
+                            <option value="SATURDAY">Saturday</option>
+                            <option value="SUNDAY">Sunday</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startTime">Start Time *</label>
+                            <input type="time" id="startTime" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">End Time *</label>
+                            <input type="time" id="endTime" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="roomNumber">Room Number *</label>
+                            <input type="text" id="roomNumber" class="form-control" placeholder="e.g., Room 101" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="maxStudents">Max Students *</label>
+                            <input type="number" id="maxStudents" class="form-control" min="1" max="200" value="30" required>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeScheduleModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Create Schedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { apiCall, showNotification, formatTime } from '/js/app.js';
+
+        let allSchedules = [];
+        let courses = [];
+        let teachers = [];
+
+        // Load initial data
+        async function loadData() {
+            try {
+                // Load schedules
+                const schedules = await apiCall('/api/v1/schedules');
+                allSchedules = schedules;
+                renderSchedules(schedules);
+                
+                // Load courses and teachers for filters and form
+                courses = await apiCall('/api/courses');
+                teachers = await apiCall('/api/users?role=TEACHER');
+                
+                populateFilters();
+                populateFormSelects();
+            } catch (error) {
+                showNotification('Failed to load data: ' + error.message, 'error');
+            }
+        }
+
+        // Populate filter dropdowns
+        function populateFilters() {
+            const courseFilter = document.getElementById('courseFilter');
+            const teacherFilter = document.getElementById('teacherFilter');
+            
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.name;
+                courseFilter.appendChild(option);
+            });
+            
+            teachers.forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher.id;
+                option.textContent = teacher.fullName;
+                teacherFilter.appendChild(option);
+            });
+        }
+
+        // Populate form select dropdowns
+        function populateFormSelects() {
+            const courseSelect = document.getElementById('courseId');
+            const teacherSelect = document.getElementById('teacherId');
+            
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.name;
+                courseSelect.appendChild(option);
+            });
+            
+            teachers.forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher.id;
+                option.textContent = teacher.fullName;
+                teacherSelect.appendChild(option);
+            });
+        }
+
+        // Render schedules table
+        function renderSchedules(schedules) {
+            const tbody = document.getElementById('schedulesBody');
+            
+            if (schedules.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No schedules found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = schedules.map(schedule => `
+                <tr>
+                    <td>${schedule.courseName}</td>
+                    <td>${schedule.teacherName}</td>
+                    <td>${schedule.dayOfWeek}</td>
+                    <td>${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}</td>
+                    <td>${schedule.roomNumber}</td>
+                    <td>${schedule.maxStudents}</td>
+                    <td>
+                        <span class="badge ${schedule.isActive ? 'badge-success' : 'badge-secondary'}">
+                            ${schedule.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editSchedule(${schedule.id})">Edit</button>
+                        <button class="btn btn-sm btn-secondary" onclick="generateSessions(${schedule.id})">Generate</button>
+                        ${schedule.isActive ? 
+                            `<button class="btn btn-sm btn-danger" onclick="deleteSchedule(${schedule.id})">Delete</button>` :
+                            ''
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Filter schedules
+        function applyFilters() {
+            const courseId = document.getElementById('courseFilter').value;
+            const teacherId = document.getElementById('teacherFilter').value;
+            const day = document.getElementById('dayFilter').value;
+            
+            let filtered = allSchedules;
+            
+            if (courseId) {
+                filtered = filtered.filter(s => s.courseId == courseId);
+            }
+            if (teacherId) {
+                filtered = filtered.filter(s => s.teacherId == teacherId);
+            }
+            if (day) {
+                filtered = filtered.filter(s => s.dayOfWeek === day);
+            }
+            
+            renderSchedules(filtered);
+        }
+
+        // Open modal for adding schedule
+        window.addScheduleBtn.onclick = function() {
+            document.getElementById('modalTitle').textContent = 'Add Class Schedule';
+            document.getElementById('scheduleForm').reset();
+            document.getElementById('scheduleId').value = '';
+            document.getElementById('submitBtn').textContent = 'Create Schedule';
+            document.getElementById('scheduleModal').style.display = 'flex';
+        };
+
+        // Edit schedule
+        window.editSchedule = async function(id) {
+            try {
+                const schedule = await apiCall(`/api/v1/schedules/${id}`);
+                
+                document.getElementById('modalTitle').textContent = 'Edit Class Schedule';
+                document.getElementById('scheduleId').value = schedule.id;
+                document.getElementById('courseId').value = schedule.courseId;
+                document.getElementById('teacherId').value = schedule.teacherId;
+                document.getElementById('dayOfWeek').value = schedule.dayOfWeek;
+                document.getElementById('startTime').value = schedule.startTime;
+                document.getElementById('endTime').value = schedule.endTime;
+                document.getElementById('roomNumber').value = schedule.roomNumber;
+                document.getElementById('maxStudents').value = schedule.maxStudents;
+                document.getElementById('submitBtn').textContent = 'Update Schedule';
+                document.getElementById('scheduleModal').style.display = 'flex';
+            } catch (error) {
+                showNotification('Failed to load schedule: ' + error.message, 'error');
+            }
+        };
+
+        // Generate sessions for schedule
+        window.generateSessions = async function(id) {
+            if (!confirm('Generate sessions for the next 4 weeks?')) return;
+            
+            try {
+                const response = await apiCall(`/api/v1/schedules/${id}/generate-sessions?weeksAhead=4`, 'POST');
+                showNotification(response, 'success');
+            } catch (error) {
+                showNotification('Failed to generate sessions: ' + error.message, 'error');
+            }
+        };
+
+        // Delete schedule
+        window.deleteSchedule = async function(id) {
+            if (!confirm('Are you sure you want to delete this schedule?')) return;
+            
+            try {
+                await apiCall(`/api/v1/schedules/${id}`, 'DELETE');
+                showNotification('Schedule deleted successfully', 'success');
+                loadData();
+            } catch (error) {
+                showNotification('Failed to delete schedule: ' + error.message, 'error');
+            }
+        };
+
+        // Close modal
+        window.closeScheduleModal = function() {
+            document.getElementById('scheduleModal').style.display = 'none';
+        };
+
+        // Submit form
+        document.getElementById('scheduleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const scheduleId = document.getElementById('scheduleId').value;
+            const formData = {
+                courseId: parseInt(document.getElementById('courseId').value),
+                teacherId: parseInt(document.getElementById('teacherId').value),
+                dayOfWeek: document.getElementById('dayOfWeek').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                roomNumber: document.getElementById('roomNumber').value,
+                maxStudents: parseInt(document.getElementById('maxStudents').value),
+                isActive: true
+            };
+            
+            try {
+                if (scheduleId) {
+                    await apiCall(`/api/v1/schedules/${scheduleId}`, 'PUT', formData);
+                    showNotification('Schedule updated successfully', 'success');
+                } else {
+                    await apiCall('/api/v1/schedules', 'POST', formData);
+                    showNotification('Schedule created successfully', 'success');
+                }
+                
+                closeScheduleModal();
+                loadData();
+            } catch (error) {
+                showNotification('Failed to save schedule: ' + error.message, 'error');
+            }
+        });
+
+        // Add filter event listeners
+        document.getElementById('courseFilter').addEventListener('change', applyFilters);
+        document.getElementById('teacherFilter').addEventListener('change', applyFilters);
+        document.getElementById('dayFilter').addEventListener('change', applyFilters);
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>

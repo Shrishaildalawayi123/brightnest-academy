@@ -27,6 +27,7 @@ const ANNOUNCEMENT_MESSAGES = [
 function initializeApp() {
   initializeAccessibilityEnhancements();
   initializeAnnouncementBar();
+  initializeDarkMode();
 
   // Set current year in footer
   const yearElement = document.getElementById("currentYear");
@@ -424,6 +425,85 @@ function updateNavigation() {
     }
   }
 }
+
+// ========== Dark Mode ==========
+
+function initializeDarkMode() {
+  // Check for saved theme preference or default to light mode
+  const savedTheme = localStorage.getItem('theme');
+  const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const initialTheme = savedTheme || systemPreference;
+  
+  // Apply theme
+  applyTheme(initialTheme);
+  
+  // Create theme toggle button if not exists
+  createThemeToggle();
+  
+  // Listen for system preference changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) {
+      applyTheme(e.matches ? 'dark' : 'light');
+    }
+  });
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  
+  // Update toggle button if exists
+  const toggleButton = document.getElementById('themeToggle');
+  if (toggleButton) {
+    const icon = toggleButton.querySelector('.theme-icon');
+    if (icon) {
+      icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function createThemeToggle() {
+  // Check if toggle already exists
+  if (document.getElementById('themeToggle')) return;
+  
+  const header = document.getElementById('header');
+  if (!header) return;
+  
+  const navLinks = header.querySelector('.nav-links');
+  if (!navLinks) return;
+  
+  const toggleLi = document.createElement('li');
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  
+  toggleLi.innerHTML = `
+    <button 
+      id="themeToggle" 
+      class="theme-toggle-btn"
+      aria-label="Toggle dark mode"
+      title="Toggle dark mode"
+      onclick="toggleTheme()"
+    >
+      <span class="theme-icon">${currentTheme === 'dark' ? '☀️' : '🌙'}</span>
+    </button>
+  `;
+  
+  // Insert before the login button
+  const loginButton = navLinks.querySelector('a[href="login.html"]');
+  if (loginButton && loginButton.parentElement) {
+    loginButton.parentElement.before(toggleLi);
+  } else {
+    navLinks.appendChild(toggleLi);
+  }
+}
+
+// Make toggleTheme globally accessible
+window.toggleTheme = toggleTheme;
 
 // ========== Helper Functions ==========
 

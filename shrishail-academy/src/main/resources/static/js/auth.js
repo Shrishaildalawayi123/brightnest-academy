@@ -4,6 +4,22 @@
  */
 
 const Auth = {
+  extractToken(response) {
+    if (!response || typeof response !== "object") {
+      return null;
+    }
+    if (typeof response.token === "string" && response.token.trim()) {
+      return response.token.trim();
+    }
+    if (
+      typeof response.accessToken === "string" &&
+      response.accessToken.trim()
+    ) {
+      return response.accessToken.trim();
+    }
+    return null;
+  },
+
   getToken() {
     const token = localStorage.getItem("token");
     return token && token.trim() ? token.trim() : null;
@@ -33,12 +49,16 @@ const Auth = {
     }
   },
 
-  setSession(response) {
-    if (!response || !response.token) {
+  setSession(response, options = {}) {
+    const token = this.extractToken(response);
+    if (!token) {
+      if (options.allowMissingToken === true) {
+        return false;
+      }
       throw new Error("Login response did not include a JWT token.");
     }
 
-    localStorage.setItem("token", response.token);
+    localStorage.setItem("token", token);
     localStorage.setItem(
       "user",
       JSON.stringify({
@@ -48,6 +68,7 @@ const Auth = {
         role: response.role,
       }),
     );
+    return true;
   },
 
   clearSession() {
@@ -85,7 +106,7 @@ const Auth = {
    */
   async register(userData) {
     const response = await API.register(userData);
-    this.setSession(response);
+    this.setSession(response, { allowMissingToken: true });
     return response;
   },
 
