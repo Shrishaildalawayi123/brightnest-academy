@@ -46,8 +46,4 @@ jobs:
           DB_PASS: testroot
           JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
           SPRING_PROFILES_ACTIVE: test
-        run: |
-          if [ -f "shrishail-academy/pom.xml" ]; then
-            cd shrishail-academy
-          fi
-          mvn -B clean verify
+        run: mvn -B clean verify

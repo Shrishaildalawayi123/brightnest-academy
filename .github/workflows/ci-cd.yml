@@ -52,11 +52,7 @@ jobs:
           DB_PASS: testroot
           JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
           SPRING_PROFILES_ACTIVE: test
-        run: |
-          if [ -f "shrishail-academy/pom.xml" ]; then
-            cd shrishail-academy
-          fi
-          mvn -B clean verify
+        run: mvn -B clean verify
 
       - name: Run admin credentials smoke test
         env:
@@ -67,24 +63,17 @@ jobs:
           DB_PASS: testroot
           JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
           SPRING_PROFILES_ACTIVE: test
-        run: |
-          if [ -f "shrishail-academy/pom.xml" ]; then
-            cd shrishail-academy
-          fi
-          mvn -B -Dtest=AdminCredentialsSmokeTest test
+        run: mvn -B -Dtest=AdminCredentialsSmokeTest test
 
       - name: Upload JaCoCo coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: |
-            target/site/jacoco/
-            shrishail-academy/target/site/jacoco/
+          path: target/site/jacoco/
           retention-days: 14
 
       - name: Check JaCoCo coverage threshold (80%)
-        working-directory: shrishail-academy
         run: |
           echo "✅ JaCoCo coverage check passed (enforced by Maven verify goal)"
           echo "Minimum threshold: 80% instruction coverage"
@@ -113,11 +102,7 @@ jobs:
           cache: maven
 
       - name: Build for CodeQL analysis
-        run: |
-          if [ -f "shrishail-academy/pom.xml" ]; then
-            cd shrishail-academy
-          fi
-          mvn -B clean compile -Dmaven.test.skip=true
+        run: mvn -B clean compile -Dmaven.test.skip=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -145,11 +130,7 @@ jobs:
           cache: maven
 
       - name: Build JAR
-        run: |
-          if [ -f "shrishail-academy/pom.xml" ]; then
-            cd shrishail-academy
-          fi
-          mvn -B clean package -Dmaven.test.skip=true
+        run: mvn -B clean package -Dmaven.test.skip=true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -164,8 +145,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./shrishail-academy
-          file: ./shrishail-academy/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:latest
@@ -193,7 +174,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
-          source: "shrishail-academy/deploy/aws/docker-compose.ghcr.yml"
+          source: "deploy/aws/docker-compose.ghcr.yml"
           target: "/opt/brightnest"
 
       - name: SSH deploy
@@ -210,9 +191,9 @@ jobs:
             mkdir -p /opt/brightnest
 
             # Normalize compose filename
-            if [ -f /opt/brightnest/shrishail-academy/deploy/aws/docker-compose.ghcr.yml ]; then
-              mv /opt/brightnest/shrishail-academy/deploy/aws/docker-compose.ghcr.yml /opt/brightnest/docker-compose.yml
-              rm -rf /opt/brightnest/shrishail-academy || true
+            if [ -f /opt/brightnest/deploy/aws/docker-compose.ghcr.yml ]; then
+              mv /opt/brightnest/deploy/aws/docker-compose.ghcr.yml /opt/brightnest/docker-compose.yml
+              rm -rf /opt/brightnest/deploy || true
             fi
 
             # Ensure compose file points to the correct owner/org
