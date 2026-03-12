@@ -44,7 +44,6 @@ jobs:
           cache: maven
 
       - name: Build and run tests
-        working-directory: shrishail-academy
         env:
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
@@ -53,10 +52,13 @@ jobs:
           DB_PASS: testroot
           JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
           SPRING_PROFILES_ACTIVE: test
-        run: mvn -B clean verify
+        run: |
+          if [ -f "shrishail-academy/pom.xml" ]; then
+            cd shrishail-academy
+          fi
+          mvn -B clean verify
 
       - name: Run admin credentials smoke test
-        working-directory: shrishail-academy
         env:
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
@@ -65,14 +67,20 @@ jobs:
           DB_PASS: testroot
           JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
           SPRING_PROFILES_ACTIVE: test
-        run: mvn -B -Dtest=AdminCredentialsSmokeTest test
+        run: |
+          if [ -f "shrishail-academy/pom.xml" ]; then
+            cd shrishail-academy
+          fi
+          mvn -B -Dtest=AdminCredentialsSmokeTest test
 
       - name: Upload JaCoCo coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: shrishail-academy/target/site/jacoco/
+          path: |
+            target/site/jacoco/
+            shrishail-academy/target/site/jacoco/
           retention-days: 14
 
       - name: Check JaCoCo coverage threshold (80%)
@@ -105,8 +113,11 @@ jobs:
           cache: maven
 
       - name: Build for CodeQL analysis
-        working-directory: shrishail-academy
-        run: mvn clean compile -B -Dmaven.test.skip=true
+        run: |
+          if [ -f "shrishail-academy/pom.xml" ]; then
+            cd shrishail-academy
+          fi
+          mvn -B clean compile -Dmaven.test.skip=true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -134,8 +145,11 @@ jobs:
           cache: maven
 
       - name: Build JAR
-        working-directory: shrishail-academy
-        run: mvn clean package -B -Dmaven.test.skip=true
+        run: |
+          if [ -f "shrishail-academy/pom.xml" ]; then
+            cd shrishail-academy
+          fi
+          mvn -B clean package -Dmaven.test.skip=true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
