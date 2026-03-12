@@ -24,15 +24,44 @@
       "@context": "https://schema.org",
       "@type": "EducationalOrganization",
       "name": "BrightNest Academy",
+            "url": "https://brightnest-academy.com/",
       "telephone": "+91-6363464005",
       "address": {
         "@type": "PostalAddress",
+                "streetAddress": "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage",
         "addressLocality": "Bengaluru",
         "addressRegion": "Karnataka",
         "postalCode": "560078",
         "addressCountry": "IN"
       },
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 12.907025,
+                "longitude": 77.566184
+            },
+            "openingHoursSpecification": [
+                {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "opens": "09:00",
+                    "closes": "21:00"
+                }
+            ],
       "areaServed": "Bengaluru",
+            "sameAs": [
+                "https://maps.google.com/?q=Kumaraswamy+Layout+Banashankari+Bengaluru+560078",
+                "https://www.facebook.com/brightnestacademy",
+                "https://www.instagram.com/brightnestacademy",
+                "https://www.youtube.com/@brightnestacademy"
+            ],
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
         "name": "Tuition Courses",
@@ -214,6 +243,7 @@
                         <div><label for="phone">Parent Phone Number</label><input id="phone" name="phone" type="tel" placeholder="+91 XXXXX XXXXX" required inputmode="tel" autocomplete="tel" pattern="[+]?[0-9\s\-]{7,20}"></div>
                         <div id="counselingMsg" style="display:none;padding:0.75rem;border-radius:8px;text-align:center;font-size:0.9rem;font-weight:500;"></div>
                         <button class="btn btn-primary btn-block" type="submit" id="counselingBtn">Request Callback</button>
+                        <p class="form-guarantee">We usually respond within 15 minutes during working hours. No spam, ever.</p>
                     </form>
                 </aside>
             </div>
@@ -222,10 +252,10 @@
         <!-- Trust band -->
         <div class="trust-band">
             <div class="container trust-grid">
-                <article><h3>500+</h3><p>Students Mentored</p></article>
-                <article><h3>11+</h3><p>Experienced Educators</p></article>
-                <article><h3>98%</h3><p>Parent Satisfaction</p></article>
-                <article><h3>8</h3><p>Subjects Offered</p></article>
+                <article><h3>3 Boards</h3><p>CBSE, ICSE, State Board Results</p></article>
+                <article><h3>15+ Years</h3><p>Teaching Excellence in Bengaluru</p></article>
+                <article><h3>4.9 / 5</h3><p>Average Parent Rating</p></article>
+                <article><h3>&lt; 15 min</h3><p>Callback Response During Hours</p></article>
             </div>
         </div>
 
@@ -279,6 +309,27 @@
                     <a href="german.html" class="course-card" style="text-decoration:none;"><span class="card-icon">&#127465;&#127466;</span><h3 class="card-title">German</h3><p class="card-description">Learn one of Europe's most spoken languages with interactive grammar, speaking and writing sessions.</p><span class="btn btn-outline btn-sm">View More</span></a>
                 </div>
                 <div style="text-align:center;margin-top:var(--space-2xl);"><a href="courses.html" class="btn btn-primary">View All Courses</a></div>
+            </div>
+        </section>
+
+        <section class="section location-quick" aria-label="Visit BrightNest Academy">
+            <div class="container">
+                <div class="location-quick__card">
+                    <div>
+                        <p class="eyebrow">Our Location</p>
+                        <h2 class="section-title">Visit Our Bengaluru Learning Center</h2>
+                        <p class="section-subtitle">#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru - 560078.</p>
+                        <ul class="location-quick__list" aria-label="Location highlights">
+                            <li>Walk-in counseling available</li>
+                            <li>Open all days from 9:00 AM to 9:00 PM</li>
+                            <li>Quick support via phone and WhatsApp</li>
+                        </ul>
+                        <div class="location-quick__actions">
+                            <a href="tel:+916363464005" class="btn btn-outline">Call Now</a>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=12.907025,77.566184" target="_blank" rel="noopener" class="btn btn-accent">Get Directions</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 

@@ -3156,3 +3156,181 @@ textarea:focus-visible,
 .mb-4 {
   margin-bottom: var(--space-xl);
 }
+
+.form-guarantee {
+  margin-top: 0.65rem;
+  margin-bottom: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--navy-500);
+}
+
+/* ========== Homepage Location Card ========== */
+.location-quick {
+  background: linear-gradient(180deg, #f8fbff 0%, #f1f5ff 100%);
+  border-top: 1px solid rgba(99, 102, 241, 0.12);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+.location-quick__card {
+  background: #fff;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  box-shadow: 0 12px 34px rgba(30, 41, 59, 0.08);
+  padding: clamp(1.1rem, 2.2vw, 1.8rem);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.location-quick__card .section-subtitle {
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.location-quick__list {
+  margin: 1rem 0 1.2rem;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.location-quick__list li {
+  position: relative;
+  padding-left: 1.5rem;
+  color: var(--navy-700);
+  font-weight: 500;
+}
+
+.location-quick__list li::before {
+  content: "•";
+  position: absolute;
+  left: 0.4rem;
+  color: var(--accent-orange);
+  font-weight: 800;
+}
+
+.location-quick__actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.footer-nap {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.3rem;
+  color: var(--navy-400);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.footer-nap strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+/* ========== Cursor Polish (desktop only) ========== */
+@media (hover: hover) and (pointer: fine) {
+  .cursor-enhanced .btn {
+    transform: translate3d(var(--magnetic-x, 0), var(--magnetic-y, 0), 0);
+    transition:
+      transform var(--transition-base),
+      box-shadow var(--transition-base),
+      filter var(--transition-fast);
+    will-change: transform;
+  }
+
+  .cursor-enhanced .btn:hover {
+    filter: brightness(1.03);
+  }
+
+  .cursor-enhanced .btn-primary:hover,
+  .cursor-enhanced .btn-accent:hover {
+    box-shadow:
+      0 0 0 3px rgba(99, 102, 241, 0.24),
+      0 10px 24px rgba(79, 70, 229, 0.22);
+  }
+
+  .cursor-enhanced .course-card,
+  .cursor-enhanced .help-card,
+  .cursor-enhanced .contact-info-card,
+  .cursor-enhanced .location-quick__card {
+    transition:
+      transform var(--transition-base),
+      box-shadow var(--transition-base),
+      border-color var(--transition-base);
+  }
+
+  .cursor-enhanced .course-card:hover,
+  .cursor-enhanced .help-card:hover,
+  .cursor-enhanced .contact-info-card:hover,
+  .cursor-enhanced .location-quick__card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 0 0 2px rgba(99, 102, 241, 0.16),
+      0 14px 30px rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.28);
+  }
+}
+
+/* ========== Sticky Mobile CTA Bar ========== */
+.mobile-cta-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1600;
+  display: none;
+  grid-template-columns: repeat(3, 1fr);
+  background: rgba(15, 23, 42, 0.94);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.mobile-cta-bar--animate {
+  animation: mobileCtaSlideUp 340ms ease-out;
+}
+
+.mobile-cta-bar__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.83rem;
+  letter-spacing: 0.01em;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.mobile-cta-bar__item:last-child {
+  border-right: 0;
+}
+
+.mobile-cta-bar__item:hover,
+.mobile-cta-bar__item:focus-visible {
+  color: #fff;
+  background: rgba(79, 70, 229, 0.45);
+}
+
+@keyframes mobileCtaSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .mobile-cta-bar {
+    display: grid;
+  }
+
+  body {
+    padding-bottom: 64px;
+  }
+}

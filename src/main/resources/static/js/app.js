@@ -1,12 +1,3 @@
-// Inject Tailwind CSS CDN for utility classes
-(function () {
-  if (!document.querySelector('script[src*="tailwindcss"]')) {
-    var s = document.createElement("script");
-    s.src = "https://cdn.tailwindcss.com";
-    document.head.appendChild(s);
-  }
-})();
-
 /**
  * BrightNest Academy - Main JavaScript
  * Handles UI interactions, navigation, and dynamic content
@@ -28,6 +19,8 @@ function initializeApp() {
   initializeAccessibilityEnhancements();
   initializeAnnouncementBar();
   initializeDarkMode();
+  initializeCursorEnhancements();
+  initializeMobileStickyCta();
 
   // Set current year in footer
   const yearElement = document.getElementById("currentYear");
@@ -288,6 +281,79 @@ function initializeScrollEffects() {
       }
     });
   });
+}
+
+// ========== Cursor & Hover Enhancements ==========
+function initializeCursorEnhancements() {
+  const supportsFinePointer = window.matchMedia(
+    "(hover: hover) and (pointer: fine)",
+  ).matches;
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (!supportsFinePointer || prefersReducedMotion) {
+    return;
+  }
+
+  document.documentElement.classList.add("cursor-enhanced");
+
+  const magneticTargets = document.querySelectorAll(".hero .btn");
+
+  magneticTargets.forEach((target) => {
+    target.addEventListener("mousemove", (event) => {
+      const rect = target.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      const strength = 7;
+
+      target.style.setProperty(
+        "--magnetic-x",
+        `${(x * strength).toFixed(2)}px`,
+      );
+      target.style.setProperty(
+        "--magnetic-y",
+        `${(y * strength).toFixed(2)}px`,
+      );
+    });
+
+    target.addEventListener("mouseleave", () => {
+      target.style.removeProperty("--magnetic-x");
+      target.style.removeProperty("--magnetic-y");
+    });
+  });
+}
+
+// ========== Sticky Mobile CTA ==========
+function initializeMobileStickyCta() {
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  const isTouchDevice = window.matchMedia(
+    "(hover: none), (pointer: coarse)",
+  ).matches;
+
+  if (!isTouchDevice || document.querySelector(".mobile-cta-bar")) {
+    return;
+  }
+
+  const bar = document.createElement("nav");
+  bar.className = "mobile-cta-bar";
+  bar.setAttribute("aria-label", "Quick contact actions");
+  if (!prefersReducedMotion) {
+    bar.classList.add("mobile-cta-bar--animate");
+  }
+
+  const directionsUrl =
+    "https://www.google.com/maps/dir/?api=1&destination=12.907025,77.566184";
+
+  bar.innerHTML = `
+    <a class="mobile-cta-bar__item" href="tel:+916363464005" aria-label="Call BrightNest Academy">Call</a>
+    <a class="mobile-cta-bar__item" href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy%2C%20I%20need%20course%20details." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">WhatsApp</a>
+    <a class="mobile-cta-bar__item" href="${directionsUrl}" target="_blank" rel="noopener" aria-label="Get directions to BrightNest Academy">Directions</a>
+  `;
+
+  document.body.appendChild(bar);
 }
 
 // ========== Form Validation ==========
