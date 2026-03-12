@@ -46,4 +46,20 @@ jobs:
           DB_PASS: testroot
           JWT_SECRET: CI-Test-Secret-Key-Must-Be-At-Least-64-Characters-Long-For-HS512-Algorithm!!
           SPRING_PROFILES_ACTIVE: test
-        run: mvn -B clean verify
+        run: |
+          set -o pipefail
+          mvn -B -e -DtrimStackTrace=false clean verify 2>&1 | tee maven-test.log
+
+      - name: Upload test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-backend-test-diagnostics
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            maven-test.log
+            target/surefire-reports/**
+            target/failsafe-reports/**
+            target/site/jacoco/**
+            target/*.exec
