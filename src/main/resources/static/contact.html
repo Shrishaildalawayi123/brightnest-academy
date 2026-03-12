@@ -100,24 +100,26 @@
             <div class="contact-grid">
                 <div>
                     <h2 style="margin-bottom:var(--space-lg);">Send Us a Message</h2>
-                    <form id="contactForm">
+                    <form id="contactForm" novalidate>
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label">Name *</label>
-                                <input type="text" class="form-input" id="contactName" required autocomplete="name">
+                                <label class="form-label" for="contactName">Name <span aria-label="required">*</span></label>
+                                <input type="text" class="form-input" id="contactName" required aria-required="true" aria-describedby="contactNameError" autocomplete="name">
+                                <span id="contactNameError" style="display:none;color:var(--accent-rose);font-size:0.85rem;margin-top:0.25rem;" role="alert"></span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Email *</label>
-                                <input type="email" class="form-input" id="contactEmail" required autocomplete="email">
+                                <label class="form-label" for="contactEmail">Email <span aria-label="required">*</span></label>
+                                <input type="email" class="form-input" id="contactEmail" required aria-required="true" aria-describedby="contactEmailError" autocomplete="email">
+                                <span id="contactEmailError" style="display:none;color:var(--accent-rose);font-size:0.85rem;margin-top:0.25rem;" role="alert"></span>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label">Phone</label>
+                                <label class="form-label" for="contactPhone">Phone</label>
                                 <input type="tel" class="form-input" id="contactPhone" inputmode="tel" autocomplete="tel">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Subject</label>
+                                <label class="form-label" for="contactSubject">Subject</label>
                                 <select class="form-select" id="contactSubject">
                                     <option value="">Select Topic</option>
                                     <option>Course Inquiry</option>
@@ -130,10 +132,11 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Message *</label>
-                            <textarea class="form-textarea" id="contactMessage" rows="5" required placeholder="Tell us how we can help..."></textarea>
+                            <label class="form-label" for="contactMessage">Message <span aria-label="required">*</span></label>
+                            <textarea class="form-textarea" id="contactMessage" rows="5" required aria-required="true" aria-describedby="contactMessageError" placeholder="Tell us how we can help..."></textarea>
+                            <span id="contactMessageError" style="display:none;color:var(--accent-rose);font-size:0.85rem;margin-top:0.25rem;" role="alert"></span>
                         </div>
-                        <div id="contactFormMessage" style="display:none;padding:0.9rem 1rem;border-radius:10px;font-size:0.92rem;font-weight:500;margin-bottom:1rem;"></div>
+                        <div id="contactFormMessage" style="display:none;padding:0.9rem 1rem;border-radius:10px;font-size:0.92rem;font-weight:500;margin-bottom:1rem;" role="status" aria-live="polite"></div>
                         <button type="submit" class="btn btn-primary btn-lg" id="contactSubmitBtn">Send Message</button>
                         <p class="form-guarantee">Response time: usually under 15 minutes during working hours. No spam, ever.</p>
                     </form>
@@ -190,20 +193,82 @@
         const footerEl = document.getElementById('footerPlaceholder');
         if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();
 
-        document.getElementById('contactForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!this.checkValidity()) {
-                this.reportValidity();
-                return;
+        const contactForm = document.getElementById('contactForm');
+        
+        // Clear error messages on input
+        ['contactName', 'contactEmail', 'contactMessage'].forEach(id => {
+            const field = document.getElementById(id);
+            if (field) {
+                field.addEventListener('input', () => {
+                    field.setAttribute('aria-invalid', 'false');
+                    const errorSpan = document.getElementById(id + 'Error');
+                    if (errorSpan) errorSpan.style.display = 'none';
+                });
             }
+        });
 
+        contactForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            const nameError = document.getElementById('contactNameError');
+            const emailError = document.getElementById('contactEmailError');
+            const messageError = document.getElementById('contactMessageError');
+            nameError.style.display = 'none';
+            emailError.style.display = 'none';
+            messageError.style.display = 'none';
+            
             const submitButton = document.getElementById('contactSubmitBtn');
             const messageBox = document.getElementById('contactFormMessage');
-            const name = document.getElementById('contactName').value.trim();
-            const email = document.getElementById('contactEmail').value.trim();
+            const nameField = document.getElementById('contactName');
+            const emailField = document.getElementById('contactEmail');
+            const messageField = document.getElementById('contactMessage');
+            
+            const name = nameField.value.trim();
+            const email = emailField.value.trim();
             const phone = document.getElementById('contactPhone').value.trim();
             const subject = document.getElementById('contactSubject').value || 'General Inquiry';
-            const message = document.getElementById('contactMessage').value.trim();
+            const message = messageField.value.trim();
+
+            let hasErrors = false;
+
+            // Validate name
+            if (!name) {
+                nameError.textContent = 'Name is required';
+                nameError.style.display = 'block';
+                nameField.setAttribute('aria-invalid', 'true');
+                hasErrors = true;
+            }
+
+            // Validate email
+            if (!email) {
+                emailError.textContent = 'Email is required';
+                emailError.style.display = 'block';
+                emailField.setAttribute('aria-invalid', 'true');
+                hasErrors = true;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailError.textContent = 'Please enter a valid email address';
+                emailError.style.display = 'block';
+                emailField.setAttribute('aria-invalid', 'true');
+                hasErrors = true;
+            }
+
+            // Validate message
+            if (!message) {
+                messageError.textContent = 'Message is required';
+                messageError.style.display = 'block';
+                messageField.setAttribute('aria-invalid', 'true');
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                messageBox.textContent = 'Please fix the errors above before submitting.';
+                messageBox.style.background = '#fff1f2';
+                messageBox.style.color = '#be123c';
+                messageBox.style.border = '1px solid #fecdd3';
+                messageBox.style.display = 'block';
+                return;
+            }
 
             submitButton.disabled = true;
             messageBox.style.display = 'none';
@@ -218,6 +283,9 @@
                 });
 
                 this.reset();
+                ['contactName', 'contactEmail', 'contactMessage'].forEach(id => {
+                    document.getElementById(id).setAttribute('aria-invalid', 'false');
+                });
                 messageBox.style.background = '#f0fdf4';
                 messageBox.style.color = '#166534';
                 messageBox.style.border = '1px solid #bbf7d0';
