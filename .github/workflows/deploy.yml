@@ -40,7 +40,31 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ${{ secrets.EC2_PATH }} || exit
-            git pull origin main
-            mvn clean package -DskipTests
+            set -euo pipefail
+            cd ${{ secrets.EC2_PATH }} || exit 1
+
+            # Pull cleanly so deploy fails fast on branch divergence
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Build with bounded memory to reduce OOM risk on small EC2 instances
+            export MAVEN_OPTS="-Xms256m -Xmx768m"
+            mvn -B -DskipTests clean package
+
+            # Restart app and validate health before finishing pipeline
             sudo systemctl restart brightnest
+            sudo systemctl is-active --quiet brightnest
+
+            for i in $(seq 1 60); do
+              if curl -fsS --max-time 4 http://127.0.0.1:8080/health >/dev/null; then
+                echo "Health check passed on attempt ${i}"
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "Health check failed after restart" >&2
+            sudo systemctl status brightnest --no-pager >&2 || true
+            sudo journalctl -u brightnest -n 120 --no-pager >&2 || true
+            sudo tail -n 120 /var/log/nginx/error.log >&2 || true
+            exit 1
