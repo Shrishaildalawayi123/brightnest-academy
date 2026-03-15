@@ -1,5 +1,6 @@
 package com.shrishailacademy.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,6 +18,7 @@ public class TeacherApplicationRequest {
 
     @NotBlank(message = "Full name is required")
     @Size(max = 100)
+    @JsonAlias({ "name", "fullName" })
     private String fullName;
 
     @NotBlank(message = "Email is required")
@@ -29,6 +31,7 @@ public class TeacherApplicationRequest {
 
     @NotBlank(message = "Subject expertise is required")
     @Size(max = 200)
+    @JsonAlias({ "subject", "subjectExpertise" })
     private String subjectExpertise;
 
     @Size(max = 200)
@@ -44,5 +47,6 @@ public class TeacherApplicationRequest {
     private String experience;
 
     @Size(max = 1000)
+    @JsonAlias({ "message", "motivation" })
     private String motivation;
 }

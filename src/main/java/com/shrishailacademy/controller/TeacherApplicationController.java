@@ -21,7 +21,7 @@ import java.util.Map;
  * Admin: view applications, update status
  */
 @RestController
-@RequestMapping({"/api/teacher-applications", "/api/v1/teacher-applications"})
+@RequestMapping({ "/api/teacher-applications", "/api/v1/teacher-applications" })
 public class TeacherApplicationController {
 
     private final TeacherApplicationService teacherApplicationService;
@@ -34,7 +34,7 @@ public class TeacherApplicationController {
     }
 
     /**
-    * Submit via JSON (no resume) - backward compatible with team.html form.
+     * Submit via JSON (no resume) - backward compatible with team.html form.
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> submitApplication(
@@ -46,7 +46,7 @@ public class TeacherApplicationController {
     }
 
     /**
-    * Submit via multipart form (with optional resume file) - careers.html form.
+     * Submit via multipart form (with optional resume file) - careers.html form.
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> submitApplicationWithResume(
@@ -89,10 +89,19 @@ public class TeacherApplicationController {
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> updateStatus(@PathVariable Long id,
-            @Valid @RequestBody StatusUpdateRequest request) {
-        String status = request.status();
-        teacherApplicationService.updateStatus(id, status);
-        return ResponseEntity.ok(Map.of("message", "Application status updated to " + status.toUpperCase()));
+            @Valid @RequestBody(required = false) StatusUpdateRequest request,
+            @RequestParam(required = false) String status) {
+        String resolvedStatus = request != null && request.status() != null && !request.status().isBlank()
+                ? request.status()
+                : status;
+
+        if (resolvedStatus == null || resolvedStatus.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", "Status is required"));
+        }
+
+        teacherApplicationService.updateStatus(id, resolvedStatus);
+        return ResponseEntity.ok(Map.of("message", "Application status updated to " + resolvedStatus.toUpperCase()));
     }
 
     @GetMapping("/stats")
@@ -101,8 +110,3 @@ public class TeacherApplicationController {
         return ResponseEntity.ok(teacherApplicationService.getStats());
     }
 }
-
-
-
-
-

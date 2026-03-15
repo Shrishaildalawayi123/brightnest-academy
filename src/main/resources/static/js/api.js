@@ -384,10 +384,11 @@ const API = {
     });
   },
   async updateTeacherAppStatus(id, status) {
-    return this.request(
-      `/teacher-applications/${id}/status?status=${encodeURIComponent(status)}`,
-      { method: "PUT", headers: this.getHeaders(true) },
-    );
+    return this.request(`/teacher-applications/${id}/status`, {
+      method: "PUT",
+      headers: this.getHeaders(true),
+      body: JSON.stringify({ status }),
+    });
   },
   async getTeacherAppStats() {
     return this.request("/teacher-applications/stats", {

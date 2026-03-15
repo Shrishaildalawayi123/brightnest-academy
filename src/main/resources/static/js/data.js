@@ -1,4 +1,4 @@
-﻿/**
+/**
  * BrightNest Academy - Shared Data
  * Team members, FAQ, testimonials, course info used across pages
  */
@@ -123,15 +123,15 @@ const FAQ_DATA = {
     },
     {
       q: "What are the modes of class delivery?",
-      a: "We offer both Online and Offline classes. Online classes are conducted via Google Meet. Offline classes take place at our center in Kumaraswamy Layout, Bengaluru.",
+      a: "We offer both Online and Offline classes. Online classes are conducted via Google Meet. Offline classes take place at our center in Kumaraswamy Layout, Bangalore.",
     },
     {
       q: "How can I enroll in a course?",
-      a: "Book a demo class through our website, or call us at +91-6363464005. After the demo, our team will guide you through enrollment.",
+      a: "Book a demo class through our website, or call us at +91-7204193980. After the demo, our team will guide you through enrollment.",
     },
     {
       q: "Where do offline classes take place?",
-      a: "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru – 560078.",
+      a: "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bangalore – 560078.",
     },
     {
       q: "Where can I learn about the teachers?",
@@ -831,7 +831,6 @@ function getFooterHTML() {
               <a href="https://www.facebook.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12S0 5.446 0 12.073c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
               <a href="https://www.instagram.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg></a>
               <a href="https://www.youtube.com/@brightnestacademy" target="_blank" rel="noopener" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
-              <a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy%2C%20I%20need%20more%20information%20about%20your%20courses." target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.82 11.82 0 0012.11 0C5.6 0 .3 5.3.3 11.8c0 2.08.54 4.11 1.56 5.9L0 24l6.5-1.83a11.77 11.77 0 005.61 1.43h.01c6.5 0 11.8-5.3 11.8-11.8a11.7 11.7 0 00-3.4-8.32z"/></svg></a>
             </div>
           </div>
 
@@ -864,26 +863,28 @@ function getFooterHTML() {
           <div class="footer-col">
             <h4>Get In Touch</h4>
             <ul>
-              <li><a href="tel:+916363464005">+91-6363464005</a></li>
+              <li><a href="tel:+917204193980">+91-7204193980</a></li>
               <li><a href="mailto:info@brightnest-academy.com">info@brightnest-academy.com</a></li>
               <li><a href="https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019" target="_blank" rel="noopener">Get Directions</a></li>
             </ul>
             <div class="footer-nap">
               <strong>BrightNest Academy</strong>
-              <span>#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru - 560078</span>
-              <span>Open daily: 9:00 AM to 9:00 PM</span>
+              <span>#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bangalore - 560078</span>
+              <span>Open all days: 9:00 AM - 9:00 PM</span>
             </div>
           </div>
         </div>
 
         <div class="footer-contact">
-          <span><a href="tel:+916363464005">Call: +91-6363464005</a></span>
-          <span><a href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy%2C%20I%20need%20more%20information%20about%20your%20courses." target="_blank" rel="noopener">WhatsApp</a></span>
+          <span><a href="tel:+917204193980">Call: +91-7204193980</a></span>
           <span><a href="https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019" target="_blank" rel="noopener">Directions</a></span>
         </div>
 
         <div class="footer-bottom">
           <p>© <span id="year"></span> BrightNest Academy. All rights reserved.</p>
+          <p>Designed and Developed by Shrishail Dalawayi |
+            <a href="https://www.linkedin.com/in/shrishail-dalawayi-b42718130/" target="_blank" rel="noopener">LinkedIn</a>
+          </p>
         </div>
       </div>
     </footer>

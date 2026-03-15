@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -87,5 +88,29 @@ class PublicApiIntegrationTest {
                 .andExpect(jsonPath("$.error").value("Unauthorized"))
                 .andExpect(jsonPath("$.message").value("Unauthorized - please login"))
                 .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void sitemapShouldBePublicAndContainLandingPage() throws Exception {
+        mockMvc.perform(get("/sitemap.xml"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
+                .andExpect(content().string(containsString("/tuition-classes-in-bangalore")))
+                .andExpect(content().string(containsString("<urlset")));
+    }
+
+    @Test
+    void robotsShouldExposeSitemapReference() throws Exception {
+        mockMvc.perform(get("/robots.txt"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Sitemap: https://brightnest-academy.com/sitemap.xml")));
+    }
+
+    @Test
+    void bangaloreLandingPageShouldBePublic() throws Exception {
+        mockMvc.perform(get("/tuition-classes-in-bangalore"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(containsString("Best Tuition Classes in Bangalore")));
     }
 }

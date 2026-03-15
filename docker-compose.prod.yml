@@ -16,9 +16,9 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-3306}
-      - DB_NAME=${DB_NAME:-brightnest_academy}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME:-brightnest}
+      - DB_USER=${DB_USER:-brightnest}
+      - DB_PASS=${DB_PASS:-BrightNest@123}
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}

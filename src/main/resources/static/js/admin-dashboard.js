@@ -153,20 +153,20 @@ window.fetch = async (url, options = {}) => {
 };
 let deleteId = null;
 const titles = {
-  overview: "ðŸ“Š Overview",
-  courses: "ðŸ“š Manage Courses",
-  students: "ðŸ‘¥ Students",
-  enrollments: "ðŸ“‹ Enrollments",
-  attendance: "âœ… Attendance",
-  payments: "ðŸ’° Payments",
-  blog: "ðŸ“ Blog Posts",
-  demos: "ðŸŽ¯ Demo Bookings",
-  teachers: "ðŸ§‘â€ðŸ« Teacher Applications",
+  overview: "Overview",
+  courses: "Manage Courses",
+  students: "Students",
+  enrollments: "Enrollments",
+  attendance: "Attendance",
+  payments: "Payments",
+  blog: "Blog Posts",
+  demos: "Demo Bookings",
+  teachers: "Teacher Applications",
 };
 
 function showToast(msg, type = "success") {
   const t = document.getElementById("toast");
-  t.textContent = (type === "success" ? "âœ… " : "âŒ ") + msg;
+  t.textContent = (type === "success" ? "Success: " : "Error: ") + msg;
   t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove("show"), 3000);
 }
@@ -259,11 +259,11 @@ async function loadCourses() {
                     <tr>
                         <td style="font-size:1.5rem;">${esc(c.icon)}</td>
                         <td><strong>${esc(c.title)}</strong><br><small style="color:var(--neutral-400);">${esc(c.description || "").substring(0, 60)}...</small></td>
-                        <td>â±ï¸ ${esc(c.duration)}</td>
-                        <td style="font-weight:700;color:var(--primary-700);">${c.fee ? "â‚¹" + Number(c.fee).toLocaleString() : "-"}</td>
+                        <td>Duration: ${esc(c.duration)}</td>
+                        <td style="font-weight:700;color:var(--primary-700);">${c.fee ? "₹ " + Number(c.fee).toLocaleString() : "-"}</td>
                         <td>
-                            <button class="btn-icon" onclick="editCourse(${c.id},'${esc(c.title)}','${esc(c.description || "")}','${esc(c.duration || "")}','${esc(c.icon || "")}','${esc(c.color || "")}',${c.fee || 0})">âœï¸</button>
-                            <button class="btn-icon btn-danger" onclick="deleteCourse(${c.id},'${esc(c.title)}')">ðŸ—‘ï¸</button>
+                          <button class="btn-icon" onclick="editCourse(${c.id},'${esc(c.title)}','${esc(c.description || "")}','${esc(c.duration || "")}','${esc(c.icon || "")}','${esc(c.color || "")}',${c.fee || 0})" title="Edit">Edit</button>
+                          <button class="btn-icon btn-danger" onclick="deleteCourse(${c.id},'${esc(c.title)}')" title="Delete">Delete</button>
                         </td>
                     </tr>`,
         )
@@ -456,9 +456,9 @@ async function loadCourseStudents() {
                             <td><strong>${esc(e.user.name)}</strong><br><small>${esc(e.user.email)}</small></td>
                             <td>
                                 <select class="form-input att-status" data-student-id="${e.user.id}" style="width:auto;">
-                                    <option value="PRESENT" selected>âœ… Present</option>
-                                    <option value="ABSENT">âŒ Absent</option>
-                                    <option value="LATE">â° Late</option>
+                                    <option value="PRESENT" selected>Present</option>
+                                    <option value="ABSENT">Absent</option>
+                                    <option value="LATE">Late</option>
                                 </select>
                             </td>
                             <td><input type="text" class="form-input att-remarks" data-student-id="${e.user.id}" placeholder="Optional remarks" style="min-width:150px;"></td>
@@ -545,7 +545,7 @@ async function loadPaymentStats() {
     const data = await res.json();
     const stats = data.data || data;
     document.getElementById("totalRevenue").textContent =
-      "â‚¹" + (stats.totalRevenue || 0).toLocaleString();
+      "₹ " + (stats.totalRevenue || 0).toLocaleString();
     document.getElementById("successPayments").textContent =
       stats.successCount || 0;
     document.getElementById("pendingPayments").textContent =
@@ -579,7 +579,7 @@ async function loadPaymentDropdowns() {
       (Array.isArray(courses) ? courses : [])
         .map(
           (c) =>
-            `<option value="${c.id}" data-fee="${c.fee || 0}">${esc(c.title)} - â‚¹${c.fee || 0}</option>`,
+            `<option value="${c.id}" data-fee="${c.fee || 0}">${esc(c.title)} - ₹ ${c.fee || 0}</option>`,
         )
         .join("");
   } catch (e) {
@@ -640,13 +640,13 @@ async function loadAllPayments() {
                     <tr>
                         <td>${esc(p.user ? p.user.name : "-")}</td>
                         <td>${esc(p.course ? p.course.title : "-")}</td>
-                        <td style="font-weight:700;">â‚¹${p.amount ? p.amount.toLocaleString() : 0}</td>
+                        <td style="font-weight:700;">₹ ${p.amount ? p.amount.toLocaleString() : 0}</td>
                         <td>${p.paymentMethod || "-"}</td>
                         <td><span class="badge badge-${p.status === "SUCCESS" ? "active" : p.status === "PENDING" ? "student" : "admin"}">${p.status}</span></td>
                         <td><small>${esc(p.receiptNumber || "-")}</small></td>
                         <td>${p.paidAt ? fmt(p.paidAt) : fmt(p.createdAt)}</td>
                         <td>
-                            ${p.status === "PENDING" ? `<button class="btn-icon" onclick="confirmPayment(${p.id})" title="Confirm">âœ…</button><button class="btn-icon btn-danger" onclick="failPaymentAction(${p.id})" title="Reject">âŒ</button>` : "-"}
+                          ${p.status === "PENDING" ? `<button class="btn-icon" onclick="confirmPayment(${p.id})" title="Confirm">Confirm</button><button class="btn-icon btn-danger" onclick="failPaymentAction(${p.id})" title="Reject">Reject</button>` : "-"}
                         </td>
                     </tr>`,
         )
@@ -709,8 +709,8 @@ async function loadBlogAdmin() {
                         <td><span class="badge ${p.published ? "badge-active" : "badge-admin"}">${p.published ? "Published" : "Draft"}</span></td>
                         <td>${p.publishedAt ? fmt(p.publishedAt) : "-"}</td>
                         <td>
-                            <button class="btn-icon" onclick="togglePublish(${p.id})" title="${p.published ? "Unpublish" : "Publish"}">${p.published ? "ðŸ“¤" : "ðŸ“¥"}</button>
-                            <button class="btn-icon btn-danger" onclick="deleteBlogPost(${p.id})" title="Delete">ðŸ—‘ï¸</button>
+                          <button class="btn-icon" onclick="togglePublish(${p.id})" title="${p.published ? "Unpublish" : "Publish"}">${p.published ? "Unpublish" : "Publish"}</button>
+                          <button class="btn-icon btn-danger" onclick="deleteBlogPost(${p.id})" title="Delete">Delete</button>
                         </td>
                     </tr>`,
         )
@@ -750,7 +750,7 @@ async function deleteBlogPost(id) {
 function openBlogModal() {
   const html = `<div class="modal-overlay show" id="blogModal" onclick="if(event.target===this)this.remove()">
                 <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;">
-                    <div class="modal-header"><div class="modal-title">New Blog Post</div><button class="modal-close" onclick="document.getElementById('blogModal').remove()">Ã—</button></div>
+                    <div class="modal-header"><div class="modal-title">New Blog Post</div><button class="modal-close" onclick="document.getElementById('blogModal').remove()">x</button></div>
                     <form onsubmit="saveBlogPost(event)">
                         <div class="form-group"><label class="form-label">Title *</label><input type="text" id="blogTitle" class="form-input" required></div>
                         <div class="form-group"><label class="form-label">Excerpt</label><input type="text" id="blogExcerpt" class="form-input" placeholder="Short summary for listing"></div>
@@ -892,7 +892,7 @@ async function loadTeacherAppsAdmin() {
                             ${["NEW", "REVIEWED", "CONTACTED", "HIRED", "REJECTED"].map((s) => `<option value="${s}" ${a.status === s ? "selected" : ""}>${s}</option>`).join("")}
                         </select></td>
                         <td>${fmt(a.createdAt)}</td>
-                        <td><a href="mailto:${a.email}" title="Email" style="font-size:1.2rem;">âœ‰ï¸</a></td>
+                        <td><a href="mailto:${a.email}" title="Email" style="font-size:0.95rem;">Email</a></td>
                     </tr>`,
         )
         .join("") || '<tr><td colspan="8">No applications yet</td></tr>';
@@ -905,9 +905,10 @@ async function loadTeacherAppsAdmin() {
 
 async function updateTeacherStatus(id, status) {
   try {
-    await fetch(`/api/teacher-applications/${id}/status?status=${status}`, {
+    await fetch(`/api/teacher-applications/${id}/status`, {
       method: "PUT",
       headers: authHeaders(),
+      body: JSON.stringify({ status }),
     });
     showToast("Status updated");
     loadTeacherAppsAdmin();

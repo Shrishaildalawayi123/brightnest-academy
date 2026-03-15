@@ -62,17 +62,17 @@ document.getElementById("dateDisplay").textContent =
 let allCourses = [];
 let myEnrollments = [];
 const titles = {
-  overview: "ðŸ“Š Overview",
-  myCourses: "ðŸ“š My Courses",
-  allCourses: "ðŸ” Browse Courses",
-  myAttendance: "âœ… My Attendance",
-  myPayments: "ðŸ’° My Payments",
-  profile: "ðŸ‘¤ My Profile",
+  overview: "Overview",
+  myCourses: "My Courses",
+  allCourses: "Browse Courses",
+  myAttendance: "My Attendance",
+  myPayments: "My Payments",
+  profile: "My Profile",
 };
 
 function showToast(msg, type = "success") {
   const t = document.getElementById("toast");
-  t.innerHTML = (type === "success" ? "âœ… " : "âŒ ") + msg;
+  t.innerHTML = (type === "success" ? "Success: " : "Error: ") + msg;
   t.className = `toast ${type} show`;
   setTimeout(() => {
     t.classList.remove("show");
@@ -104,16 +104,16 @@ function courseCard(course, isEnrolled) {
             <div class="course-card">
                 <div class="course-banner" style="background:${course.color || "#3B82F6"};"></div>
                 <div class="course-body">
-                    <div class="course-icon">${course.icon || "ðŸ“š"}</div>
+                <div class="course-icon">${course.icon || "COURSE"}</div>
                     <div class="course-title">${course.title}</div>
                     <div class="course-desc">${course.description || ""}</div>
                     <div class="course-meta">
-                        <span class="course-duration">â±ï¸ ${course.duration || "N/A"}</span>
+                  <span class="course-duration">Duration: ${course.duration || "N/A"}</span>
                         <span class="badge ${isEnrolled ? "badge-enrolled" : "badge-available"}">${isEnrolled ? "Enrolled" : "Available"}</span>
                     </div>
                     ${
                       isEnrolled
-                        ? `<button class="btn-enroll enrolled" disabled>âœ… Already Enrolled</button>`
+                        ? `<button class="btn-enroll enrolled" disabled>Already Enrolled</button>`
                         : `<button class="btn-enroll primary" onclick="enrollInCourse(${course.id}, this)">Enroll Now</button>`
                     }
                 </div>
@@ -124,7 +124,7 @@ function renderAllCourses() {
   const grid = document.getElementById("allCoursesGrid");
   if (!allCourses.length) {
     grid.innerHTML =
-      '<div class="empty-state"><div class="icon">ðŸ“­</div><p>No courses available</p></div>';
+      '<div class="empty-state"><div class="icon">Info</div><p>No courses available</p></div>';
     return;
   }
   const enrolledIds = myEnrollments.map((e) =>
@@ -139,7 +139,7 @@ function renderMyCourses() {
   const grid = document.getElementById("myCoursesGrid");
   if (!myEnrollments.length) {
     grid.innerHTML =
-      '<div class="empty-state"><div class="icon">ðŸ“š</div><p>You have not enrolled in any courses yet.</p><br><button onclick="showSection(\'allCourses\')" class="btn-enroll primary" style="width:auto;padding:0.5rem 1.5rem;">Browse Courses</button></div>';
+      '<div class="empty-state"><div class="icon">Info</div><p>You have not enrolled in any courses yet.</p><br><button onclick="showSection(\'allCourses\')" class="btn-enroll primary" style="width:auto;padding:0.5rem 1.5rem;">Browse Courses</button></div>';
     return;
   }
   grid.innerHTML = myEnrollments
@@ -159,7 +159,7 @@ async function enrollInCourse(courseId, btn) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || "Enrollment failed");
     }
-    showToast("Successfully enrolled! ðŸŽ‰");
+    showToast("Successfully enrolled!");
     // Refresh
     await loadData();
     renderAllCourses();
@@ -254,7 +254,7 @@ async function loadStudentPayments() {
           (p) => `
                     <tr>
                         <td>${esc(p.course ? p.course.title : "-")}</td>
-                        <td style="font-weight:700;">â‚¹${p.amount ? p.amount.toLocaleString() : 0}</td>
+                        <td style="font-weight:700;">₹ ${p.amount ? p.amount.toLocaleString() : 0}</td>
                         <td>${p.paymentMethod || "-"}</td>
                         <td><span class="badge badge-${p.status === "SUCCESS" ? "enrolled" : p.status === "PENDING" ? "available" : "admin"}">${p.status}</span></td>
                         <td><small>${esc(p.receiptNumber || "-")}</small></td>
@@ -294,7 +294,7 @@ async function loadData() {
     const oc = document.getElementById("overviewCourses");
     if (!myEnrollments.length) {
       oc.innerHTML =
-        '<div class="empty-state"><div class="icon">ðŸ“š</div><p>No enrollments yet. <a href="#" onclick="showSection(\'allCourses\')">Browse courses</a></p></div>';
+        '<div class="empty-state"><div class="icon">Info</div><p>No enrollments yet. <a href="#" onclick="showSection(\'allCourses\')">Browse courses</a></p></div>';
     } else {
       oc.innerHTML = myEnrollments
         .slice(0, 3)
