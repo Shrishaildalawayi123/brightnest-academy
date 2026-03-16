@@ -47,6 +47,7 @@ USE brightnest_academy;
 --            brightnest_academy < database/schema.sql
 -- --------------------------------------------------------
 SOURCE database/schema.sql;
+SOURCE database/add-marketing-features.sql;
 
 -- --------------------------------------------------------
 -- 5) Seed data (inline from database/seed.sql)
