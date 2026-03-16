@@ -1,11 +1,12 @@
-name: BrightNest Auto Deploy
+name: Deploy Spring Boot to EC2
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 concurrency:
-  group: deploy-production
+  group: deploy-main
   cancel-in-progress: true
 
 jobs:
@@ -13,37 +14,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Setup Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
+          cache: maven
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven
+      - name: Build JAR
+        run: mvn -B clean package -DskipTests
 
-      - name: Build Project
-        run: mvn clean package -DskipTests
-
-      - name: Upload built JAR to EC2
-        continue-on-error: true
+      - name: Upload JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "target/*.jar"
-          target: /home/${{ secrets.EC2_USER }}/brightnest-artifacts
+          target: "${{ secrets.EC2_PATH }}/target"
 
-      - name: Deploy to EC2
+      - name: Deploy and restart service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -51,145 +44,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -euo pipefail
-            REPO_PATH="${{ secrets.EC2_PATH }}"
-            REPO_URL="https://github.com/${{ github.repository }}.git"
-
-            # Bootstrap repository path on first deploy or broken server state.
-            if [ ! -d "${REPO_PATH}/.git" ]; then
-              mkdir -p "${REPO_PATH}"
-              if [ -d "${REPO_PATH}" ] && [ -z "$(ls -A "${REPO_PATH}" 2>/dev/null)" ]; then
-                git clone --depth 1 "${REPO_URL}" "${REPO_PATH}"
-              else
-                rm -rf "${REPO_PATH}"/*
-                git clone --depth 1 "${REPO_URL}" "${REPO_PATH}"
-              fi
-            fi
-
-            cd "${REPO_PATH}" || exit 1
-
-            # Pull cleanly so deploy fails fast on branch divergence
-            git fetch origin main
-            git reset --hard origin/main
-
-            # Move CI-built artifacts into the runtime target directory.
-            mkdir -p target
-            cp -f /home/${{ secrets.EC2_USER }}/brightnest-artifacts/target/*.jar target/ 2>/dev/null || true
-            cp -f /home/${{ secrets.EC2_USER }}/brightnest-artifacts/*.jar target/ 2>/dev/null || true
-
-            # Fallback: build on server when artifact upload is unavailable.
-            if ! ls target/*.jar >/dev/null 2>&1; then
-              export MAVEN_OPTS="-Xms256m -Xmx768m"
-              mvn -B -DskipTests clean package
-            fi
-
-            # Apply idempotent schema additions required by newly introduced entities
-            # when production is running with ddl-auto=validate.
-            if [ -f .env ]; then
-              set -a
-              # shellcheck disable=SC1091
-              . ./.env
-              set +a
-            fi
-
-            if [ -f database/add-marketing-features.sql ] && command -v mysql >/dev/null 2>&1; then
-              if [ -n "${DB_USER:-}" ] && [ -n "${DB_PASS:-}" ]; then
-                export MYSQL_PWD="${DB_PASS}"
-                DB_TARGET="${DB_NAME:-}"
-
-                if [ -z "${DB_TARGET}" ]; then
-                  if mysql -Nse "SHOW DATABASES LIKE 'brightnest_academy'" \
-                    -h "${DB_HOST:-127.0.0.1}" \
-                    -P "${DB_PORT:-3306}" \
-                    -u "${DB_USER}" | grep -q brightnest_academy; then
-                    DB_TARGET="brightnest_academy"
-                  elif mysql -Nse "SHOW DATABASES LIKE 'brightnest'" \
-                    -h "${DB_HOST:-127.0.0.1}" \
-                    -P "${DB_PORT:-3306}" \
-                    -u "${DB_USER}" | grep -q brightnest; then
-                    DB_TARGET="brightnest"
-                  fi
-                fi
-
-                if [ -n "${DB_TARGET}" ]; then
-                  if ! mysql \
-                    -h "${DB_HOST:-127.0.0.1}" \
-                    -P "${DB_PORT:-3306}" \
-                    -u "${DB_USER}" \
-                    "${DB_TARGET}" \
-                    < database/add-marketing-features.sql; then
-                    echo "WARNING: marketing schema migration failed; continuing with deploy" >&2
-                  fi
-                else
-                  echo "WARNING: could not determine DB name for migration; continuing with deploy" >&2
-                fi
-
-                unset MYSQL_PWD
-              else
-                echo "Skipping DB migration: DB_USER/DB_PASS are not set in deploy environment" >&2
-              fi
-            fi
-
-            # Restart app using the runtime available on server.
-            SERVICE_NAME=""
-            HAS_SUDO=0
-            if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
-              HAS_SUDO=1
-            fi
-
-            for candidate in brightnest brightnest-academy; do
-              if systemctl list-unit-files 2>/dev/null | grep -q "^${candidate}\\.service"; then
-                SERVICE_NAME="${candidate}"
-                break
-              fi
-            done
-
-            if [ -n "${SERVICE_NAME}" ]; then
-              if systemctl restart "${SERVICE_NAME}" >/dev/null 2>&1; then
-                systemctl is-active --quiet "${SERVICE_NAME}"
-              elif [ "${HAS_SUDO}" -eq 1 ]; then
-                sudo -n systemctl restart "${SERVICE_NAME}"
-                sudo -n systemctl is-active --quiet "${SERVICE_NAME}"
-              else
-                echo "Failed to restart ${SERVICE_NAME}: no service permission and sudo not available" >&2
-                exit 1
-              fi
-            elif [ -f docker-compose.prod.yml ] || [ -f docker-compose.yml ]; then
-              if command -v docker >/dev/null 2>&1; then
-                if [ -f docker-compose.prod.yml ]; then
-                  docker compose -f docker-compose.prod.yml up -d --build
-                else
-                  docker compose up -d --build
-                fi
-              else
-                echo "Docker is not installed; cannot restart via compose" >&2
-                exit 1
-              fi
-            else
-              echo "No known runtime (systemd service or docker compose) found for restart" >&2
-              exit 1
-            fi
-
-            for i in $(seq 1 60); do
-              if curl -fsS --max-time 4 http://127.0.0.1:8080/health >/dev/null; then
-                echo "Health check passed on attempt ${i}"
-                exit 0
-              fi
-              sleep 2
-            done
-
-            echo "Health check failed after restart" >&2
-            if [ -n "${SERVICE_NAME}" ]; then
-              systemctl status "${SERVICE_NAME}" --no-pager >&2 || true
-              journalctl -u "${SERVICE_NAME}" -n 120 --no-pager >&2 || true
-              if [ "${HAS_SUDO}" -eq 1 ]; then
-                sudo -n systemctl status "${SERVICE_NAME}" --no-pager >&2 || true
-                sudo -n journalctl -u "${SERVICE_NAME}" -n 120 --no-pager >&2 || true
-              fi
-            fi
-            journalctl -u brightnest -n 120 --no-pager >&2 || true
-            tail -n 120 /var/log/nginx/error.log >&2 || true
-            if [ "${HAS_SUDO}" -eq 1 ]; then
-              sudo -n journalctl -u brightnest -n 120 --no-pager >&2 || true
-              sudo -n tail -n 120 /var/log/nginx/error.log >&2 || true
-            fi
-            exit 1
+            cd "${{ secrets.EC2_PATH }}"
+            sudo systemctl restart brightnest
+            sudo systemctl is-active --quiet brightnest
