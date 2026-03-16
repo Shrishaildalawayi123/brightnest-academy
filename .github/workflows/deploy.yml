@@ -115,9 +115,33 @@ jobs:
               fi
             fi
 
-            # Restart app and validate health before finishing pipeline
-            sudo systemctl restart brightnest
-            sudo systemctl is-active --quiet brightnest
+            # Restart app using the runtime available on server.
+            SERVICE_NAME=""
+            for candidate in brightnest brightnest-academy; do
+              if sudo systemctl list-unit-files | grep -q "^${candidate}\\.service"; then
+                SERVICE_NAME="${candidate}"
+                break
+              fi
+            done
+
+            if [ -n "${SERVICE_NAME}" ]; then
+              sudo systemctl restart "${SERVICE_NAME}"
+              sudo systemctl is-active --quiet "${SERVICE_NAME}"
+            elif [ -f docker-compose.prod.yml ] || [ -f docker-compose.yml ]; then
+              if command -v docker >/dev/null 2>&1; then
+                if [ -f docker-compose.prod.yml ]; then
+                  docker compose -f docker-compose.prod.yml up -d --build
+                else
+                  docker compose up -d --build
+                fi
+              else
+                echo "Docker is not installed; cannot restart via compose" >&2
+                exit 1
+              fi
+            else
+              echo "No known runtime (systemd service or docker compose) found for restart" >&2
+              exit 1
+            fi
 
             for i in $(seq 1 60); do
               if curl -fsS --max-time 4 http://127.0.0.1:8080/health >/dev/null; then
@@ -128,7 +152,10 @@ jobs:
             done
 
             echo "Health check failed after restart" >&2
-            sudo systemctl status brightnest --no-pager >&2 || true
+            if [ -n "${SERVICE_NAME}" ]; then
+              sudo systemctl status "${SERVICE_NAME}" --no-pager >&2 || true
+              sudo journalctl -u "${SERVICE_NAME}" -n 120 --no-pager >&2 || true
+            fi
             sudo journalctl -u brightnest -n 120 --no-pager >&2 || true
             sudo tail -n 120 /var/log/nginx/error.log >&2 || true
             exit 1
