@@ -51,6 +51,30 @@ jobs:
             export MAVEN_OPTS="-Xms256m -Xmx768m"
             mvn -B -DskipTests clean package
 
+            # Apply idempotent schema additions required by newly introduced entities
+            # when production is running with ddl-auto=validate.
+            if [ -f .env ]; then
+              set -a
+              # shellcheck disable=SC1091
+              . ./.env
+              set +a
+            fi
+
+            if [ -f database/add-marketing-features.sql ] && command -v mysql >/dev/null 2>&1; then
+              if [ -n "${DB_USER:-}" ] && [ -n "${DB_PASS:-}" ]; then
+                export MYSQL_PWD="${DB_PASS}"
+                mysql \
+                  -h "${DB_HOST:-127.0.0.1}" \
+                  -P "${DB_PORT:-3306}" \
+                  -u "${DB_USER}" \
+                  "${DB_NAME:-brightnest}" \
+                  < database/add-marketing-features.sql
+                unset MYSQL_PWD
+              else
+                echo "Skipping DB migration: DB_USER/DB_PASS are not set in deploy environment" >&2
+              fi
+            fi
+
             # Restart app and validate health before finishing pipeline
             sudo systemctl restart brightnest
             sudo systemctl is-active --quiet brightnest
