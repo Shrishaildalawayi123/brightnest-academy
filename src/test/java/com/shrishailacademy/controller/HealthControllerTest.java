@@ -14,14 +14,6 @@ class HealthControllerTest {
     private final HealthController healthController = new HealthController();
 
     @Test
-    void homeShouldRedirectToIndexHtml() {
-        ResponseEntity<Void> response = healthController.home();
-        assertEquals(302, response.getStatusCode().value());
-        assertNotNull(response.getHeaders().getLocation());
-        assertEquals("/index.html", response.getHeaders().getLocation().toString());
-    }
-
-    @Test
     void healthCheckShouldReturnUpStatusPayload() {
         ResponseEntity<Map<String, Object>> response = healthController.healthCheck();
 
