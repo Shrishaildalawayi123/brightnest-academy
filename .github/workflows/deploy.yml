@@ -41,7 +41,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            mkdir -p "${{ secrets.EC2_PATH }}/target"
+            sudo mkdir -p "${{ secrets.EC2_PATH }}/target"
+            sudo chown -R "${USER}:${USER}" "${{ secrets.EC2_PATH }}"
 
       - name: Upload built JAR to EC2
         uses: appleboy/scp-action@v0.1.7
