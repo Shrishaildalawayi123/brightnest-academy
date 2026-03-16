@@ -16,6 +16,7 @@ const ANNOUNCEMENT_MESSAGES = [
 ];
 
 function initializeApp() {
+  initializeMarketingLayer();
   initializeAccessibilityEnhancements();
   initializeAnnouncementBar();
   initializeDarkMode();
@@ -107,7 +108,7 @@ function initializeAnnouncementBar() {
     announcementBar.innerHTML = `
       <div class="container announcement-bar__inner">
         <div class="announcement-bar__rotator" aria-live="polite"></div>
-        <a class="announcement-bar__phone" href="tel:+916363464005" aria-label="Call BrightNest Academy">☎ +91 63634 64005</a>
+        <a class="announcement-bar__phone" href="tel:+917204193980" aria-label="Call BrightNest Academy">Call: +91-7204193980</a>
       </div>
     `;
 
@@ -348,8 +349,8 @@ function initializeMobileStickyCta() {
     "https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019";
 
   bar.innerHTML = `
-    <a class="mobile-cta-bar__item" href="tel:+916363464005" aria-label="Call BrightNest Academy">Call</a>
-    <a class="mobile-cta-bar__item" href="https://wa.me/916363464005?text=Hi%20BrightNest%20Academy%2C%20I%20need%20course%20details." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">WhatsApp</a>
+    <a class="mobile-cta-bar__item" href="tel:+917204193980" aria-label="Call BrightNest Academy">Call</a>
+    <a class="mobile-cta-bar__item" href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy%2C%20I%20need%20course%20details." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">WhatsApp</a>
     <a class="mobile-cta-bar__item" href="${directionsUrl}" target="_blank" rel="noopener" aria-label="Get directions to BrightNest Academy">Directions</a>
   `;
 
@@ -495,44 +496,59 @@ function updateNavigation() {
 // ========== Dark Mode ==========
 
 function initializeDarkMode() {
-  // Default to light mode for first-time visitors
-  const savedTheme = localStorage.getItem('theme');
-  const initialTheme = savedTheme || 'light';
-  
+  // Respect an explicit saved theme; otherwise follow the system preference.
+  const savedTheme = localStorage.getItem("theme");
+  const systemPreference = window.matchMedia("(prefers-color-scheme: dark)")
+    .matches
+    ? "dark"
+    : "light";
+  const initialTheme = savedTheme || systemPreference;
+
   // Apply theme
   applyTheme(initialTheme);
-  
+
   // Create theme toggle button if not exists
   createThemeToggle();
+
+  // Listen for system preference changes
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (e) => {
+      if (!localStorage.getItem("theme")) {
+        applyTheme(e.matches ? "dark" : "light");
+      }
+    });
 }
 
 function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
-  
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+
   // Update toggle button if exists
-  const toggleButton = document.getElementById('themeToggle');
+  const toggleButton = document.getElementById("themeToggle");
   if (toggleButton) {
-    const icon = toggleButton.querySelector('.theme-icon');
+    const icon = toggleButton.querySelector(".theme-icon");
     if (icon) {
-      icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+      icon.textContent = theme === "dark" ? "☀️" : "🌙";
     }
   }
 }
 
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  const currentTheme =
+    document.documentElement.getAttribute("data-theme") || "light";
+  const newTheme = currentTheme === "light" ? "dark" : "light";
   applyTheme(newTheme);
 }
 
 function createThemeToggle() {
   // Check if toggle already exists
-  if (document.getElementById('themeToggle')) return;
+  if (document.getElementById("themeToggle")) return;
 
-  const toggleContainer = document.createElement('div');
-  toggleContainer.className = 'theme-toggle-fab';
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const toggleContainer = document.createElement("div");
+  toggleContainer.className = "theme-toggle-fab";
+  const currentTheme =
+    document.documentElement.getAttribute("data-theme") || "light";
 
   toggleContainer.innerHTML = `
     <button 
@@ -542,7 +558,7 @@ function createThemeToggle() {
       title="Switch color theme"
       onclick="toggleTheme()"
     >
-      <span class="theme-icon">${currentTheme === 'dark' ? '☀️' : '🌙'}</span>
+      <span class="theme-icon">${currentTheme === "dark" ? "☀️" : "🌙"}</span>
     </button>
   `;
 
@@ -632,6 +648,59 @@ function debounce(func, wait = 300) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
+}
+
+function initializeMarketingLayer() {
+  if (!isMarketingExperiencePage()) {
+    return;
+  }
+
+  ensureMarketingStylesheet();
+  ensureMarketingScript();
+}
+
+function isMarketingExperiencePage() {
+  const path = (window.location.pathname || "").toLowerCase();
+  return ![
+    "/admin-dashboard.html",
+    "/student-dashboard.html",
+    "/login.html",
+    "/register.html",
+    "/manage-assignments.html",
+    "/manage-schedules.html",
+    "/manage-sessions.html",
+  ].includes(path);
+}
+
+function ensureMarketingStylesheet() {
+  if (document.querySelector('link[data-marketing-widgets="true"]')) {
+    return;
+  }
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = resolveMarketingAssetUrl("css/marketing-widgets.css");
+  link.setAttribute("data-marketing-widgets", "true");
+  document.head.appendChild(link);
+}
+
+function ensureMarketingScript() {
+  if (document.querySelector('script[data-marketing-widgets="true"]')) {
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = resolveMarketingAssetUrl("js/marketing-widgets.js");
+  script.defer = true;
+  script.setAttribute("data-marketing-widgets", "true");
+  document.head.appendChild(script);
+}
+
+function resolveMarketingAssetUrl(relativePath) {
+  if (window.location && window.location.protocol === "file:") {
+    return relativePath;
+  }
+  return `/${relativePath.replace(/^\/+/, "")}`;
 }
 
 // ========== Global Error Handler ==========

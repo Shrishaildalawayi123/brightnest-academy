@@ -1,0 +1,336 @@
+.marketing-float-stack {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  z-index: 1700;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.marketing-float-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 148px;
+  min-height: 52px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 0;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.2);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.marketing-float-btn--chat {
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+  color: #fff;
+}
+
+.marketing-float-btn--whatsapp {
+  background: linear-gradient(135deg, #12b76a, #0f9f5f);
+  color: #fff;
+}
+
+.marketing-chatbot {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(8.4rem + env(safe-area-inset-bottom, 0px));
+  z-index: 1710;
+  width: min(360px, calc(100vw - 2rem));
+  max-height: min(72vh, 640px);
+  display: grid;
+  grid-template-rows: auto 1fr auto auto auto;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1.25rem;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.22);
+}
+
+.marketing-chatbot__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0.85rem;
+  background: linear-gradient(135deg, #eff6ff, #eef2ff);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.marketing-chatbot__eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.marketing-chatbot__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.marketing-chatbot__close {
+  border: 0;
+  background: transparent;
+  color: #334155;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.marketing-chatbot__messages {
+  overflow-y: auto;
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  background: #f8fafc;
+}
+
+.marketing-chatbot__bubble {
+  max-width: 86%;
+  padding: 0.8rem 0.95rem;
+  border-radius: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.marketing-chatbot__bubble--bot {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.marketing-chatbot__bubble--user {
+  margin-left: auto;
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+  color: #fff;
+}
+
+.marketing-chatbot__bubble--typing {
+  color: #475569;
+  font-style: italic;
+}
+
+.marketing-chatbot__quick {
+  padding: 0.85rem 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: #fff;
+}
+
+.marketing-chatbot__chip {
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.marketing-chatbot__composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+}
+
+.marketing-chatbot__composer input {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 0.85rem;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+}
+
+.marketing-chatbot__composer button {
+  border: 0;
+  border-radius: 0.85rem;
+  padding: 0 1rem;
+  background: #0f172a;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.marketing-chatbot__human {
+  display: block;
+  padding: 0 1rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f9f5f;
+  background: #fff;
+}
+
+.marketing-wa-popup {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(15.5rem + env(safe-area-inset-bottom, 0px));
+  z-index: 1695;
+  width: min(320px, calc(100vw - 2rem));
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: #fff;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+}
+
+.marketing-wa-popup p,
+.marketing-wa-popup h3 {
+  margin: 0;
+}
+
+.marketing-wa-popup p {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0f9f5f;
+}
+
+.marketing-wa-popup h3 {
+  margin-top: 0.35rem;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.marketing-wa-popup__actions {
+  margin-top: 0.9rem;
+  display: flex;
+  gap: 0.65rem;
+}
+
+.marketing-wa-popup__actions a,
+.marketing-wa-popup__actions button {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 0.85rem;
+  border: 0;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.marketing-wa-popup__actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f9f5f;
+  color: #fff;
+}
+
+.marketing-wa-popup__dismiss {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.marketing-wa-popup__close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  border: 0;
+  background: transparent;
+  font-size: 1.2rem;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.marketing-proof-section {
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+}
+
+.marketing-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.marketing-proof-grid article,
+.marketing-demo-trust__card {
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.marketing-proof-grid strong {
+  display: block;
+  font-size: 1.8rem;
+  color: #1d4ed8;
+}
+
+.marketing-proof-grid span {
+  display: block;
+  margin-top: 0.35rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.marketing-demo-trust {
+  margin-bottom: 1.5rem;
+}
+
+.marketing-demo-trust__card h3 {
+  margin-bottom: 0.8rem;
+}
+
+.marketing-demo-trust__card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #334155;
+  line-height: 1.7;
+}
+
+.marketing-demo-trust__card a {
+  display: inline-flex;
+  margin-top: 1rem;
+  font-weight: 700;
+  color: #0f9f5f;
+}
+
+@media (max-width: 900px) {
+  .marketing-float-stack {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .marketing-chatbot {
+    bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .marketing-wa-popup {
+    bottom: calc(20rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .marketing-proof-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .marketing-float-stack,
+  .marketing-chatbot,
+  .marketing-wa-popup {
+    right: 0.75rem;
+    width: calc(100vw - 1.5rem);
+  }
+
+  .marketing-chatbot__composer {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-chatbot__composer button {
+    min-height: 46px;
+  }
+
+  .marketing-wa-popup__actions {
+    flex-direction: column;
+  }
+}
