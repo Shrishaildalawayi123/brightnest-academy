@@ -46,7 +46,60 @@ jobs:
           target: ${{ env.DEPLOY_DIR }}/target/
           overwrite: true
 
-      - name: 6️⃣ Restart Application
+      - name: 6️⃣ Upload Nginx Config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: deploy/aws/nginx-brightnest.conf
+          target: ${{ env.DEPLOY_DIR }}/deploy/aws/
+          overwrite: true
+
+      - name: 7️⃣ Apply Nginx Config And Reload
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            SRC="${{ env.DEPLOY_DIR }}/deploy/aws/nginx-brightnest.conf"
+            if [ ! -f "$SRC" ]; then
+              echo "Missing source nginx config: $SRC"
+              exit 1
+            fi
+
+            ACTIVE_FILE=$(sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | head -n 1 || true)
+            if [ -z "$ACTIVE_FILE" ]; then
+              if [ -f /etc/nginx/sites-available/brightnest-academy ]; then
+                ACTIVE_FILE=/etc/nginx/sites-available/brightnest-academy
+              elif [ -f /etc/nginx/sites-available/brightnest ]; then
+                ACTIVE_FILE=/etc/nginx/sites-available/brightnest
+              else
+                ACTIVE_FILE=/etc/nginx/sites-available/brightnest-academy
+                sudo touch "$ACTIVE_FILE"
+              fi
+            fi
+
+            echo "Applying nginx config to: $ACTIVE_FILE"
+            sudo cp "$ACTIVE_FILE" "${ACTIVE_FILE}.bak.$(date +%Y%m%d%H%M%S)" || true
+            sudo cp "$SRC" "$ACTIVE_FILE"
+
+            case "$ACTIVE_FILE" in
+              /etc/nginx/sites-available/*)
+                ENABLED_LINK="/etc/nginx/sites-enabled/$(basename "$ACTIVE_FILE")"
+                if [ ! -e "$ENABLED_LINK" ]; then
+                  sudo ln -s "$ACTIVE_FILE" "$ENABLED_LINK"
+                fi
+                ;;
+            esac
+
+            sudo nginx -t
+            sudo systemctl reload nginx
+            sudo systemctl --no-pager --full status nginx | sed -n '1,20p'
+
+      - name: 8️⃣ Restart Application
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -58,7 +111,7 @@ jobs:
             sudo systemctl restart brightnest
             sudo systemctl status brightnest --no-pager
 
-      - name: 7️⃣ Health Check
+      - name: 9️⃣ Health Check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -67,7 +120,7 @@ jobs:
           script: |
             echo "Checking application health"
             for i in {1..15}; do
-              if curl -f http://localhost:8080 >/dev/null 2>&1; then
+              if curl -fsS http://localhost:8080/health >/dev/null 2>&1; then
                 echo "Application started successfully"
                 exit 0
               fi
