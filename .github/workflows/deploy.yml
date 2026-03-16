@@ -83,7 +83,8 @@ jobs:
             fi
 
             echo "Applying nginx config to: $ACTIVE_FILE"
-            sudo cp "$ACTIVE_FILE" "${ACTIVE_FILE}.bak.$(date +%Y%m%d%H%M%S)" || true
+            BACKUP_FILE="${ACTIVE_FILE}.bak.$(date +%Y%m%d%H%M%S)"
+            sudo cp "$ACTIVE_FILE" "$BACKUP_FILE" || true
             sudo cp "$SRC" "$ACTIVE_FILE"
 
             case "$ACTIVE_FILE" in
@@ -95,9 +96,18 @@ jobs:
                 ;;
             esac
 
-            sudo nginx -t
-            sudo systemctl reload nginx
-            sudo systemctl --no-pager --full status nginx | sed -n '1,20p'
+            if sudo nginx -t; then
+              sudo systemctl reload nginx
+              sudo systemctl --no-pager --full status nginx | sed -n '1,20p'
+              echo "Nginx config applied successfully"
+            else
+              echo "Nginx validation failed. Restoring previous config and continuing deploy."
+              if [ -f "$BACKUP_FILE" ]; then
+                sudo cp "$BACKUP_FILE" "$ACTIVE_FILE"
+              fi
+              sudo nginx -t || true
+              sudo systemctl reload nginx || true
+            fi
 
       - name: 8️⃣ Restart Application
         uses: appleboy/ssh-action@v1.0.3
