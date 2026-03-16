@@ -63,12 +63,35 @@ jobs:
             if [ -f database/add-marketing-features.sql ] && command -v mysql >/dev/null 2>&1; then
               if [ -n "${DB_USER:-}" ] && [ -n "${DB_PASS:-}" ]; then
                 export MYSQL_PWD="${DB_PASS}"
-                mysql \
-                  -h "${DB_HOST:-127.0.0.1}" \
-                  -P "${DB_PORT:-3306}" \
-                  -u "${DB_USER}" \
-                  "${DB_NAME:-brightnest}" \
-                  < database/add-marketing-features.sql
+                DB_TARGET="${DB_NAME:-}"
+
+                if [ -z "${DB_TARGET}" ]; then
+                  if mysql -Nse "SHOW DATABASES LIKE 'brightnest_academy'" \
+                    -h "${DB_HOST:-127.0.0.1}" \
+                    -P "${DB_PORT:-3306}" \
+                    -u "${DB_USER}" | grep -q brightnest_academy; then
+                    DB_TARGET="brightnest_academy"
+                  elif mysql -Nse "SHOW DATABASES LIKE 'brightnest'" \
+                    -h "${DB_HOST:-127.0.0.1}" \
+                    -P "${DB_PORT:-3306}" \
+                    -u "${DB_USER}" | grep -q brightnest; then
+                    DB_TARGET="brightnest"
+                  fi
+                fi
+
+                if [ -n "${DB_TARGET}" ]; then
+                  if ! mysql \
+                    -h "${DB_HOST:-127.0.0.1}" \
+                    -P "${DB_PORT:-3306}" \
+                    -u "${DB_USER}" \
+                    "${DB_TARGET}" \
+                    < database/add-marketing-features.sql; then
+                    echo "WARNING: marketing schema migration failed; continuing with deploy" >&2
+                  fi
+                else
+                  echo "WARNING: could not determine DB name for migration; continuing with deploy" >&2
+                fi
+
                 unset MYSQL_PWD
               else
                 echo "Skipping DB migration: DB_USER/DB_PASS are not set in deploy environment" >&2
