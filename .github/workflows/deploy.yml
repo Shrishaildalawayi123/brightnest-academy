@@ -33,6 +33,15 @@ jobs:
       - name: Build Project
         run: mvn clean package -DskipTests
 
+      - name: Upload built JAR to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "target/*.jar"
+          target: ${{ secrets.EC2_PATH }}/target
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -46,10 +55,6 @@ jobs:
             # Pull cleanly so deploy fails fast on branch divergence
             git fetch origin main
             git reset --hard origin/main
-
-            # Build with bounded memory to reduce OOM risk on small EC2 instances
-            export MAVEN_OPTS="-Xms256m -Xmx768m"
-            mvn -B -DskipTests clean package
 
             # Apply idempotent schema additions required by newly introduced entities
             # when production is running with ddl-auto=validate.
