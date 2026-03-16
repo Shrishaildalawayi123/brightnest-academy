@@ -1,11 +1,12 @@
 package com.shrishailacademy.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.RedirectView;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,8 +17,10 @@ public class HealthController {
      * Redirect root to index.html (homepage)
      */
     @GetMapping("/")
-    public RedirectView home() {
-        return new RedirectView("/index.html");
+    public ResponseEntity<Void> home() {
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("/index.html"))
+                .build();
     }
 
     /**

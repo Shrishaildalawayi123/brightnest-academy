@@ -2,7 +2,6 @@ package com.shrishailacademy.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Map;
 
@@ -16,8 +15,10 @@ class HealthControllerTest {
 
     @Test
     void homeShouldRedirectToIndexHtml() {
-        RedirectView redirectView = healthController.home();
-        assertEquals("/index.html", redirectView.getUrl());
+        ResponseEntity<Void> response = healthController.home();
+        assertEquals(302, response.getStatusCode().value());
+        assertNotNull(response.getHeaders().getLocation());
+        assertEquals("/index.html", response.getHeaders().getLocation().toString());
     }
 
     @Test
