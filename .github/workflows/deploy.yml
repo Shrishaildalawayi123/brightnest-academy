@@ -101,12 +101,29 @@ jobs:
               sudo systemctl --no-pager --full status nginx | sed -n '1,20p'
               echo "Nginx config applied successfully"
             else
-              echo "Nginx validation failed. Restoring previous config and continuing deploy."
+              echo "Nginx validation failed. Restoring previous config."
               if [ -f "$BACKUP_FILE" ]; then
                 sudo cp "$BACKUP_FILE" "$ACTIVE_FILE"
               fi
-              sudo nginx -t || true
-              sudo systemctl reload nginx || true
+
+              if sudo nginx -t; then
+                sudo systemctl reload nginx
+              fi
+
+              echo "Applying targeted fallback: force HTTPS root redirect in active nginx file"
+              sudo sed -i 's|return 302 /index.html;|return 302 https://$host/index.html;|g' "$ACTIVE_FILE"
+
+              if sudo nginx -t; then
+                sudo systemctl reload nginx
+                echo "Targeted fallback applied successfully"
+              else
+                echo "Targeted fallback validation failed. Restoring original backup and continuing deploy."
+                if [ -f "$BACKUP_FILE" ]; then
+                  sudo cp "$BACKUP_FILE" "$ACTIVE_FILE"
+                fi
+                sudo nginx -t || true
+                sudo systemctl reload nginx || true
+              fi
             fi
 
       - name: 8️⃣ Restart Application
