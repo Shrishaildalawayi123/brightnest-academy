@@ -33,17 +33,6 @@ jobs:
       - name: Build Project
         run: mvn clean package -DskipTests
 
-      - name: Prepare EC2 target directories
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -e
-            sudo mkdir -p "${{ secrets.EC2_PATH }}/target"
-            sudo chown -R "${USER}:${USER}" "${{ secrets.EC2_PATH }}"
-
       - name: Upload built JAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -51,7 +40,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "target/*.jar"
-          target: ${{ secrets.EC2_PATH }}/target
+          target: /home/${{ secrets.EC2_USER }}/brightnest-artifacts
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -66,6 +55,11 @@ jobs:
             # Pull cleanly so deploy fails fast on branch divergence
             git fetch origin main
             git reset --hard origin/main
+
+            # Move CI-built artifacts into the runtime target directory.
+            mkdir -p target
+            cp -f /home/${{ secrets.EC2_USER }}/brightnest-artifacts/target/*.jar target/ 2>/dev/null || true
+            cp -f /home/${{ secrets.EC2_USER }}/brightnest-artifacts/*.jar target/ 2>/dev/null || true
 
             # Apply idempotent schema additions required by newly introduced entities
             # when production is running with ddl-auto=validate.
