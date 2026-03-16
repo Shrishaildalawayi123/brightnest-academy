@@ -71,7 +71,9 @@ public class TenantContextFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/demo-booking")
                 || path.startsWith("/api/counseling")
                 || path.startsWith("/api/testimonials")
-                || path.startsWith("/api/teacher-applications"));
+            || path.startsWith("/api/teacher-applications")
+            || path.startsWith("/api/chatbot/messages")
+            || path.startsWith("/api/whatsapp-leads"));
     }
 
     @Override
@@ -168,7 +170,9 @@ public class TenantContextFilter extends OncePerRequestFilter {
             return path.equals("/api/contact")
                     || path.equals("/api/demo-booking")
                     || path.equals("/api/counseling")
-                    || path.equals("/api/teacher-applications");
+                    || path.equals("/api/teacher-applications")
+                    || path.equals("/api/chatbot/messages")
+                    || path.equals("/api/whatsapp-leads");
         }
 
         return false;

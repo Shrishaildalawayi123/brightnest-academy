@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -89,18 +88,14 @@ public class SessionAttendanceController {
                     
                     // Update status based on DTO
                     switch (dto.getStatus()) {
-                        case PRESENT:
-                            attendance.markPresent(dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(), markedBy.getId());
-                            break;
-                        case LATE:
-                            attendance.markLate(dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(), markedBy.getId());
-                            break;
-                        case ABSENT:
-                            attendance.markAbsent(markedBy.getId());
-                            break;
-                        case EXCUSED:
-                            attendance.markExcused(dto.getNotes(), markedBy.getId());
-                            break;
+                        case PRESENT -> attendance.markPresent(
+                                dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(),
+                                markedBy.getId());
+                        case LATE -> attendance.markLate(
+                                dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(),
+                                markedBy.getId());
+                        case ABSENT -> attendance.markAbsent(markedBy.getId());
+                        case EXCUSED -> attendance.markExcused(dto.getNotes(), markedBy.getId());
                     }
                     
                     if (dto.getNotes() != null) {
@@ -147,18 +142,14 @@ public class SessionAttendanceController {
         
         // Update based on status
         switch (dto.getStatus()) {
-            case PRESENT:
-                attendance.markPresent(dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(), markedBy.getId());
-                break;
-            case LATE:
-                attendance.markLate(dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(), markedBy.getId());
-                break;
-            case ABSENT:
-                attendance.markAbsent(markedBy.getId());
-                break;
-            case EXCUSED:
-                attendance.markExcused(dto.getNotes(), markedBy.getId());
-                break;
+            case PRESENT -> attendance.markPresent(
+                    dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(),
+                    markedBy.getId());
+            case LATE -> attendance.markLate(
+                    dto.getCheckInTime() != null ? dto.getCheckInTime() : LocalTime.now(),
+                    markedBy.getId());
+            case ABSENT -> attendance.markAbsent(markedBy.getId());
+            case EXCUSED -> attendance.markExcused(dto.getNotes(), markedBy.getId());
         }
         
         if (dto.getNotes() != null) {

@@ -213,7 +213,7 @@ public class AssignmentController {
                 .dueDate(dto.getDueDate())
                 .maxScore(dto.getMaxScore())
                 .attachmentUrl(dto.getAttachmentUrl())
-                .isPublished(dto.getIsPublished() != null ? dto.getIsPublished() : false)
+                .isPublished(Boolean.TRUE.equals(dto.getIsPublished()))
                 .build();
     }
 }

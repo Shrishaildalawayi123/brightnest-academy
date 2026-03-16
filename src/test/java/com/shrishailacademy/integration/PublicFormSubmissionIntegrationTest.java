@@ -130,6 +130,33 @@ class PublicFormSubmissionIntegrationTest {
                                 .andExpect(status().isUnauthorized());
         }
 
+        // ===== CHATBOT / WHATSAPP LEADS =====
+
+        @Test
+        void chatbotShouldRespondToPublicQuestions() throws Exception {
+                mockMvc.perform(post("/api/chatbot/messages")
+                                .header("X-Tenant-ID", TENANT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {"message":"Do you provide ICSE tuition classes?"}
+                                                """))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.data.reply").exists())
+                                .andExpect(jsonPath("$.data.suggestions").isArray());
+        }
+
+        @Test
+        void whatsappLeadCaptureShouldAcceptPublicTrackingCalls() throws Exception {
+                mockMvc.perform(post("/api/whatsapp-leads")
+                                .header("X-Tenant-ID", TENANT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {"sourcePage":"/courses.html"}
+                                                """))
+                                .andExpect(status().isNoContent());
+        }
+
         // ===== TESTIMONIALS =====
 
         @Test

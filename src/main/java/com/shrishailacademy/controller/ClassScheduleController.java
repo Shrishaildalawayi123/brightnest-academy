@@ -144,7 +144,7 @@ public class ClassScheduleController {
                 .endTime(dto.getEndTime())
                 .roomNumber(dto.getRoomNumber())
                 .maxStudents(dto.getMaxStudents())
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+                .isActive(Boolean.TRUE.equals(dto.getIsActive()) || dto.getIsActive() == null)
                 .build();
     }
 }

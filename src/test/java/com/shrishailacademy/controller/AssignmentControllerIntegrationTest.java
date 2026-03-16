@@ -10,8 +10,9 @@ import com.shrishailacademy.repository.AssignmentRepository;
 import com.shrishailacademy.repository.CourseRepository;
 import com.shrishailacademy.repository.TenantRepository;
 import com.shrishailacademy.repository.UserRepository;
+import com.shrishailacademy.tenant.TenantContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@Disabled("Database tables for scheduling system not yet created - run database/schema-scheduling.sql first")
 public class AssignmentControllerIntegrationTest {
     
     @Autowired
@@ -62,6 +62,7 @@ public class AssignmentControllerIntegrationTest {
     private Tenant testTenant;
     
     @BeforeEach
+    @SuppressWarnings("unused")
     void setUp() {
         // Create or get default tenant
         testTenant = tenantRepository.findByTenantKey("default").orElseGet(() -> {
@@ -70,7 +71,7 @@ public class AssignmentControllerIntegrationTest {
             t.setName("Default Tenant");
             return tenantRepository.save(t);
         });
-        
+
         // Create test course
         testCourse = new Course();
         testCourse.setTenant(testTenant);
@@ -78,7 +79,7 @@ public class AssignmentControllerIntegrationTest {
         testCourse.setDescription("Test course");
         testCourse.setFee(new java.math.BigDecimal("1000.00"));
         testCourse = courseRepository.save(testCourse);
-        
+
         // Create test teacher
         testTeacher = new User();
         testTeacher.setTenant(testTenant);
@@ -87,6 +88,14 @@ public class AssignmentControllerIntegrationTest {
         testTeacher.setName("Test Teacher");
         testTeacher.setRole(User.Role.TEACHER);
         testTeacher = userRepository.save(testTeacher);
+
+        TenantContext.set(testTenant.getId(), testTenant.getTenantKey());
+    }
+
+    @AfterEach
+    @SuppressWarnings("unused")
+    void tearDown() {
+        TenantContext.clear();
     }
     
     @Test

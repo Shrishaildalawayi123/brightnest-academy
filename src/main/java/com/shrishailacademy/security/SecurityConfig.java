@@ -195,8 +195,10 @@ public class SecurityConfig {
                                                                 "/privacy-policy.html", "/terms-conditions.html",
                                                                 "/course-delivery.html",
                                                                 "/fee-payment.html", "/pricing-cancellation.html",
-                                                                "/qrcode.html",
+                                                                "/qrcode.html", "/robots.txt", "/sitemap.xml",
                                                                 "/careers.html",
+                                                                "/tuition-classes-in-bangalore",
+                                                                "/tuition-classes-in-bangalore/",
                                                                 "/css/**", "/js/**", "/images/**")
                                                 .permitAll()
                                                 .requestMatchers("/student-dashboard.html")
@@ -245,6 +247,14 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/v1/teacher-applications")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/chatbot/messages",
+                                                                "/api/v1/chatbot/messages")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/whatsapp-leads",
+                                                                "/api/v1/whatsapp-leads")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
                                                                 "/api/courses", "/api/courses/**")

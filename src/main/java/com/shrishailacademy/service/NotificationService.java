@@ -48,14 +48,20 @@ public class NotificationService {
     public void sendEnrollmentConfirmation(Enrollment enrollment) {
         User student = enrollment.getUser();
         String message = String.format(
-                "🎓 *BrightNest Academy*\n\n" +
-                        "Hi %s! Welcome aboard! 🎉\n\n" +
-                        "You have been successfully enrolled in:\n" +
-                        "📚 *%s*\n" +
-                        "⏱ Duration: %s\n\n" +
-                        "We look forward to an exciting learning journey with you!\n\n" +
-                        "📞 Contact: +91-7204193980\n" +
-                        "📧 info@brightnest-academy.com",
+                """
+                🎓 *BrightNest Academy*
+
+                Hi %s! Welcome aboard! 🎉
+
+                You have been successfully enrolled in:
+                📚 *%s*
+                ⏱ Duration: %s
+
+                We look forward to an exciting learning journey with you!
+
+                📞 Contact: +91-7204193980
+                📧 info@brightnest-academy.com
+                """,
                 student.getName(),
                 enrollment.getCourse().getTitle(),
                 enrollment.getCourse().getDuration());
@@ -69,15 +75,21 @@ public class NotificationService {
     public void sendPaymentConfirmation(Payment payment) {
         User student = payment.getUser();
         String message = String.format(
-                "🎓 *BrightNest Academy*\n\n" +
-                        "Hi %s! Payment Confirmed! ✅\n\n" +
-                        "💰 Amount: ₹%.0f\n" +
-                        "📚 Course: %s\n" +
-                        "🧾 Receipt: %s\n" +
-                        "💳 Method: %s\n" +
-                        "📅 Date: %s\n\n" +
-                        "Thank you for your payment!\n\n" +
-                        "📞 Contact: +91-7204193980",
+                """
+                🎓 *BrightNest Academy*
+
+                Hi %s! Payment Confirmed! ✅
+
+                💰 Amount: ₹%.0f
+                📚 Course: %s
+                🧾 Receipt: %s
+                💳 Method: %s
+                📅 Date: %s
+
+                Thank you for your payment!
+
+                📞 Contact: +91-7204193980
+                """,
                 student.getName(),
                 payment.getAmount(),
                 payment.getCourse().getTitle(),
@@ -93,13 +105,19 @@ public class NotificationService {
      */
     public void sendAttendanceAlert(User student, String courseName, long absentCount) {
         String message = String.format(
-                "🎓 *BrightNest Academy* - Attendance Alert ⚠️\n\n" +
-                        "Hi %s,\n\n" +
-                        "Your attendance in *%s* is low.\n" +
-                        "Total absences: %d\n\n" +
-                        "Regular attendance is important for your progress.\n" +
-                        "Please reach out if you need any support.\n\n" +
-                        "📞 +91-7204193980",
+                """
+                🎓 *BrightNest Academy* - Attendance Alert ⚠️
+
+                Hi %s,
+
+                Your attendance in *%s* is low.
+                Total absences: %d
+
+                Regular attendance is important for your progress.
+                Please reach out if you need any support.
+
+                📞 +91-7204193980
+                """,
                 student.getName(),
                 courseName,
                 absentCount);
