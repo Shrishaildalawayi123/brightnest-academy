@@ -56,7 +56,7 @@ jobs:
           target: ${{ env.DEPLOY_DIR }}/deploy/aws/
           overwrite: true
 
-      - name: 7️⃣ Apply Nginx Config And Reload
+      - name: 7️⃣ Audit Active Nginx Config And Apply Root Redirect Fix
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -64,67 +64,70 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            SRC="${{ env.DEPLOY_DIR }}/deploy/aws/nginx-brightnest.conf"
-            if [ ! -f "$SRC" ]; then
-              echo "Missing source nginx config: $SRC"
+            TS=$(date +%Y%m%d%H%M%S)
+            AUDIT_FILE="/tmp/nginx-audit-${TS}.log"
+
+            echo "=== Nginx Runtime Audit: Version ==="
+            sudo nginx -v 2>&1 || true
+
+            echo "=== Nginx Runtime Audit: Full Config (nginx -T) ==="
+            sudo nginx -T > "$AUDIT_FILE" 2>&1 || true
+            sudo sed -n '1,120p' "$AUDIT_FILE"
+
+            ACTIVE_FILE=$(awk '
+              /^# configuration file / {
+                file=$4;
+                sub(/:$/, "", file);
+              }
+              /server_name[[:space:]]+.*brightnest-academy\.com/ {
+                print file;
+                exit;
+              }
+            ' "$AUDIT_FILE")
+
+            if [ -z "$ACTIVE_FILE" ]; then
+              ACTIVE_FILE=$(sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx/sites-enabled /etc/nginx/conf.d /etc/nginx/sites-available 2>/dev/null | head -n 1 || true)
+            fi
+
+            if [ -z "$ACTIVE_FILE" ] || [ ! -f "$ACTIVE_FILE" ]; then
+              echo "Could not determine active nginx file for brightnest-academy.com"
               exit 1
             fi
 
-            ACTIVE_FILE=$(sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | head -n 1 || true)
-            if [ -z "$ACTIVE_FILE" ]; then
-              if [ -f /etc/nginx/sites-available/brightnest-academy ]; then
-                ACTIVE_FILE=/etc/nginx/sites-available/brightnest-academy
-              elif [ -f /etc/nginx/sites-available/brightnest ]; then
-                ACTIVE_FILE=/etc/nginx/sites-available/brightnest
-              else
-                ACTIVE_FILE=/etc/nginx/sites-available/brightnest-academy
-                sudo touch "$ACTIVE_FILE"
-              fi
-            fi
+            echo "=== Active server file ==="
+            echo "$ACTIVE_FILE"
 
-            echo "Applying nginx config to: $ACTIVE_FILE"
-            BACKUP_FILE="${ACTIVE_FILE}.bak.$(date +%Y%m%d%H%M%S)"
-            sudo cp "$ACTIVE_FILE" "$BACKUP_FILE" || true
-            sudo cp "$SRC" "$ACTIVE_FILE"
+            echo "=== Redirect directives in active server file (before) ==="
+            sudo nl -ba "$ACTIVE_FILE" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
 
-            case "$ACTIVE_FILE" in
-              /etc/nginx/sites-available/*)
-                ENABLED_LINK="/etc/nginx/sites-enabled/$(basename "$ACTIVE_FILE")"
-                if [ ! -e "$ENABLED_LINK" ]; then
-                  sudo ln -s "$ACTIVE_FILE" "$ENABLED_LINK"
-                fi
-                ;;
-            esac
+            echo "=== Origin check: direct local HTTP/HTTPS via nginx ==="
+            echo "-- HTTP 127.0.0.1 with Host header --"
+            curl -sSI -H "Host: brightnest-academy.com" http://127.0.0.1/ | sed -n '1,10p' || true
+            echo "-- HTTPS 127.0.0.1 with Host header --"
+            curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | sed -n '1,10p' || true
+
+            BACKUP_FILE="${ACTIVE_FILE}.bak.${TS}"
+            sudo cp "$ACTIVE_FILE" "$BACKUP_FILE"
+
+            sudo sed -i 's|return 302 /index.html;|return 302 https://$host/index.html;|g' "$ACTIVE_FILE"
+            sudo sed -i 's|return 302 http://brightnest-academy.com/index.html;|return 302 https://$host/index.html;|g' "$ACTIVE_FILE"
 
             if sudo nginx -t; then
               sudo systemctl reload nginx
-              sudo systemctl --no-pager --full status nginx | sed -n '1,20p'
-              echo "Nginx config applied successfully"
+              echo "Nginx reloaded after active-file patch"
             else
-              echo "Nginx validation failed. Restoring previous config."
-              if [ -f "$BACKUP_FILE" ]; then
-                sudo cp "$BACKUP_FILE" "$ACTIVE_FILE"
-              fi
-
-              if sudo nginx -t; then
-                sudo systemctl reload nginx
-              fi
-
-              echo "Applying targeted fallback: force HTTPS root redirect in active nginx file"
-              sudo sed -i 's|return 302 /index.html;|return 302 https://$host/index.html;|g' "$ACTIVE_FILE"
-
-              if sudo nginx -t; then
-                sudo systemctl reload nginx
-                echo "Targeted fallback applied successfully"
-              else
-                echo "Targeted fallback validation failed. Restoring original backup and continuing deploy."
-                if [ -f "$BACKUP_FILE" ]; then
-                  sudo cp "$BACKUP_FILE" "$ACTIVE_FILE"
-                fi
-                sudo nginx -t || true
-                sudo systemctl reload nginx || true
-              fi
+              echo "Nginx validation failed after patch. Restoring backup."
+              sudo cp "$BACKUP_FILE" "$ACTIVE_FILE"
+              sudo nginx -t
+              sudo systemctl reload nginx
+              exit 1
             fi
+
+            echo "=== Redirect directives in active server file (after) ==="
+            sudo nl -ba "$ACTIVE_FILE" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
+
+            echo "=== Post-reload local check ==="
+            curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | sed -n '1,12p' || true
 
       - name: 8️⃣ Restart Application
         uses: appleboy/ssh-action@v1.0.3
