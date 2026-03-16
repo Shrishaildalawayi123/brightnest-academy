@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -51,7 +51,21 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -euo pipefail
-            cd ${{ secrets.EC2_PATH }} || exit 1
+            REPO_PATH="${{ secrets.EC2_PATH }}"
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+
+            # Bootstrap repository path on first deploy or broken server state.
+            if [ ! -d "${REPO_PATH}/.git" ]; then
+              mkdir -p "${REPO_PATH}"
+              if [ -d "${REPO_PATH}" ] && [ -z "$(ls -A "${REPO_PATH}" 2>/dev/null)" ]; then
+                git clone --depth 1 "${REPO_URL}" "${REPO_PATH}"
+              else
+                rm -rf "${REPO_PATH}"/*
+                git clone --depth 1 "${REPO_URL}" "${REPO_PATH}"
+              fi
+            fi
+
+            cd "${REPO_PATH}" || exit 1
 
             # Pull cleanly so deploy fails fast on branch divergence
             git fetch origin main
@@ -117,16 +131,28 @@ jobs:
 
             # Restart app using the runtime available on server.
             SERVICE_NAME=""
+            HAS_SUDO=0
+            if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+              HAS_SUDO=1
+            fi
+
             for candidate in brightnest brightnest-academy; do
-              if sudo systemctl list-unit-files | grep -q "^${candidate}\\.service"; then
+              if systemctl list-unit-files 2>/dev/null | grep -q "^${candidate}\\.service"; then
                 SERVICE_NAME="${candidate}"
                 break
               fi
             done
 
             if [ -n "${SERVICE_NAME}" ]; then
-              sudo systemctl restart "${SERVICE_NAME}"
-              sudo systemctl is-active --quiet "${SERVICE_NAME}"
+              if systemctl restart "${SERVICE_NAME}" >/dev/null 2>&1; then
+                systemctl is-active --quiet "${SERVICE_NAME}"
+              elif [ "${HAS_SUDO}" -eq 1 ]; then
+                sudo -n systemctl restart "${SERVICE_NAME}"
+                sudo -n systemctl is-active --quiet "${SERVICE_NAME}"
+              else
+                echo "Failed to restart ${SERVICE_NAME}: no service permission and sudo not available" >&2
+                exit 1
+              fi
             elif [ -f docker-compose.prod.yml ] || [ -f docker-compose.yml ]; then
               if command -v docker >/dev/null 2>&1; then
                 if [ -f docker-compose.prod.yml ]; then
@@ -153,9 +179,17 @@ jobs:
 
             echo "Health check failed after restart" >&2
             if [ -n "${SERVICE_NAME}" ]; then
-              sudo systemctl status "${SERVICE_NAME}" --no-pager >&2 || true
-              sudo journalctl -u "${SERVICE_NAME}" -n 120 --no-pager >&2 || true
+              systemctl status "${SERVICE_NAME}" --no-pager >&2 || true
+              journalctl -u "${SERVICE_NAME}" -n 120 --no-pager >&2 || true
+              if [ "${HAS_SUDO}" -eq 1 ]; then
+                sudo -n systemctl status "${SERVICE_NAME}" --no-pager >&2 || true
+                sudo -n journalctl -u "${SERVICE_NAME}" -n 120 --no-pager >&2 || true
+              fi
             fi
-            sudo journalctl -u brightnest -n 120 --no-pager >&2 || true
-            sudo tail -n 120 /var/log/nginx/error.log >&2 || true
+            journalctl -u brightnest -n 120 --no-pager >&2 || true
+            tail -n 120 /var/log/nginx/error.log >&2 || true
+            if [ "${HAS_SUDO}" -eq 1 ]; then
+              sudo -n journalctl -u brightnest -n 120 --no-pager >&2 || true
+              sudo -n tail -n 120 /var/log/nginx/error.log >&2 || true
+            fi
             exit 1
