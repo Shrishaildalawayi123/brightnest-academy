@@ -34,6 +34,7 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Upload built JAR to EC2
+        continue-on-error: true
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -60,6 +61,12 @@ jobs:
             mkdir -p target
             cp -f /home/${{ secrets.EC2_USER }}/brightnest-artifacts/target/*.jar target/ 2>/dev/null || true
             cp -f /home/${{ secrets.EC2_USER }}/brightnest-artifacts/*.jar target/ 2>/dev/null || true
+
+            # Fallback: build on server when artifact upload is unavailable.
+            if ! ls target/*.jar >/dev/null 2>&1; then
+              export MAVEN_OPTS="-Xms256m -Xmx768m"
+              mvn -B -DskipTests clean package
+            fi
 
             # Apply idempotent schema additions required by newly introduced entities
             # when production is running with ddl-auto=validate.
