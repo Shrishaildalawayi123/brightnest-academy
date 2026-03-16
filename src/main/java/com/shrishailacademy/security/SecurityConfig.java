@@ -87,7 +87,8 @@ public class SecurityConfig {
                                         || (accept != null && accept.contains("text/html"));
 
                         if (wantsHtml) {
-                                res.sendRedirect("/index.html");
+                                res.setStatus(HttpServletResponse.SC_FOUND);
+                                res.setHeader("Location", "/index.html");
                                 return;
                         }
 
@@ -301,4 +302,3 @@ public class SecurityConfig {
                 return http.build();
         }
 }
-
