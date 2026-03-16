@@ -38,29 +38,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 public class AssignmentControllerIntegrationTest {
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     @Autowired
     private AssignmentRepository assignmentRepository;
-    
+
     @Autowired
     private CourseRepository courseRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private TenantRepository tenantRepository;
-    
+
     private Course testCourse;
     private User testTeacher;
     private Tenant testTenant;
-    
+
     @BeforeEach
     @SuppressWarnings("unused")
     void setUp() {
@@ -97,7 +97,7 @@ public class AssignmentControllerIntegrationTest {
     void tearDown() {
         TenantContext.clear();
     }
-    
+
     @Test
     @WithMockUser(username = "teacher@test.com", roles = "TEACHER")
     void testCreateAssignment() throws Exception {
@@ -110,17 +110,17 @@ public class AssignmentControllerIntegrationTest {
                 .maxScore(100)
                 .isPublished(false)
                 .build();
-        
+
         mockMvc.perform(post("/api/v1/assignments")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title", is("Homework 1")))
                 .andExpect(jsonPath("$.maxScore", is(100)))
                 .andExpect(jsonPath("$.isPublished", is(false)));
     }
-    
+
     @Test
     @WithMockUser(roles = "TEACHER")
     void testGetAllAssignments() throws Exception {
@@ -135,12 +135,12 @@ public class AssignmentControllerIntegrationTest {
                 .isPublished(true)
                 .build();
         assignmentRepository.save(assignment);
-        
+
         mockMvc.perform(get("/api/v1/assignments"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
-    
+
     @Test
     @WithMockUser(roles = "TEACHER")
     void testPublishAssignment() throws Exception {
@@ -155,20 +155,20 @@ public class AssignmentControllerIntegrationTest {
                 .isPublished(false)
                 .build();
         assignment = assignmentRepository.save(assignment);
-        
+
         mockMvc.perform(post("/api/v1/assignments/" + assignment.getId() + "/publish")
-                        .with(csrf()))
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isPublished", is(true)));
     }
-    
+
     @Test
     @WithMockUser(roles = "STUDENT")
     void testStudentCanViewAssignments() throws Exception {
         mockMvc.perform(get("/api/v1/assignments"))
                 .andExpect(status().isOk());
     }
-    
+
     @Test
     @WithMockUser(roles = "STUDENT")
     void testStudentCannotCreateAssignment() throws Exception {
@@ -180,11 +180,11 @@ public class AssignmentControllerIntegrationTest {
                 .dueDate(LocalDateTime.now().plusDays(7))
                 .maxScore(100)
                 .build();
-        
+
         mockMvc.perform(post("/api/v1/assignments")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isForbidden());
     }
 }

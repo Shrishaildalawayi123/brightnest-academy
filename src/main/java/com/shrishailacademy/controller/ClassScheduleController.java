@@ -27,12 +27,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/schedules")
 @RequiredArgsConstructor
 public class ClassScheduleController {
-    
+
     private final ClassScheduleService scheduleService;
     private final ClassScheduleRepository scheduleRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
-    
+
     /**
      * Get all active schedules
      */
@@ -45,7 +45,7 @@ public class ClassScheduleController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
-    
+
     /**
      * Get schedule by ID
      */
@@ -54,10 +54,10 @@ public class ClassScheduleController {
     public ResponseEntity<ClassScheduleDTO> getScheduleById(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
         ClassSchedule schedule = scheduleRepository.findByIdAndTenantId(id, tenantId)
-            .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
         return ResponseEntity.ok(convertToDTO(schedule));
     }
-    
+
     /**
      * Create new schedule (ADMIN/TEACHER only)
      */
@@ -68,7 +68,7 @@ public class ClassScheduleController {
         ClassSchedule created = scheduleService.createSchedule(schedule);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(created));
     }
-    
+
     /**
      * Update existing schedule (ADMIN/TEACHER only)
      */
@@ -81,7 +81,7 @@ public class ClassScheduleController {
         ClassSchedule updated = scheduleService.updateSchedule(id, updates);
         return ResponseEntity.ok(convertToDTO(updated));
     }
-    
+
     /**
      * Delete schedule (soft delete - ADMIN only)
      */
@@ -91,7 +91,7 @@ public class ClassScheduleController {
         scheduleService.deleteSchedule(id);
         return ResponseEntity.noContent().build();
     }
-    
+
     /**
      * Generate sessions for a schedule manually
      */
@@ -102,13 +102,13 @@ public class ClassScheduleController {
             @RequestParam(defaultValue = "4") Integer weeksAhead) {
         Long tenantId = TenantContext.requireTenantId();
         ClassSchedule schedule = scheduleRepository.findByIdAndTenantId(id, tenantId)
-            .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
         scheduleService.generateSessionsForSchedule(schedule, weeksAhead);
         return ResponseEntity.ok(String.format("Generated sessions for the next %d weeks", weeksAhead));
     }
-    
+
     // Helper methods
-    
+
     private ClassScheduleDTO convertToDTO(ClassSchedule schedule) {
         return ClassScheduleDTO.builder()
                 .id(schedule.getId())
@@ -125,16 +125,16 @@ public class ClassScheduleController {
                 .isActive(schedule.getIsActive())
                 .build();
     }
-    
+
     private ClassSchedule convertToEntity(ClassScheduleDTO dto) {
         Long tenantId = TenantContext.requireTenantId();
-        
+
         Course course = courseRepository.findById(dto.getCourseId())
                 .orElseThrow(() -> new IllegalArgumentException("Course not found: " + dto.getCourseId()));
-        
+
         User teacher = userRepository.findById(dto.getTeacherId())
                 .orElseThrow(() -> new IllegalArgumentException("Teacher not found: " + dto.getTeacherId()));
-        
+
         return ClassSchedule.builder()
                 .tenantId(tenantId)
                 .course(course)

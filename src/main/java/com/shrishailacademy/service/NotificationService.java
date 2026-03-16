@@ -49,19 +49,19 @@ public class NotificationService {
         User student = enrollment.getUser();
         String message = String.format(
                 """
-                🎓 *BrightNest Academy*
+                        🎓 *BrightNest Academy*
 
-                Hi %s! Welcome aboard! 🎉
+                        Hi %s! Welcome aboard! 🎉
 
-                You have been successfully enrolled in:
-                📚 *%s*
-                ⏱ Duration: %s
+                        You have been successfully enrolled in:
+                        📚 *%s*
+                        ⏱ Duration: %s
 
-                We look forward to an exciting learning journey with you!
+                        We look forward to an exciting learning journey with you!
 
-                📞 Contact: +91-7204193980
-                📧 info@brightnest-academy.com
-                """,
+                        📞 Contact: +91-7204193980
+                        📧 info@brightnest-academy.com
+                        """,
                 student.getName(),
                 enrollment.getCourse().getTitle(),
                 enrollment.getCourse().getDuration());
@@ -76,20 +76,20 @@ public class NotificationService {
         User student = payment.getUser();
         String message = String.format(
                 """
-                🎓 *BrightNest Academy*
+                        🎓 *BrightNest Academy*
 
-                Hi %s! Payment Confirmed! ✅
+                        Hi %s! Payment Confirmed! ✅
 
-                💰 Amount: ₹%.0f
-                📚 Course: %s
-                🧾 Receipt: %s
-                💳 Method: %s
-                📅 Date: %s
+                        💰 Amount: ₹%.0f
+                        📚 Course: %s
+                        🧾 Receipt: %s
+                        💳 Method: %s
+                        📅 Date: %s
 
-                Thank you for your payment!
+                        Thank you for your payment!
 
-                📞 Contact: +91-7204193980
-                """,
+                        📞 Contact: +91-7204193980
+                        """,
                 student.getName(),
                 payment.getAmount(),
                 payment.getCourse().getTitle(),
@@ -106,18 +106,18 @@ public class NotificationService {
     public void sendAttendanceAlert(User student, String courseName, long absentCount) {
         String message = String.format(
                 """
-                🎓 *BrightNest Academy* - Attendance Alert ⚠️
+                        🎓 *BrightNest Academy* - Attendance Alert ⚠️
 
-                Hi %s,
+                        Hi %s,
 
-                Your attendance in *%s* is low.
-                Total absences: %d
+                        Your attendance in *%s* is low.
+                        Total absences: %d
 
-                Regular attendance is important for your progress.
-                Please reach out if you need any support.
+                        Regular attendance is important for your progress.
+                        Please reach out if you need any support.
 
-                📞 +91-7204193980
-                """,
+                        📞 +91-7204193980
+                        """,
                 student.getName(),
                 courseName,
                 absentCount);
@@ -173,7 +173,8 @@ public class NotificationService {
         String payload = "{" +
                 "\"to\":\"" + escapeJson(phone) + "\"," +
                 "\"message\":\"" + escapeJson(message) + "\"" +
-                (senderNumber == null || senderNumber.isBlank() ? "" : ",\"from\":\"" + escapeJson(senderNumber) + "\"") +
+                (senderNumber == null || senderNumber.isBlank() ? "" : ",\"from\":\"" + escapeJson(senderNumber) + "\"")
+                +
                 "}";
 
         HttpRequest request = HttpRequest.newBuilder(URI.create(whatsappApiUrl))

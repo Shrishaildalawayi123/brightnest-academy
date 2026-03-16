@@ -27,12 +27,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/assignments")
 @RequiredArgsConstructor
 public class AssignmentController {
-    
+
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
-    
+
     /**
      * Get all assignments
      */
@@ -41,17 +41,17 @@ public class AssignmentController {
     public ResponseEntity<List<AssignmentDTO>> getAllAssignments(
             @RequestParam(required = false) Long courseId) {
         Long tenantId = TenantContext.requireTenantId();
-        
+
         List<Assignment> assignments;
         if (courseId != null) {
             assignments = assignmentRepository.findByCourse_IdAndTenantId(courseId, tenantId);
         } else {
             assignments = assignmentRepository.findByTenantId(tenantId);
         }
-        
+
         return ResponseEntity.ok(assignments.stream().map(this::convertToDTO).collect(Collectors.toList()));
     }
-    
+
     /**
      * Get upcoming assignments
      */
@@ -62,7 +62,7 @@ public class AssignmentController {
         List<Assignment> assignments = assignmentRepository.findUpcomingAssignments(tenantId, LocalDateTime.now());
         return ResponseEntity.ok(assignments.stream().map(this::convertToDTO).collect(Collectors.toList()));
     }
-    
+
     /**
      * Get overdue assignments
      */
@@ -73,7 +73,7 @@ public class AssignmentController {
         List<Assignment> assignments = assignmentRepository.findOverdueAssignments(tenantId, LocalDateTime.now());
         return ResponseEntity.ok(assignments.stream().map(this::convertToDTO).collect(Collectors.toList()));
     }
-    
+
     /**
      * Get assignment by ID
      */
@@ -86,7 +86,7 @@ public class AssignmentController {
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
         return ResponseEntity.ok(convertToDTO(assignment));
     }
-    
+
     /**
      * Create new assignment (TEACHER/ADMIN only)
      */
@@ -97,7 +97,7 @@ public class AssignmentController {
         Assignment created = assignmentRepository.save(assignment);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(created));
     }
-    
+
     /**
      * Update assignment (TEACHER/ADMIN only)
      */
@@ -110,18 +110,18 @@ public class AssignmentController {
         Assignment assignment = assignmentRepository.findById(id)
                 .filter(a -> a.getTenantId().equals(tenantId))
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
-        
+
         // Update fields
         assignment.setTitle(dto.getTitle());
         assignment.setDescription(dto.getDescription());
         assignment.setDueDate(dto.getDueDate());
         assignment.setMaxScore(dto.getMaxScore());
         assignment.setAttachmentUrl(dto.getAttachmentUrl());
-        
+
         Assignment updated = assignmentRepository.save(assignment);
         return ResponseEntity.ok(convertToDTO(updated));
     }
-    
+
     /**
      * Publish assignment
      */
@@ -132,12 +132,12 @@ public class AssignmentController {
         Assignment assignment = assignmentRepository.findById(id)
                 .filter(a -> a.getTenantId().equals(tenantId))
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
-        
+
         assignment.publish();
         Assignment updated = assignmentRepository.save(assignment);
         return ResponseEntity.ok(convertToDTO(updated));
     }
-    
+
     /**
      * Unpublish assignment
      */
@@ -148,12 +148,12 @@ public class AssignmentController {
         Assignment assignment = assignmentRepository.findById(id)
                 .filter(a -> a.getTenantId().equals(tenantId))
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
-        
+
         assignment.unpublish();
         Assignment updated = assignmentRepository.save(assignment);
         return ResponseEntity.ok(convertToDTO(updated));
     }
-    
+
     /**
      * Delete assignment (ADMIN only)
      */
@@ -164,18 +164,18 @@ public class AssignmentController {
         Assignment assignment = assignmentRepository.findById(id)
                 .filter(a -> a.getTenantId().equals(tenantId))
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
-        
+
         assignmentRepository.delete(assignment);
         return ResponseEntity.noContent().build();
     }
-    
+
     // Helper methods
-    
+
     private AssignmentDTO convertToDTO(Assignment assignment) {
         Long totalSubmissions = submissionRepository.countByAssignmentId(assignment.getId());
         Long gradedSubmissions = submissionRepository.countByAssignmentIdAndGradedAtIsNotNull(assignment.getId());
         Double averageScore = submissionRepository.getAverageScore(assignment.getId());
-        
+
         return AssignmentDTO.builder()
                 .id(assignment.getId())
                 .courseId(assignment.getCourse().getId())
@@ -194,16 +194,16 @@ public class AssignmentController {
                 .isOverdue(assignment.isOverdue())
                 .build();
     }
-    
+
     private Assignment convertToEntity(AssignmentDTO dto) {
         Long tenantId = TenantContext.requireTenantId();
-        
+
         Course course = courseRepository.findById(dto.getCourseId())
                 .orElseThrow(() -> new IllegalArgumentException("Course not found: " + dto.getCourseId()));
-        
+
         User teacher = userRepository.findById(dto.getTeacherId())
                 .orElseThrow(() -> new IllegalArgumentException("Teacher not found: " + dto.getTeacherId()));
-        
+
         return Assignment.builder()
                 .tenantId(tenantId)
                 .course(course)
