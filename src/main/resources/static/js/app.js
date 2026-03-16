@@ -334,24 +334,29 @@ function initializeMobileStickyCta() {
     "(hover: none), (pointer: coarse)",
   ).matches;
 
-  if (!isTouchDevice || document.querySelector(".mobile-cta-bar")) {
+  if (
+    !isTouchDevice ||
+    document.querySelector(".mobile-cta-bar") ||
+    document.querySelector(".mobile-contact-bar") ||
+    document.querySelector(".mobile-bar")
+  ) {
     return;
   }
 
   const bar = document.createElement("nav");
-  bar.className = "mobile-cta-bar";
+  bar.className = "mobile-bar mobile-contact-bar mobile-cta-bar";
   bar.setAttribute("aria-label", "Quick contact actions");
   if (!prefersReducedMotion) {
-    bar.classList.add("mobile-cta-bar--animate");
+    bar.classList.add("mobile-bar--animate", "mobile-contact-bar--animate", "mobile-cta-bar--animate");
   }
 
   const directionsUrl =
     "https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019";
 
   bar.innerHTML = `
-    <a class="mobile-cta-bar__item" href="tel:+917204193980" aria-label="Call BrightNest Academy">Call</a>
-    <a class="mobile-cta-bar__item" href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy%2C%20I%20need%20course%20details." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">WhatsApp</a>
-    <a class="mobile-cta-bar__item" href="${directionsUrl}" target="_blank" rel="noopener" aria-label="Get directions to BrightNest Academy">Directions</a>
+    <a class="mobile-bar__item mobile-contact-bar__item mobile-cta-bar__item" href="tel:+917204193980" aria-label="Call BrightNest Academy">Call</a>
+    <a class="mobile-bar__item mobile-contact-bar__item mobile-cta-bar__item" href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy%2C%20I%20need%20course%20details." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">WhatsApp</a>
+    <a class="mobile-bar__item mobile-contact-bar__item mobile-cta-bar__item" href="${directionsUrl}" target="_blank" rel="noopener" aria-label="Get directions to BrightNest Academy">Directions</a>
   `;
 
   document.body.appendChild(bar);

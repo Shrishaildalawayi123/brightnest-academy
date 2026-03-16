@@ -2247,6 +2247,36 @@ textarea:focus-visible,
 
 /* --- Tablet portrait / small screens --- */
 @media (max-width: 768px) {
+  .container {
+    width: min(1120px, 100% - 30px);
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  button,
+  .btn {
+    min-height: 44px;
+  }
+
+  .btn.btn-block,
+  form button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .nav-links .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
   :root {
     --header-height: 70px;
     --announcement-height: 52px;
@@ -3420,7 +3450,9 @@ textarea:focus-visible,
 }
 
 /* ========== Sticky Mobile CTA Bar ========== */
-.mobile-cta-bar {
+.mobile-cta-bar,
+.mobile-contact-bar,
+.mobile-bar {
   position: fixed;
   left: 0;
   right: 0;
@@ -3428,16 +3460,21 @@ textarea:focus-visible,
   z-index: 1600;
   display: none;
   grid-template-columns: repeat(3, 1fr);
-  background: rgba(15, 23, 42, 0.94);
+  background: #2563eb;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
 }
 
-.mobile-cta-bar--animate {
+.mobile-cta-bar--animate,
+.mobile-contact-bar--animate,
+.mobile-bar--animate {
   animation: mobileCtaSlideUp 340ms ease-out;
 }
 
-.mobile-cta-bar__item {
+.mobile-cta-bar__item,
+.mobile-contact-bar__item,
+.mobile-bar a,
+.mobile-bar__item {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3446,17 +3483,26 @@ textarea:focus-visible,
   font-weight: 700;
   font-size: 0.83rem;
   letter-spacing: 0.01em;
-  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  border-right: 1px solid rgba(255, 255, 255, 0.24);
 }
 
-.mobile-cta-bar__item:last-child {
+.mobile-cta-bar__item:last-child,
+.mobile-contact-bar__item:last-child,
+.mobile-bar a:last-child,
+.mobile-bar__item:last-child {
   border-right: 0;
 }
 
 .mobile-cta-bar__item:hover,
-.mobile-cta-bar__item:focus-visible {
+.mobile-cta-bar__item:focus-visible,
+.mobile-contact-bar__item:hover,
+.mobile-contact-bar__item:focus-visible,
+.mobile-bar a:hover,
+.mobile-bar a:focus-visible,
+.mobile-bar__item:hover,
+.mobile-bar__item:focus-visible {
   color: #fff;
-  background: rgba(79, 70, 229, 0.45);
+  background: rgba(37, 99, 235, 0.78);
 }
 
 @keyframes mobileCtaSlideUp {
@@ -3471,7 +3517,9 @@ textarea:focus-visible,
 }
 
 @media (max-width: 900px) {
-  .mobile-cta-bar {
+  .mobile-cta-bar,
+  .mobile-contact-bar,
+  .mobile-bar {
     display: grid;
   }
 

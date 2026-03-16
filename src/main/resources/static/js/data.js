@@ -800,6 +800,10 @@ function getNavHTML(activePage) {
                         <li><a href="science.html">Science</a></li>
                     </ul>
                 </li>
+                    <li><a href="admissions.html" class="nav-link ${activePage === "admissions" ? "active" : ""}">Admissions</a></li>
+                    <li><a href="team.html" class="nav-link ${activePage === "team" ? "active" : ""}">Faculty</a></li>
+                    <li><a href="testimonials.html" class="nav-link ${activePage === "testimonials" ? "active" : ""}">Testimonials</a></li>
+                    <li><a href="blog.html" class="nav-link ${activePage === "blog" ? "active" : ""}">Blog</a></li>
                 <li><a href="about.html" class="nav-link ${activePage === "about" || activePage === "team" ? "active" : ""}">About</a></li>
                 <li><a href="faq.html" class="nav-link ${activePage === "faq" ? "active" : ""}">FAQ</a></li>
                 <li><a href="contact.html" class="nav-link ${activePage === "contact" ? "active" : ""}">Contact</a></li>
@@ -851,6 +855,10 @@ function getFooterHTML() {
             <h4>Quick Links</h4>
             <ul>
               <li><a href="about.html">About Us</a></li>
+              <li><a href="admissions.html">Admissions</a></li>
+              <li><a href="team.html">Faculty</a></li>
+              <li><a href="testimonials.html">Testimonials</a></li>
+              <li><a href="blog.html">Blog</a></li>
               <li><a href="faq.html">FAQ</a></li>
               <li><a href="contact.html">Contact</a></li>
               <li><a href="demo.html">Book a Demo</a></li>

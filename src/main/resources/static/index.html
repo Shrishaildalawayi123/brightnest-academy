@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrightNest Academy | Premium Tuition for CBSE, ICSE &amp; State Board</title>
-    <meta name="description" content="BrightNest Academy provides personalized tuition for CBSE, ICSE and Karnataka State Board students in Bengaluru. Online and offline classes in Kannada, English, Hindi, Mathematics and Science.">
+    <title>BrightNest Academy | Best Tuition Center in Bangalore</title>
+    <meta name="description" content="BrightNest Academy provides expert coaching for CBSE, ICSE and Karnataka State Board students in Mathematics, Science, Kannada, English and Hindi.">
     <meta name="robots" content="index, follow">
     <meta name="author" content="BrightNest Academy">
     <link rel="canonical" href="https://brightnest-academy.com/">
@@ -14,6 +14,7 @@
     <meta property="og:title" content="BrightNest Academy | Premium Tuition for CBSE, ICSE &amp; State Board">
     <meta property="og:description" content="Personalized tuition in Kannada, English, Hindi, German, Mathematics &amp; Science for school students from grades 1-10.">
     <meta property="og:site_name" content="BrightNest Academy">
+    <meta property="og:image" content="https://brightnest-academy.com/images/logo.png">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BrightNest Academy | Premium Tuition for CBSE, ICSE &amp; State Board">
@@ -69,11 +70,52 @@
       }
     }
     </script>
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "EducationalOrganization",
+                    "@id": "https://brightnest-academy.com/#edu",
+                    "name": "BrightNest Academy",
+                    "url": "https://brightnest-academy.com/",
+                    "telephone": "+91-6363464005",
+                    "address": {
+                        "@type": "PostalAddress",
+                        "streetAddress": "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage",
+                        "addressLocality": "Bengaluru",
+                        "addressRegion": "Karnataka",
+                        "postalCode": "560078",
+                        "addressCountry": "IN"
+                    },
+                    "areaServed": "Bengaluru"
+                },
+                {
+                    "@type": "LocalBusiness",
+                    "@id": "https://brightnest-academy.com/#local",
+                    "name": "BrightNest Academy",
+                    "url": "https://brightnest-academy.com/",
+                    "telephone": "+91-6363464005",
+                    "address": {
+                        "@type": "PostalAddress",
+                        "streetAddress": "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage",
+                        "addressLocality": "Bengaluru",
+                        "addressRegion": "Karnataka",
+                        "postalCode": "560078",
+                        "addressCountry": "IN"
+                    },
+                    "openingHours": "Mo-Su 09:00-21:00",
+                    "areaServed": "Bengaluru"
+                }
+            ]
+        }
+        </script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="images/logo.png">
+        <link rel="preload" href="css/style.css" as="style">
     <link rel="stylesheet" href="css/style.css">
     <style>
         section.hero { padding-top: calc(var(--fixed-top-offset) + 4rem) !important; }
@@ -189,7 +231,7 @@
     <!-- Navigation -->
     <header class="header" id="header">
         <nav class="nav container" aria-label="Primary navigation">
-            <a href="index.html" class="logo" aria-label="BrightNest Academy Home"><img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon" style="height:80px;width:auto;"><span>BrightNest Academy</span></a>
+            <a href="index.html" class="logo" aria-label="BrightNest Academy Home"><img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon" style="height:80px;width:auto;" width="80" height="80" decoding="async" fetchpriority="high"><span>BrightNest Academy</span></a>
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html" class="nav-link active">Home</a></li>
                 <li class="nav-dropdown">
@@ -203,6 +245,10 @@
                                             <li><a href="german.html">German</a></li>
                     </ul>
                 </li>
+                <li><a href="admissions.html" class="nav-link">Admissions</a></li>
+                <li><a href="team.html" class="nav-link">Faculty</a></li>
+                <li><a href="testimonials.html" class="nav-link">Testimonials</a></li>
+                <li><a href="blog.html" class="nav-link">Blog</a></li>
                 <li><a href="about.html" class="nav-link">About</a></li>
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
                 <li><a href="contact.html" class="nav-link">Contact</a></li>
@@ -237,6 +283,7 @@
                     <h2>Get a Free Counseling Call</h2>
                     <p>Share your details and our academic advisor will reach out to you.</p>
                     <form class="inquiry-form" id="counselingForm">
+                        <input type="text" name="website" id="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;" aria-hidden="true">
                         <div><label for="studentName">Student Name</label><input id="studentName" name="studentName" type="text" placeholder="Your child's name" required autocomplete="name"></div>
                         <div><label for="studentClass">Class / Grade</label><input id="studentClass" name="studentClass" type="text" placeholder="Eg: Grade 8" required></div>
                         <div><label for="board">Board</label><select id="board" name="board" required><option value="">Select board</option><option>CBSE</option><option>ICSE</option><option>Karnataka State Board</option></select></div>
@@ -312,6 +359,21 @@
             </div>
         </section>
 
+        <section class="section" aria-label="Programs by school stage">
+            <div class="container">
+                <div class="section-header">
+                    <p class="eyebrow">Programs by Stage</p>
+                    <h2 class="section-title">Right Support for Every Grade</h2>
+                </div>
+                <div class="grid grid-4">
+                    <article class="card" style="padding:var(--space-lg);"><h3>Primary (1-5)</h3><p>Foundational language and numeracy development through guided practice.</p></article>
+                    <article class="card" style="padding:var(--space-lg);"><h3>Middle (6-8)</h3><p>Concept reinforcement and steady progress tracking across all core subjects.</p></article>
+                    <article class="card" style="padding:var(--space-lg);"><h3>High School (9-10)</h3><p>Board-focused teaching with revision schedules and test strategy sessions.</p></article>
+                    <article class="card" style="padding:var(--space-lg);"><h3>Exam Preparation</h3><p>Targeted mock tests, doubt-solving, and time-management based coaching.</p></article>
+                </div>
+            </div>
+        </section>
+
         <section class="section location-quick" aria-label="Visit BrightNest Academy">
             <div class="container">
                 <div class="location-quick__card">
@@ -329,6 +391,84 @@
                             <a href="https://www.google.com/maps/dir/?api=1&destination=12.9047330,77.5595019" target="_blank" rel="noopener" class="btn btn-accent">Get Directions</a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-light" aria-label="Location map">
+            <div class="container text-center">
+                <div class="section-header">
+                    <p class="eyebrow">Location Map</p>
+                    <h2 class="section-title">Find BrightNest Academy in Bengaluru</h2>
+                </div>
+                <div style="border-radius:var(--border-radius-lg);overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,0.12);">
+                    <iframe
+                        src="https://maps.google.com/maps?q=12.9047330,77.5595019&output=embed&z=16"
+                        width="100%"
+                        height="360"
+                        style="border:0;display:block;"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="BrightNest Academy Location Map"></iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- Teaching Methodology -->
+        <section class="section section-light" aria-label="Teaching methodology">
+            <div class="container">
+                <div class="section-header">
+                    <p class="eyebrow">Teaching Methodology</p>
+                    <h2 class="section-title">How We Improve Academic Performance</h2>
+                    <p class="section-subtitle">A structured, parent-visible process focused on concept clarity, revision discipline, and measurable outcomes.</p>
+                </div>
+                <div class="help-grid">
+                    <div class="help-card"><div class="help-icon" style="background:var(--primary-50);color:var(--primary-700);">1</div><h3>Diagnostic Assessment</h3><p>We identify each student's strengths, weak areas, and board-specific gaps before building a study plan.</p></div>
+                    <div class="help-card"><div class="help-icon" style="background:#fef3c7;color:var(--accent-gold);">2</div><h3>Concept-Driven Lessons</h3><p>Lessons use simple explanations, examples, and guided practice to build strong fundamentals.</p></div>
+                    <div class="help-card"><div class="help-icon" style="background:#e0e7ff;color:var(--primary-700);">3</div><h3>Weekly Tests and Reviews</h3><p>Frequent tests and doubt-clearing sessions ensure continuous improvement and exam confidence.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Student Success Stories -->
+        <section class="section" aria-label="Student success stories">
+            <div class="container">
+                <div class="section-header">
+                    <p class="eyebrow">Student Success Stories</p>
+                    <h2 class="section-title">Real Progress From Real Learners</h2>
+                    <p class="section-subtitle">Students across CBSE, ICSE and Karnataka Board improve consistency, confidence, and scores with guided mentoring.</p>
+                </div>
+                <div class="grid grid-3">
+                    <article class="card" style="padding:var(--space-xl);">
+                        <h3>Class 10 CBSE - Mathematics</h3>
+                        <p><strong>From 62% to 88%</strong> through focused practice papers and error analysis.</p>
+                    </article>
+                    <article class="card" style="padding:var(--space-xl);">
+                        <h3>Class 8 ICSE - Science</h3>
+                        <p><strong>From low confidence to top 5 in class</strong> with concept reinforcement and weekly revision.</p>
+                    </article>
+                    <article class="card" style="padding:var(--space-xl);">
+                        <h3>Class 6 State Board - Languages</h3>
+                        <p><strong>Improved reading and writing fluency</strong> in Kannada and English within one term.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Facilities -->
+        <section class="section section-light" aria-label="Facilities">
+            <div class="container">
+                <div class="section-header">
+                    <p class="eyebrow">Facilities</p>
+                    <h2 class="section-title">Comfortable and Focused Learning Environment</h2>
+                </div>
+                <div class="grid grid-3">
+                    <article class="card" style="padding:var(--space-xl);"><h3>Small Batch Classrooms</h3><p>Interactive seating with individual attention for every child.</p></article>
+                    <article class="card" style="padding:var(--space-xl);"><h3>Board-Wise Learning Material</h3><p>Structured worksheets and test packs aligned to each board and grade.</p></article>
+                    <article class="card" style="padding:var(--space-xl);"><h3>Parent Counseling Support</h3><p>Dedicated advisor support for admissions, progress discussions, and exam planning.</p></article>
+                </div>
+                <div style="text-align:center;margin-top:var(--space-2xl);">
+                    <a href="demo.html" class="btn btn-accent btn-lg">Book Free Demo Class</a>
                 </div>
             </div>
         </section>
@@ -428,6 +568,12 @@
 
                 const submitButton = document.getElementById('counselingBtn');
                 const msgDiv = document.getElementById('counselingMsg');
+                const honeyPot = document.getElementById('website');
+
+                if (honeyPot && honeyPot.value.trim() !== '') {
+                    return;
+                }
+
                 const name = document.getElementById('studentName').value.trim();
                 const grade = document.getElementById('studentClass').value.trim();
                 const board = document.getElementById('board').value;
