@@ -1,16 +1,7 @@
-# Database backups
 *.sql
-
-# Test outputs
 test-output.txt
 test-results.txt
 test-results2.txt
-
-# Logs
 *.log
-
-# Build output
 target/
-
-# Upload folders
 uploads/
