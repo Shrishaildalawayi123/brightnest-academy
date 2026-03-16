@@ -119,7 +119,28 @@ jobs:
           command_timeout: 30s
           script: |
             set -euo pipefail
-            curl -I http://localhost:8080
+            for i in $(seq 1 30); do
+              if curl -fsS --max-time 5 http://localhost:8080/health >/dev/null; then
+                echo "Health endpoint is ready on attempt $i"
+                exit 0
+              fi
+
+              if curl -fsS --max-time 5 http://localhost:8080/actuator/health >/dev/null; then
+                echo "Actuator health endpoint is ready on attempt $i"
+                exit 0
+              fi
+
+              if curl -fsS --max-time 5 http://localhost:8080 >/dev/null; then
+                echo "App root endpoint is ready on attempt $i"
+                exit 0
+              fi
+
+              echo "Health check attempt $i/30 failed; retrying in 5s"
+              sleep 5
+            done
+
+            echo "Application did not become healthy in expected time" >&2
+            exit 1
 
       - name: Stage 11 - Debug deployment logs
         if: failure()
