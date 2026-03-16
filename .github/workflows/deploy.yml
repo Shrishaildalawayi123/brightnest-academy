@@ -63,9 +63,11 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            set -e
+            set -u
             TS=$(date +%Y%m%d%H%M%S)
             AUDIT_FILE="/tmp/nginx-audit-${TS}.log"
+            PATCHED_LIST="/tmp/nginx-patched-${TS}.list"
+            : > "$PATCHED_LIST"
 
             echo "=== Nginx Runtime Audit: Version ==="
             sudo nginx -v 2>&1 || true
@@ -85,20 +87,34 @@ jobs:
               }
             ' "$AUDIT_FILE")
 
-            if [ -z "$ACTIVE_FILE" ]; then
-              ACTIVE_FILE=$(sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx/sites-enabled /etc/nginx/conf.d /etc/nginx/sites-available 2>/dev/null | head -n 1 || true)
+            CANDIDATES=""
+            if [ -n "${ACTIVE_FILE}" ] && [ -f "${ACTIVE_FILE}" ]; then
+              CANDIDATES="${ACTIVE_FILE}"
             fi
 
-            if [ -z "$ACTIVE_FILE" ] || [ ! -f "$ACTIVE_FILE" ]; then
-              echo "Could not determine active nginx file for brightnest-academy.com"
-              exit 1
+            DISCOVERED=$(sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx/sites-enabled /etc/nginx/conf.d /etc/nginx/sites-available 2>/dev/null || true)
+            if [ -n "$DISCOVERED" ]; then
+              CANDIDATES="${CANDIDATES}
+${DISCOVERED}"
             fi
 
-            echo "=== Active server file ==="
-            echo "$ACTIVE_FILE"
+            for fallback in /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /etc/nginx/sites-enabled/brightnest /etc/nginx/sites-available/brightnest /etc/nginx/sites-enabled/brightnest-academy /etc/nginx/sites-available/brightnest-academy; do
+              if [ -f "$fallback" ]; then
+                CANDIDATES="${CANDIDATES}
+${fallback}"
+              fi
+            done
+
+            echo "=== Candidate server files ==="
+            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u
 
             echo "=== Redirect directives in active server file (before) ==="
-            sudo nl -ba "$ACTIVE_FILE" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
+            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u | while read -r f; do
+              if [ -f "$f" ]; then
+                echo "--- $f ---"
+                sudo nl -ba "$f" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
+              fi
+            done
 
             echo "=== Origin check: direct local HTTP/HTTPS via nginx ==="
             echo "-- HTTP 127.0.0.1 with Host header --"
@@ -106,25 +122,54 @@ jobs:
             echo "-- HTTPS 127.0.0.1 with Host header --"
             curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | sed -n '1,10p' || true
 
-            BACKUP_FILE="${ACTIVE_FILE}.bak.${TS}"
-            sudo cp "$ACTIVE_FILE" "$BACKUP_FILE"
+            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u | while read -r f; do
+              if [ ! -f "$f" ]; then
+                continue
+              fi
+              BACKUP_FILE="${f}.bak.${TS}"
+              sudo cp "$f" "$BACKUP_FILE" || true
 
-            sudo sed -i 's|return 302 /index.html;|return 302 https://$host/index.html;|g' "$ACTIVE_FILE"
-            sudo sed -i 's|return 302 http://brightnest-academy.com/index.html;|return 302 https://$host/index.html;|g' "$ACTIVE_FILE"
+              before_hash=$(sudo sha256sum "$f" | awk '{print $1}')
+              sudo sed -i 's|return 302 /index.html;|return 302 https://$host/index.html;|g' "$f"
+              sudo sed -i 's|return 302 http://brightnest-academy.com/index.html;|return 302 https://$host/index.html;|g' "$f"
+              after_hash=$(sudo sha256sum "$f" | awk '{print $1}')
+
+              if [ "$before_hash" != "$after_hash" ]; then
+                echo "$f" | sudo tee -a "$PATCHED_LIST" >/dev/null
+              fi
+            done
 
             if sudo nginx -t; then
               sudo systemctl reload nginx
-              echo "Nginx reloaded after active-file patch"
+              echo "Nginx reloaded after candidate patching"
             else
-              echo "Nginx validation failed after patch. Restoring backup."
-              sudo cp "$BACKUP_FILE" "$ACTIVE_FILE"
-              sudo nginx -t
-              sudo systemctl reload nginx
-              exit 1
+              echo "Nginx validation failed after patching. Restoring backups."
+              while read -r f; do
+                [ -z "$f" ] && continue
+                b="${f}.bak.${TS}"
+                if [ -f "$b" ]; then
+                  sudo cp "$b" "$f"
+                fi
+              done < <(echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u)
+              sudo nginx -t || true
+              sudo systemctl reload nginx || true
+              echo "Proceeding with app deploy after nginx restore"
             fi
 
             echo "=== Redirect directives in active server file (after) ==="
-            sudo nl -ba "$ACTIVE_FILE" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
+            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u | while read -r f; do
+              if [ -f "$f" ]; then
+                echo "--- $f ---"
+                sudo nl -ba "$f" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
+              fi
+            done
+
+            echo "=== Files actually patched ==="
+            if [ -s "$PATCHED_LIST" ]; then
+              sudo cat "$PATCHED_LIST"
+            else
+              echo "No redirect rewrites were required"
+            fi
 
             echo "=== Post-reload local check ==="
             curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | sed -n '1,12p' || true
