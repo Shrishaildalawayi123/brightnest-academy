@@ -130,8 +130,11 @@ jobs:
               sudo cp "$f" "$BACKUP_FILE" || true
 
               before_hash=$(sudo sha256sum "$f" | awk '{print $1}')
-              sudo sed -i 's|return 302 /index.html;|return 302 https://$host/index.html;|g' "$f"
-              sudo sed -i 's|return 302 http://brightnest-academy.com/index.html;|return 302 https://$host/index.html;|g' "$f"
+              sudo sed -E -i 's|return[[:space:]]+30[12][[:space:]]+/index\.html;|return 302 https://$host/index.html;|g' "$f"
+              sudo sed -E -i 's|return[[:space:]]+30[12][[:space:]]+http://brightnest-academy\.com/index\.html;|return 302 https://$host/index.html;|g' "$f"
+              if ! sudo grep -q "absolute_redirect off;" "$f"; then
+                sudo sed -i '/server_name .*brightnest-academy.com/a\    absolute_redirect off;' "$f"
+              fi
               if ! sudo grep -q "proxy_redirect ~^http://([^/]+)(/.*)$ https://\$1\$2;" "$f"; then
                 sudo sed -i '/proxy_set_header X-Forwarded-Proto https;/a\        proxy_redirect ~^http://([^/]+)(/.*)$ https://$1$2;' "$f"
               fi
