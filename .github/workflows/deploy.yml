@@ -87,34 +87,33 @@ jobs:
               }
             ' "$AUDIT_FILE")
 
-            CANDIDATES=""
+            CANDIDATE_LIST="/tmp/nginx-candidates-${TS}.list"
+            : > "$CANDIDATE_LIST"
+
             if [ -n "${ACTIVE_FILE}" ] && [ -f "${ACTIVE_FILE}" ]; then
-              CANDIDATES="${ACTIVE_FILE}"
+              echo "$ACTIVE_FILE" | sudo tee -a "$CANDIDATE_LIST" >/dev/null
             fi
 
-            DISCOVERED=$(sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx/sites-enabled /etc/nginx/conf.d /etc/nginx/sites-available 2>/dev/null || true)
-            if [ -n "$DISCOVERED" ]; then
-              CANDIDATES="${CANDIDATES}
-${DISCOVERED}"
-            fi
+            sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx/sites-enabled /etc/nginx/conf.d /etc/nginx/sites-available 2>/dev/null | sudo tee -a "$CANDIDATE_LIST" >/dev/null || true
 
             for fallback in /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /etc/nginx/sites-enabled/brightnest /etc/nginx/sites-available/brightnest /etc/nginx/sites-enabled/brightnest-academy /etc/nginx/sites-available/brightnest-academy; do
               if [ -f "$fallback" ]; then
-                CANDIDATES="${CANDIDATES}
-${fallback}"
+                echo "$fallback" | sudo tee -a "$CANDIDATE_LIST" >/dev/null
               fi
             done
 
+            sudo sort -u "$CANDIDATE_LIST" -o "$CANDIDATE_LIST"
+
             echo "=== Candidate server files ==="
-            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u
+            sudo cat "$CANDIDATE_LIST"
 
             echo "=== Redirect directives in active server file (before) ==="
-            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u | while read -r f; do
+            while read -r f; do
               if [ -f "$f" ]; then
                 echo "--- $f ---"
                 sudo nl -ba "$f" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
               fi
-            done
+            done < "$CANDIDATE_LIST"
 
             echo "=== Origin check: direct local HTTP/HTTPS via nginx ==="
             echo "-- HTTP 127.0.0.1 with Host header --"
@@ -122,7 +121,7 @@ ${fallback}"
             echo "-- HTTPS 127.0.0.1 with Host header --"
             curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | sed -n '1,10p' || true
 
-            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u | while read -r f; do
+            while read -r f; do
               if [ ! -f "$f" ]; then
                 continue
               fi
@@ -137,7 +136,7 @@ ${fallback}"
               if [ "$before_hash" != "$after_hash" ]; then
                 echo "$f" | sudo tee -a "$PATCHED_LIST" >/dev/null
               fi
-            done
+            done < "$CANDIDATE_LIST"
 
             if sudo nginx -t; then
               sudo systemctl reload nginx
@@ -150,19 +149,19 @@ ${fallback}"
                 if [ -f "$b" ]; then
                   sudo cp "$b" "$f"
                 fi
-              done < <(echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u)
+              done < "$CANDIDATE_LIST"
               sudo nginx -t || true
               sudo systemctl reload nginx || true
               echo "Proceeding with app deploy after nginx restore"
             fi
 
             echo "=== Redirect directives in active server file (after) ==="
-            echo "$CANDIDATES" | tr ' ' '\n' | sed '/^$/d' | sort -u | while read -r f; do
+            while read -r f; do
               if [ -f "$f" ]; then
                 echo "--- $f ---"
                 sudo nl -ba "$f" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
               fi
-            done
+            done < "$CANDIDATE_LIST"
 
             echo "=== Files actually patched ==="
             if [ -s "$PATCHED_LIST" ]; then
