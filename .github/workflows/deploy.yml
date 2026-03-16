@@ -43,7 +43,18 @@ jobs:
             exit 1
           fi
 
-      - name: Stage 6 - Upload artifact to EC2
+      - name: Stage 6 - Prepare remote deployment directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            mkdir -p "/home/ubuntu/brightnest-academy"
+            test -w "/home/ubuntu/brightnest-academy"
+
+      - name: Stage 7 - Upload artifact to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -51,8 +62,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: ${{ env.APP_JAR }}
           target: ${{ env.DEPLOY_DIR }}/
+          strip_components: 1
 
-      - name: Stage 7 - Restart application service
+      - name: Stage 8 - Restart application service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -66,7 +78,7 @@ jobs:
             sudo systemctl start "brightnest"
             sudo systemctl status "brightnest" --no-pager
 
-      - name: Stage 8 - Health check
+      - name: Stage 9 - Health check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -76,7 +88,7 @@ jobs:
             set -euo pipefail
             curl -I http://localhost:8080
 
-      - name: Stage 9 - Debug deployment logs
+      - name: Stage 10 - Debug deployment logs
         if: failure()
         uses: appleboy/ssh-action@v1.0.3
         with:
