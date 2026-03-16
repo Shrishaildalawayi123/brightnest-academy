@@ -13,6 +13,7 @@ env:
   APP_JAR: target/shrishail-academy-1.0.0.jar
   DEPLOY_DIR: /home/ubuntu/brightnest-academy
   SERVICE_NAME: brightnest
+  DEPLOY_USER: ${{ secrets.EC2_USERNAME != '' && secrets.EC2_USERNAME || secrets.EC2_USER }}
 
 jobs:
   deploy:
@@ -43,58 +44,92 @@ jobs:
             exit 1
           fi
 
-      - name: Stage 6 - Prepare remote deployment directory
+      - name: Stage 6 - Validate deployment configuration
+        run: |
+          if [ -z "${{ secrets.EC2_HOST }}" ]; then
+            echo "Missing required secret: EC2_HOST" >&2
+            exit 1
+          fi
+
+          if [ -z "$DEPLOY_USER" ]; then
+            echo "Missing required secret: EC2_USERNAME" >&2
+            echo "Legacy fallback EC2_USER is also not set" >&2
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.EC2_SSH_KEY }}" ]; then
+            echo "Missing required secret: EC2_SSH_KEY" >&2
+            exit 1
+          fi
+
+          echo "EC2 deployment configuration validated"
+          echo "Deploy target: $DEPLOY_DIR"
+          echo "Deploy user: $DEPLOY_USER"
+
+      - name: Stage 7 - Prepare remote deployment directory
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 60s
+          command_timeout: 30s
           script: |
             set -euo pipefail
-            mkdir -p "/home/ubuntu/brightnest-academy"
+            install -d -m 755 "/home/ubuntu/brightnest-academy"
+            test -d "/home/ubuntu/brightnest-academy"
             test -w "/home/ubuntu/brightnest-academy"
 
-      - name: Stage 7 - Upload artifact to EC2
+      - name: Stage 8 - Upload artifact to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: ${{ env.APP_JAR }}
           target: ${{ env.DEPLOY_DIR }}/
           strip_components: 1
+          timeout: 60s
+          overwrite: true
 
-      - name: Stage 8 - Restart application service
+      - name: Stage 9 - Restart application service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 60s
+          command_timeout: 60s
           script: |
             set -euo pipefail
             cd "/home/ubuntu/brightnest-academy"
             ls -lah
+            test -f "shrishail-academy-1.0.0.jar"
             sudo systemctl stop "brightnest"
             sudo systemctl start "brightnest"
             sudo systemctl status "brightnest" --no-pager
 
-      - name: Stage 9 - Health check
+      - name: Stage 10 - Health check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 60s
+          command_timeout: 30s
           script: |
             set -euo pipefail
             curl -I http://localhost:8080
 
-      - name: Stage 10 - Debug deployment logs
+      - name: Stage 11 - Debug deployment logs
         if: failure()
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 60s
+          command_timeout: 60s
           script: |
             set +e
             echo "Listing deployment directory"
