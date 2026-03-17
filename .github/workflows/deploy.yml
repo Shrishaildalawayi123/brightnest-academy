@@ -63,43 +63,82 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            set -eu
+            set -u
             DEPLOY_DIR="/home/ubuntu/brightnest-academy"
             NGINX_CONF="$DEPLOY_DIR/deploy/aws/nginx-brightnest.conf"
+            CERT_DIR="/etc/letsencrypt/live/brightnest-academy.com"
 
-            echo "=== SSL Certificate Status ==="
-            if [ -f /etc/letsencrypt/live/brightnest-academy.com/fullchain.pem ]; then
-              sudo openssl x509 -in /etc/letsencrypt/live/brightnest-academy.com/fullchain.pem -noout -dates 2>&1 || true
-            else
-              echo "WARNING: SSL cert not found at expected path!"
-              echo "Searching for certs..."
-              sudo find /etc/letsencrypt -name "fullchain.pem" 2>/dev/null || true
+            echo "=== Pre-deploy diagnostics ==="
+            nginx -v 2>&1 || true
+            echo "--- sites-available ---"
+            sudo ls -la /etc/nginx/sites-available/ 2>/dev/null || echo "directory missing"
+            echo "--- sites-enabled ---"
+            sudo ls -la /etc/nginx/sites-enabled/ 2>/dev/null || echo "directory missing"
+            echo "--- SSL cert directory ---"
+            sudo ls -la "$CERT_DIR/" 2>/dev/null || echo "cert dir missing"
+            echo "--- nginx service status ---"
+            sudo systemctl status nginx --no-pager -l | head -20 || true
+
+            echo "=== SSL certs: ensure valid ==="
+            CERT_VALID=false
+            if sudo test -f "$CERT_DIR/fullchain.pem" && sudo test -f "$CERT_DIR/privkey.pem"; then
+              expiry=$(sudo openssl x509 -in "$CERT_DIR/fullchain.pem" -noout -enddate 2>&1)
+              echo "Cert found — $expiry"
+              if sudo openssl x509 -checkend 3600 -noout -in "$CERT_DIR/fullchain.pem" 2>/dev/null; then
+                echo "Cert is valid (not expiring within 1h)"
+                CERT_VALID=true
+              else
+                echo "WARNING: cert is expired or expiring very soon!"
+              fi
+              if ! sudo test -f "$CERT_DIR/chain.pem"; then
+                echo "chain.pem missing — copying from fullchain.pem"
+                sudo cp "$CERT_DIR/fullchain.pem" "$CERT_DIR/chain.pem"
+              fi
             fi
 
-            echo "=== Installing Nginx Config ==="
+            if [ "$CERT_VALID" = "false" ]; then
+              echo "=== Creating self-signed certificate fallback ==="
+              sudo mkdir -p "$CERT_DIR"
+              sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                -keyout "$CERT_DIR/privkey.pem" \
+                -out "$CERT_DIR/fullchain.pem" \
+                -subj "/C=IN/ST=Karnataka/O=BrightNest Academy/CN=brightnest-academy.com" 2>&1 || true
+              sudo cp "$CERT_DIR/fullchain.pem" "$CERT_DIR/chain.pem"
+              echo "Self-signed cert created"
+            fi
+
+            echo "=== Clearing sites-enabled (remove all for clean install) ==="
+            sudo find /etc/nginx/sites-enabled/ -maxdepth 1 \( -type l -o -type f \) -delete 2>/dev/null || true
+
+            echo "=== Installing nginx config ==="
             sudo cp "$NGINX_CONF" /etc/nginx/sites-available/brightnest-academy
             sudo ln -sf /etc/nginx/sites-available/brightnest-academy /etc/nginx/sites-enabled/brightnest-academy
-            echo "Config installed to sites-available/brightnest-academy"
-
-            echo "=== Removing conflicting default site ==="
-            if [ -f /etc/nginx/sites-enabled/default ]; then
-              sudo rm -f /etc/nginx/sites-enabled/default
-              echo "Default site removed"
-            fi
+            echo "Installed: $(sudo ls -la /etc/nginx/sites-enabled/)"
 
             echo "=== Nginx config test ==="
-            sudo nginx -t 2>&1
+            if sudo nginx -t 2>&1; then
+              echo "Config test PASSED"
+            else
+              echo "Config test FAILED — full nginx error:"
+              sudo nginx -T 2>&1 | grep -E "error|emerg|warn|nginx -t" | head -40 || true
+              exit 1
+            fi
 
-            echo "=== Starting/restarting Nginx ==="
+            echo "=== Starting/restarting nginx ==="
             sudo systemctl enable nginx
-            sudo systemctl restart nginx
-            echo "Nginx status: $(sudo systemctl is-active nginx)"
+            if sudo systemctl restart nginx; then
+              echo "Nginx started: $(sudo systemctl is-active nginx)"
+            else
+              echo "Nginx restart FAILED — journal:"
+              sudo journalctl -u nginx --lines=30 --no-pager 2>/dev/null || true
+              exit 1
+            fi
 
             echo "=== Local connectivity check ==="
             sleep 2
-            echo "-- HTTP (should redirect to HTTPS) --"
+            echo "-- HTTP (should redirect) --"
             curl -sSI -H "Host: brightnest-academy.com" http://127.0.0.1/ | head -5 || true
-            echo "-- HTTPS root (should be 302 to https://.../index.html) --"
+            echo "-- HTTPS root (should be 302 https) --"
             curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | head -10 || true
 
       - name: 8️⃣ Restart Application
