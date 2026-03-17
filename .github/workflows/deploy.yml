@@ -56,135 +56,51 @@ jobs:
           target: ${{ env.DEPLOY_DIR }}/deploy/aws/
           overwrite: true
 
-      - name: 7️⃣ Audit Active Nginx Config And Apply Root Redirect Fix
+      - name: 7️⃣ Deploy Nginx Config and Restart
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            set -u
-            TS=$(date +%Y%m%d%H%M%S)
-            AUDIT_FILE="/tmp/nginx-audit-${TS}.log"
-            PATCHED_LIST="/tmp/nginx-patched-${TS}.list"
-            : > "$PATCHED_LIST"
+            set -eu
+            DEPLOY_DIR="/home/ubuntu/brightnest-academy"
+            NGINX_CONF="$DEPLOY_DIR/deploy/aws/nginx-brightnest.conf"
 
-            echo "=== Ensure Nginx is running ==="
-            if ! sudo systemctl is-active --quiet nginx; then
-              echo "Nginx was stopped — starting it now"
-              sudo systemctl start nginx
-            fi
-
-            echo "=== Nginx Runtime Audit: Version ==="
-            sudo nginx -v 2>&1 || true
-
-            echo "=== Nginx Runtime Audit: Full Config (nginx -T) ==="
-            sudo nginx -T > "$AUDIT_FILE" 2>&1 || true
-            sudo sed -n '1,120p' "$AUDIT_FILE"
-
-            ACTIVE_FILE=$(awk '
-              /^# configuration file / {
-                file=$4;
-                sub(/:$/, "", file);
-              }
-              /server_name[[:space:]]+.*brightnest-academy\.com/ {
-                print file;
-                exit;
-              }
-            ' "$AUDIT_FILE")
-
-            CANDIDATE_LIST="/tmp/nginx-candidates-${TS}.list"
-            : > "$CANDIDATE_LIST"
-
-            if [ -n "${ACTIVE_FILE}" ] && [ -f "${ACTIVE_FILE}" ]; then
-              echo "$ACTIVE_FILE" | sudo tee -a "$CANDIDATE_LIST" >/dev/null
-            fi
-
-            sudo grep -Rsl "server_name .*brightnest-academy.com" /etc/nginx 2>/dev/null | sudo tee -a "$CANDIDATE_LIST" >/dev/null || true
-            sudo grep -Rsl "return 302 /index.html;\|return 302 http://brightnest-academy.com/index.html;\|proxy_pass http://" /etc/nginx 2>/dev/null | sudo tee -a "$CANDIDATE_LIST" >/dev/null || true
-
-            for fallback in /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /etc/nginx/sites-enabled/brightnest /etc/nginx/sites-available/brightnest /etc/nginx/sites-enabled/brightnest-academy /etc/nginx/sites-available/brightnest-academy; do
-              if [ -f "$fallback" ]; then
-                echo "$fallback" | sudo tee -a "$CANDIDATE_LIST" >/dev/null
-              fi
-            done
-
-            sudo sort -u "$CANDIDATE_LIST" -o "$CANDIDATE_LIST"
-
-            echo "=== Candidate server files ==="
-            sudo cat "$CANDIDATE_LIST"
-
-            echo "=== Redirect directives in active server file (before) ==="
-            while read -r f; do
-              if [ -f "$f" ]; then
-                echo "--- $f ---"
-                sudo nl -ba "$f" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
-              fi
-            done < "$CANDIDATE_LIST"
-
-            echo "=== Origin check: direct local HTTP/HTTPS via nginx ==="
-            echo "-- HTTP 127.0.0.1 with Host header --"
-            curl -sSI -H "Host: brightnest-academy.com" http://127.0.0.1/ | sed -n '1,10p' || true
-            echo "-- HTTPS 127.0.0.1 with Host header --"
-            curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | sed -n '1,10p' || true
-
-            while read -r f; do
-              if [ ! -f "$f" ]; then
-                continue
-              fi
-              BACKUP_FILE="${f}.bak.${TS}"
-              sudo cp "$f" "$BACKUP_FILE" || true
-
-              before_hash=$(sudo sha256sum "$f" | awk '{print $1}')
-              sudo sed -E -i 's|return[[:space:]]+30[12][[:space:]]+/index\.html;|return 302 https://$host/index.html;|g' "$f"
-              sudo sed -E -i 's|return[[:space:]]+30[12][[:space:]]+http://brightnest-academy\.com/index\.html;|return 302 https://$host/index.html;|g' "$f"
-              if ! sudo grep -q "absolute_redirect off;" "$f"; then
-                sudo sed -i '/server_name .*brightnest-academy.com/a\    absolute_redirect off;' "$f"
-              fi
-              if ! sudo grep -q "proxy_redirect ~^http://([^/]+)(/.*)$ https://\$1\$2;" "$f"; then
-                sudo sed -i '/proxy_set_header X-Forwarded-Proto https;/a\        proxy_redirect ~^http://([^/]+)(/.*)$ https://$1$2;' "$f"
-              fi
-              after_hash=$(sudo sha256sum "$f" | awk '{print $1}')
-
-              if [ "$before_hash" != "$after_hash" ]; then
-                echo "$f" | sudo tee -a "$PATCHED_LIST" >/dev/null
-              fi
-            done < "$CANDIDATE_LIST"
-
-            if sudo nginx -t; then
-              sudo systemctl restart nginx
-              echo "Nginx restarted after candidate patching"
+            echo "=== SSL Certificate Status ==="
+            if [ -f /etc/letsencrypt/live/brightnest-academy.com/fullchain.pem ]; then
+              sudo openssl x509 -in /etc/letsencrypt/live/brightnest-academy.com/fullchain.pem -noout -dates 2>&1 || true
             else
-              echo "Nginx validation failed after patching. Restoring backups."
-              while read -r f; do
-                [ -z "$f" ] && continue
-                b="${f}.bak.${TS}"
-                if [ -f "$b" ]; then
-                  sudo cp "$b" "$f"
-                fi
-              done < "$CANDIDATE_LIST"
-              sudo nginx -t || true
-              sudo systemctl restart nginx || true
-              echo "Proceeding with app deploy after nginx restore"
+              echo "WARNING: SSL cert not found at expected path!"
+              echo "Searching for certs..."
+              sudo find /etc/letsencrypt -name "fullchain.pem" 2>/dev/null || true
             fi
 
-            echo "=== Redirect directives in active server file (after) ==="
-            while read -r f; do
-              if [ -f "$f" ]; then
-                echo "--- $f ---"
-                sudo nl -ba "$f" | grep -E "server_name|location = /|return 30[12]|proxy_redirect" || true
-              fi
-            done < "$CANDIDATE_LIST"
+            echo "=== Installing Nginx Config ==="
+            sudo cp "$NGINX_CONF" /etc/nginx/sites-available/brightnest-academy
+            sudo ln -sf /etc/nginx/sites-available/brightnest-academy /etc/nginx/sites-enabled/brightnest-academy
+            echo "Config installed to sites-available/brightnest-academy"
 
-            echo "=== Files actually patched ==="
-            if [ -s "$PATCHED_LIST" ]; then
-              sudo cat "$PATCHED_LIST"
-            else
-              echo "No redirect rewrites were required"
+            echo "=== Removing conflicting default site ==="
+            if [ -f /etc/nginx/sites-enabled/default ]; then
+              sudo rm -f /etc/nginx/sites-enabled/default
+              echo "Default site removed"
             fi
 
-            echo "=== Post-reload local check ==="
-            curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | sed -n '1,12p' || true
+            echo "=== Nginx config test ==="
+            sudo nginx -t 2>&1
+
+            echo "=== Starting/restarting Nginx ==="
+            sudo systemctl enable nginx
+            sudo systemctl restart nginx
+            echo "Nginx status: $(sudo systemctl is-active nginx)"
+
+            echo "=== Local connectivity check ==="
+            sleep 2
+            echo "-- HTTP (should redirect to HTTPS) --"
+            curl -sSI -H "Host: brightnest-academy.com" http://127.0.0.1/ | head -5 || true
+            echo "-- HTTPS root (should be 302 to https://.../index.html) --"
+            curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | head -10 || true
 
       - name: 8️⃣ Restart Application
         uses: appleboy/ssh-action@v1.0.3
