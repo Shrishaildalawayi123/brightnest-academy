@@ -15,14 +15,28 @@
   SITE_INFO.whatsappUrl = `https://wa.me/917204193980?text=${encodeURIComponent(SITE_INFO.whatsappMessage)}`;
 
   const CHATBOT_QUICK_REPLIES = [
-    "What courses do you offer?",
-    "What are the fees?",
-    "Do you teach ICSE?",
-    "How do I book a demo class?",
+    "Book FREE demo class",
+    "Fees for my child's class",
+    "CBSE tuition near me",
+    "Maths coaching Bangalore",
   ];
 
   const POPUP_DISMISS_KEY = "brightnest_whatsapp_popup_dismissed_at";
   const POPUP_ENGAGED_KEY = "brightnest_whatsapp_engaged";
+  const CHATBOT_SESSION_KEY = "brightnest_chatbot_session_id";
+  const CHATBOT_MINIMIZED_KEY = "brightnest_chatbot_minimized";
+
+  function getChatbotSessionId() {
+    let sessionId = localStorage.getItem(CHATBOT_SESSION_KEY);
+    if (sessionId) {
+      return sessionId;
+    }
+    sessionId =
+      (window.crypto && window.crypto.randomUUID && window.crypto.randomUUID()) ||
+      `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(CHATBOT_SESSION_KEY, sessionId);
+    return sessionId;
+  }
 
   function init() {
     if (!isMarketingExperiencePage()) {
@@ -144,7 +158,7 @@
     const messages = chatbot.querySelector("#marketingChatMessages");
     addBotMessage(
       messages,
-      "Hi! I can help with courses, fees, ICSE or CBSE support, online tuition, and booking a demo class.",
+      "Hi 👋 Want to improve your child's marks? 🎯 Book FREE demo class. You can also share Name, Class, and Phone here for a quick callback.",
     );
     renderQuickReplies(chatbot.querySelector("#marketingChatQuickReplies"), CHATBOT_QUICK_REPLIES);
 
@@ -153,23 +167,73 @@
     const form = chatbot.querySelector("#marketingChatForm");
     const input = chatbot.querySelector("#marketingChatInput");
 
+    let miniChip = document.getElementById("marketingChatMiniChip");
+    if (!miniChip) {
+      miniChip = document.createElement("button");
+      miniChip.id = "marketingChatMiniChip";
+      miniChip.className = "marketing-chatbot-minichip";
+      miniChip.type = "button";
+      miniChip.hidden = true;
+      miniChip.setAttribute("aria-label", "Reopen chat");
+      miniChip.textContent = "Chat";
+      document.body.appendChild(miniChip);
+    }
+
+    const setChatbotOpen = (shouldOpen) => {
+      chatbot.hidden = !shouldOpen;
+      chatbot.setAttribute("aria-hidden", String(!shouldOpen));
+      if (shouldOpen) {
+        chatbot.style.display = "";
+        if (miniChip) {
+          miniChip.hidden = true;
+        }
+        localStorage.setItem(CHATBOT_MINIMIZED_KEY, "false");
+      } else {
+        // Force-hide for mobile browsers that may delay hidden state repaint on touch.
+        chatbot.style.display = "none";
+      }
+      toggleButton?.setAttribute("aria-expanded", String(shouldOpen));
+    };
+
+    const setChatbotMinimized = (shouldMinimize) => {
+      if (!miniChip) {
+        return;
+      }
+      miniChip.hidden = !shouldMinimize;
+      localStorage.setItem(CHATBOT_MINIMIZED_KEY, shouldMinimize ? "true" : "false");
+    };
+
+    const closeChatbot = (event) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      setChatbotOpen(false);
+      setChatbotMinimized(true);
+    };
+
     toggleButton?.addEventListener("click", () => {
       const willOpen = chatbot.hidden;
-      chatbot.hidden = !willOpen;
-      chatbot.setAttribute("aria-hidden", String(!willOpen));
-      toggleButton.setAttribute("aria-expanded", String(willOpen));
+      setChatbotOpen(willOpen);
       localStorage.setItem(POPUP_ENGAGED_KEY, "true");
       if (willOpen) {
+        setChatbotMinimized(false);
         hideWhatsappPopup();
         window.setTimeout(() => input.focus(), 50);
       }
     });
 
-    closeButton?.addEventListener("click", () => {
-      chatbot.hidden = true;
-      chatbot.setAttribute("aria-hidden", "true");
-      toggleButton?.setAttribute("aria-expanded", "false");
+    miniChip?.addEventListener("click", () => {
+      setChatbotOpen(true);
+      setChatbotMinimized(false);
+      localStorage.setItem(POPUP_ENGAGED_KEY, "true");
+      hideWhatsappPopup();
+      window.setTimeout(() => input.focus(), 50);
     });
+
+    closeButton?.addEventListener("click", closeChatbot);
+    closeButton?.addEventListener("touchend", closeChatbot, { passive: false });
+    closeButton?.addEventListener("pointerup", closeChatbot);
 
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -193,11 +257,24 @@
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !chatbot.hidden) {
-        chatbot.hidden = true;
-        chatbot.setAttribute("aria-hidden", "true");
-        toggleButton?.setAttribute("aria-expanded", "false");
+        closeChatbot(event);
       }
     });
+
+    document.addEventListener("pointerdown", (event) => {
+      if (chatbot.hidden) {
+        return;
+      }
+      const target = event.target;
+      if (chatbot.contains(target) || toggleButton?.contains(target)) {
+        return;
+      }
+      closeChatbot();
+    });
+
+    if (localStorage.getItem(CHATBOT_MINIMIZED_KEY) === "true") {
+      setChatbotMinimized(true);
+    }
   }
 
   async function handleChatSubmission(chatbot, message) {
@@ -208,8 +285,15 @@
 
     try {
       const response = await requestChatbotReply(message);
+      await enrichQualifiedChatLeadFromMessage(message);
       typingIndicator.remove();
       addBotMessage(messages, response.reply);
+      if (response.qualifiedLeadCaptured) {
+        addBotMessage(
+          messages,
+          "Great. Please share: Name, Class, Phone. Example: My name is Kavya, Class 8, 9876543210",
+        );
+      }
       renderQuickReplies(quickReplies, response.suggestions || CHATBOT_QUICK_REPLIES);
     } catch (error) {
       typingIndicator.remove();
@@ -223,7 +307,7 @@
       method: "POST",
       headers: buildApiHeaders(),
       credentials: "include",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, sessionId: getChatbotSessionId() }),
     });
 
     if (!response.ok) {
@@ -231,7 +315,52 @@
     }
 
     const payload = await response.json();
-    return payload.data || {};
+    const data = payload.data || {};
+    if (data.sessionId) {
+      localStorage.setItem(CHATBOT_SESSION_KEY, data.sessionId);
+    }
+    return data;
+  }
+
+  function extractLeadDetailsFromMessage(message) {
+    const text = (message || "").trim();
+    if (!text) return null;
+
+    const emailMatch = text.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    const phoneMatch = text.match(/(\+?\d[\d\s-]{8,15}\d)/);
+    const nameMatch = text.match(/(?:my name is|i am|this is)\s+([a-zA-Z][a-zA-Z\s'.-]{1,50})/i);
+    const classMatch = text.match(/(?:class|grade|std|standard)\s*[:\-]?\s*([1-9]|1[0-2])/i);
+
+    const payload = {
+      sessionId: getChatbotSessionId(),
+      name: nameMatch ? nameMatch[1].trim() : null,
+      email: emailMatch ? emailMatch[1].trim().toLowerCase() : null,
+      phone: phoneMatch ? phoneMatch[1].replace(/\s+/g, "").trim() : null,
+      studentClass: classMatch ? `Class ${classMatch[1]}` : null,
+    };
+
+    if (!payload.name && !payload.email && !payload.phone && !payload.studentClass) {
+      return null;
+    }
+    return payload;
+  }
+
+  async function enrichQualifiedChatLeadFromMessage(message) {
+    const payload = extractLeadDetailsFromMessage(message);
+    if (!payload) {
+      return;
+    }
+
+    try {
+      await fetch(`${resolveApiBaseUrl()}/chatbot/leads/enrich`, {
+        method: "POST",
+        headers: buildApiHeaders(),
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+    } catch (_) {
+      // Silent fail to avoid interrupting chat UX.
+    }
   }
 
   function fallbackReply(message) {
