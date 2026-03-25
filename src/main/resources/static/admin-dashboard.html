@@ -587,6 +587,8 @@
                 <button class="sidebar-link" onclick="showSection('payments')"><span class="icon">💰</span>
                     Payments</button>
                 <div class="nav-section-title" style="margin-top:1rem;">Content</div>
+                <button class="sidebar-link" onclick="showSection('crm')"><span class="icon">🧲</span>
+                    CRM Leads</button>
                 <button class="sidebar-link" onclick="showSection('blog')"><span class="icon">📝</span>
                     Blog Posts</button>
                 <button class="sidebar-link" onclick="showSection('demos')"><span class="icon">🎯</span>
@@ -856,6 +858,99 @@
                     <tbody>
                         <tr><td colspan="8" class="loading">Loading...</td></tr>
                     </tbody>
+                </table>
+            </div>
+
+            <!-- CRM Leads -->
+            <div id="section-crm" class="page-section">
+                <div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
+                    <div class="stat-card blue"><span class="stat-icon">🧲</span>
+                        <div class="stat-number" id="crmTotalLeads">-</div><div class="stat-label">Total Leads</div>
+                    </div>
+                    <div class="stat-card orange"><span class="stat-icon">🆕</span>
+                        <div class="stat-number" id="crmNewLeads">-</div><div class="stat-label">New Leads</div>
+                    </div>
+                    <div class="stat-card green"><span class="stat-icon">📞</span>
+                        <div class="stat-number" id="crmContactedLeads">-</div><div class="stat-label">Contacted</div>
+                    </div>
+                    <div class="stat-card purple"><span class="stat-icon">🔥</span>
+                        <div class="stat-number" id="crmHighIntentLeads">-</div><div class="stat-label">High Intent</div>
+                    </div>
+                </div>
+                <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-top:-0.5rem;">
+                    <div class="stat-card" style="border:1px solid #fee2e2;"><span class="stat-icon">⛔</span>
+                        <div class="stat-number" id="crmReminderOverdue">-</div><div class="stat-label">Overdue Follow-ups</div>
+                    </div>
+                    <div class="stat-card" style="border:1px solid #fef3c7;"><span class="stat-icon">📌</span>
+                        <div class="stat-number" id="crmReminderToday">-</div><div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-card" style="border:1px solid #dbeafe;"><span class="stat-icon">🗓</span>
+                        <div class="stat-number" id="crmReminderNext7">-</div><div class="stat-label">Next 7 Days</div>
+                    </div>
+                </div>
+                <div style="background:white;border-radius:15px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:end;">
+                        <div class="form-group" style="min-width:180px;flex:1;margin-bottom:0;">
+                            <label class="form-label">Source</label>
+                            <select id="crmSourceFilter" class="form-input">
+                                <option value="all">All Sources</option>
+                                <option value="contact">Contact Form</option>
+                                <option value="demo">Demo Booking</option>
+                                <option value="counseling">Counseling</option>
+                                <option value="chatbot">AI Admission Assistant</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="min-width:180px;flex:1;margin-bottom:0;">
+                            <label class="form-label">Status</label>
+                            <select id="crmStatusFilter" class="form-input">
+                                <option value="all">All Statuses</option>
+                                <option value="new">New</option>
+                                <option value="pending">Pending</option>
+                                <option value="read">Read</option>
+                                <option value="replied">Replied</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="archived">Archived</option>
+                                <option value="enrolled">Enrolled</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="min-width:180px;flex:1;margin-bottom:0;">
+                            <label class="form-label">Follow-up</label>
+                            <select id="crmFollowUpStatusFilter" class="form-input">
+                                <option value="all">All</option>
+                                <option value="none">None</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                                <option value="missed">Missed</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="min-width:180px;flex:1;margin-bottom:0;">
+                            <label class="form-label">Assignee</label>
+                            <input type="text" id="crmAssigneeFilter" class="form-input" placeholder="Counselor name...">
+                        </div>
+                        <div class="form-group" style="min-width:160px;flex:0.9;margin-bottom:0;">
+                            <label class="form-label">From Date</label>
+                            <input type="date" id="crmFromDate" class="form-input">
+                        </div>
+                        <div class="form-group" style="min-width:160px;flex:0.9;margin-bottom:0;">
+                            <label class="form-label">To Date</label>
+                            <input type="date" id="crmToDate" class="form-input">
+                        </div>
+                        <div class="form-group" style="min-width:240px;flex:1.35;margin-bottom:0;">
+                            <label class="form-label">Search</label>
+                            <input type="text" id="crmSearch" class="form-input" placeholder="Name, phone, email, subject, board...">
+                        </div>
+                        <button class="btn-add" onclick="applyCrmFilters()" style="margin-bottom:0;">🔎 Filter</button>
+                        <button class="btn-add" onclick="exportCrmLeads()" style="margin-bottom:0;background:linear-gradient(135deg,#1d4ed8,#1e40af);">⬇ Export CSV</button>
+                    </div>
+                </div>
+                <div class="section-header"><div class="section-title">Unified Lead Inbox</div></div>
+                <table class="data-table" id="crmLeadsTable">
+                    <thead><tr><th>Lead</th><th>Source</th><th>Academic Fit</th><th>Contact</th><th>Status</th><th>Assignee</th><th>Follow-up</th><th>Created</th><th>Summary</th></tr></thead>
+                    <tbody><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
                 </table>
             </div>
 

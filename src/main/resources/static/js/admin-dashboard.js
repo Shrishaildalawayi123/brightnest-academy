@@ -159,6 +159,7 @@ const titles = {
   enrollments: "Enrollments",
   attendance: "Attendance",
   payments: "Payments",
+  crm: "CRM Leads",
   blog: "Blog Posts",
   demos: "Demo Bookings",
   teachers: "Teacher Applications",
@@ -190,6 +191,7 @@ function showSection(name) {
   if (name === "enrollments") loadEnrollments();
   if (name === "attendance") loadAttendanceSection();
   if (name === "payments") loadPaymentsSection();
+  if (name === "crm") loadCrmSection();
   if (name === "blog") loadBlogAdmin();
   if (name === "demos") loadDemosAdmin();
   if (name === "teachers") loadTeacherAppsAdmin();
@@ -202,6 +204,57 @@ function esc(str) {
   const d = document.createElement("div");
   d.textContent = str || "";
   return d.innerHTML.replace(/'/g, "&#39;");
+}
+
+function leadStatusBadgeClass(status) {
+  const normalized = String(status || "").toUpperCase();
+  if (["NEW", "PENDING"].includes(normalized)) return "badge-admin";
+  if (["READ", "REPLIED", "SCHEDULED", "CONTACTED", "COMPLETED"].includes(normalized)) return "badge-active";
+  return "badge-student";
+}
+
+function leadStatusOptions(source) {
+  if (source === "contact") return ["NEW", "READ", "REPLIED", "ARCHIVED"];
+  if (source === "demo") return ["PENDING", "SCHEDULED", "COMPLETED", "CANCELLED"];
+  if (source === "counseling") return ["NEW", "CONTACTED", "COMPLETED", "CANCELLED"];
+  if (source === "chatbot") return ["NEW", "CONTACTED", "ENROLLED", "CLOSED"];
+  return [];
+}
+
+function followUpOptions() {
+  return ["NONE", "PENDING", "COMPLETED", "MISSED"];
+}
+
+function crmInputId(prefix, source, sourceId) {
+  return `${prefix}-${source}-${sourceId}`;
+}
+
+function fmtDateTimeLocal(dt) {
+  if (!dt) return "";
+  const date = new Date(dt);
+  const tzOffsetMs = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16);
+}
+
+function crmQueryParams() {
+  const params = new URLSearchParams();
+  const source = document.getElementById("crmSourceFilter")?.value || "all";
+  const status = document.getElementById("crmStatusFilter")?.value || "all";
+  const followUpStatus =
+    document.getElementById("crmFollowUpStatusFilter")?.value || "all";
+  const assignee = document.getElementById("crmAssigneeFilter")?.value.trim();
+  const fromDate = document.getElementById("crmFromDate")?.value;
+  const toDate = document.getElementById("crmToDate")?.value;
+  const query = document.getElementById("crmSearch")?.value.trim();
+
+  params.set("source", source);
+  params.set("status", status);
+  params.set("followUpStatus", followUpStatus);
+  if (assignee) params.set("assignee", assignee);
+  if (fromDate) params.set("fromDate", fromDate);
+  if (toDate) params.set("toDate", toDate);
+  if (query) params.set("q", query);
+  return params;
 }
 
 // Overview
@@ -537,6 +590,168 @@ async function loadPaymentsSection() {
   loadPaymentStats();
   loadPaymentDropdowns();
   loadAllPayments();
+}
+
+// ===== CRM LEADS =====
+async function loadCrmSection() {
+  try {
+    const [leadsResponse, statsResponse] = await Promise.all([
+      fetch(`/api/admin/leads?${crmQueryParams().toString()}`, {
+        headers: authHeaders(),
+      }).then((r) => r.json()),
+      fetch("/api/admin/leads/stats", { headers: authHeaders() }).then((r) =>
+        r.json(),
+      ),
+    ]);
+
+    const leads = Array.isArray(leadsResponse.data) ? leadsResponse.data : [];
+    const stats = statsResponse.data || {};
+    document.getElementById("crmTotalLeads").textContent =
+      stats.totalLeads || 0;
+    document.getElementById("crmNewLeads").textContent = stats.newLeads || 0;
+    document.getElementById("crmContactedLeads").textContent =
+      stats.contactedLeads || 0;
+    document.getElementById("crmHighIntentLeads").textContent =
+      stats.highIntentLeads || 0;
+    document.getElementById("crmReminderToday").textContent =
+      stats.reminderToday || 0;
+    document.getElementById("crmReminderOverdue").textContent =
+      stats.reminderOverdue || 0;
+    document.getElementById("crmReminderNext7").textContent =
+      stats.reminderNext7Days || 0;
+
+    const tbody = document.querySelector("#crmLeadsTable tbody");
+    tbody.innerHTML =
+      leads
+        .map((lead) => {
+          const assigneeInputId = crmInputId("crm-assignee", lead.source, lead.sourceId);
+          const followUpAtInputId = crmInputId("crm-follow-at", lead.source, lead.sourceId);
+          const followUpStatusInputId = crmInputId("crm-follow-status", lead.source, lead.sourceId);
+          const followUpNotesInputId = crmInputId("crm-follow-notes", lead.source, lead.sourceId);
+          const options = leadStatusOptions(lead.source)
+            .map(
+              (status) =>
+                `<option value="${status}" ${lead.status === status ? "selected" : ""}>${status}</option>`,
+            )
+            .join("");
+          const followUpStatusOptions = followUpOptions()
+            .map(
+              (status) =>
+                `<option value="${status}" ${lead.followUpStatus === status ? "selected" : ""}>${status}</option>`,
+            )
+            .join("");
+          return `
+            <tr>
+              <td><strong>${esc(lead.leadName)}</strong><br><small style="color:#64748b;">${esc(lead.guardianName || "")}</small></td>
+              <td><span class="badge badge-student">${esc(lead.sourceLabel)}</span></td>
+              <td>${esc(lead.subject || "-")}<br><small style="color:#64748b;">${esc([lead.grade, lead.board].filter(Boolean).join(" • ") || "-")}</small></td>
+              <td>
+                ${lead.email ? `<a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a><br>` : ""}
+                ${lead.phone ? `<a href="tel:${esc(lead.phone)}">${esc(lead.phone)}</a>` : "<span style=\"color:#94a3b8;\">No phone</span>"}
+              </td>
+              <td>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;min-width:140px;">
+                  <span class="badge ${leadStatusBadgeClass(lead.status)}">${esc(lead.status)}</span>
+                  <select onchange="updateCrmLeadStatus('${lead.source}', ${lead.sourceId}, this.value)" style="padding:0.3rem;border-radius:6px;border:1px solid #e5e7eb;font-size:0.8rem;">
+                    ${options}
+                  </select>
+                </div>
+              </td>
+              <td>
+                <input id="${assigneeInputId}" type="text" class="form-input" value="${esc(lead.assignee || "")}" placeholder="Assign owner" style="min-width:140px;padding:0.45rem 0.6rem;font-size:0.8rem;">
+              </td>
+              <td>
+                <div style="display:flex;flex-direction:column;gap:0.4rem;min-width:170px;">
+                  <select id="${followUpStatusInputId}" class="form-input" style="padding:0.35rem 0.45rem;font-size:0.8rem;">
+                    ${followUpStatusOptions}
+                  </select>
+                  <input id="${followUpAtInputId}" type="datetime-local" class="form-input" value="${fmtDateTimeLocal(lead.followUpAt)}" style="padding:0.35rem 0.45rem;font-size:0.8rem;">
+                  <input id="${followUpNotesInputId}" type="text" class="form-input" value="${esc(lead.followUpNotes || "")}" placeholder="Notes" style="padding:0.35rem 0.45rem;font-size:0.8rem;">
+                  <button class="btn-icon" onclick="updateCrmLeadPipeline('${lead.source}', ${lead.sourceId})" style="font-size:0.8rem;border:1px solid #cbd5e1;padding:0.3rem 0.4rem;">Save</button>
+                </div>
+              </td>
+              <td>${fmt(lead.createdAt)}</td>
+              <td>${esc(lead.summary || "-")}</td>
+            </tr>`;
+        })
+        .join("") || '<tr><td colspan="9">No leads matched the current filter</td></tr>';
+  } catch (e) {
+    console.error(e);
+    document.querySelector("#crmLeadsTable tbody").innerHTML =
+      '<tr><td colspan="9">Error loading leads</td></tr>';
+  }
+}
+
+function applyCrmFilters() {
+  loadCrmSection();
+}
+
+async function updateCrmLeadStatus(source, sourceId, status) {
+  try {
+    await fetch(`/api/admin/leads/${source}/${sourceId}/status?status=${encodeURIComponent(status)}`, {
+      method: "PUT",
+      headers: authHeaders(),
+    });
+    showToast("Lead status updated");
+    loadCrmSection();
+  } catch (e) {
+    showToast("Error updating lead status", "error");
+  }
+}
+
+async function updateCrmLeadPipeline(source, sourceId) {
+  const assignee = document
+    .getElementById(crmInputId("crm-assignee", source, sourceId))
+    ?.value.trim();
+  const followUpAt = document
+    .getElementById(crmInputId("crm-follow-at", source, sourceId))
+    ?.value;
+  const followUpStatus = document
+    .getElementById(crmInputId("crm-follow-status", source, sourceId))
+    ?.value;
+  const followUpNotes = document
+    .getElementById(crmInputId("crm-follow-notes", source, sourceId))
+    ?.value.trim();
+
+  try {
+    await fetch(`/api/admin/leads/${source}/${sourceId}/pipeline`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({
+        assignee: assignee || null,
+        followUpAt: followUpAt || null,
+        followUpStatus: followUpStatus || "NONE",
+        followUpNotes: followUpNotes || null,
+      }),
+    });
+    showToast("Pipeline updated");
+    loadCrmSection();
+  } catch (e) {
+    showToast("Error updating follow-up details", "error");
+  }
+}
+
+async function exportCrmLeads() {
+  try {
+    const response = await fetch(`/api/admin/leads/export?${crmQueryParams().toString()}`, {
+      headers: authHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error("Export failed");
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "crm-leads.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    showToast("Error exporting leads", "error");
+  }
 }
 
 async function loadPaymentStats() {

@@ -1,6 +1,7 @@
 package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ApiResponse;
+import com.shrishailacademy.dto.ChatbotLeadEnrichmentRequest;
 import com.shrishailacademy.dto.ChatbotRequest;
 import com.shrishailacademy.service.ChatbotService;
 import jakarta.validation.Valid;
@@ -25,5 +26,12 @@ public class ChatbotController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Chatbot response generated",
                 chatbotService.respond(request)));
+    }
+
+    @PostMapping("/leads/enrich")
+    public ResponseEntity<ApiResponse> enrichLead(@Valid @RequestBody ChatbotLeadEnrichmentRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Chatbot lead enrichment processed",
+                chatbotService.enrichLeadContact(request)));
     }
 }

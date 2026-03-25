@@ -254,6 +254,10 @@ public class SecurityConfig {
                                                                 "/api/v1/chatbot/messages")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                                                "/api/chatbot/leads/enrich",
+                                                                "/api/v1/chatbot/leads/enrich")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.POST,
                                                                 "/api/whatsapp-leads",
                                                                 "/api/v1/whatsapp-leads")
                                                 .permitAll()

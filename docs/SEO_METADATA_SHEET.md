@@ -1,3 +1,4 @@
+
 # BrightNest Academy SEO Metadata Sheet
 
 ## URL: /index.html

@@ -17,4 +17,7 @@ public class ChatbotRequest {
     @NotBlank(message = "Message is required")
     @Size(max = 500, message = "Message must be 500 characters or fewer")
     private String message;
+
+    @Size(max = 80, message = "Session ID must be 80 characters or fewer")
+    private String sessionId;
 }
