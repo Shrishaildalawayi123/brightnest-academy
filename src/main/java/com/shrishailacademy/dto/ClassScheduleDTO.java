@@ -3,6 +3,7 @@ package com.shrishailacademy.dto;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -44,6 +45,7 @@ public class ClassScheduleDTO {
     @Max(value = 200, message = "Maximum students cannot exceed 200")
     private Integer maxStudents;
     
+    @Default
     private Boolean isActive = true;
     
     // Response-only fields

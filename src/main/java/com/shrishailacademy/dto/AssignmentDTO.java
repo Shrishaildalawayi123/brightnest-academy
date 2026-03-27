@@ -3,6 +3,7 @@ package com.shrishailacademy.dto;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -44,6 +45,7 @@ public class AssignmentDTO {
     
     private String attachmentUrl;
     
+    @Default
     private Boolean isPublished = false;
     
     // Response-only fields

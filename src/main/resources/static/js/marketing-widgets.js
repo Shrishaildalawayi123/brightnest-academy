@@ -25,6 +25,7 @@
   const POPUP_ENGAGED_KEY = "brightnest_whatsapp_engaged";
   const CHATBOT_SESSION_KEY = "brightnest_chatbot_session_id";
   const CHATBOT_MINIMIZED_KEY = "brightnest_chatbot_minimized";
+  const LEAD_POPUP_DISMISS_KEY = "brightnest_demo_lead_popup_dismissed_at";
 
   function getChatbotSessionId() {
     let sessionId = localStorage.getItem(CHATBOT_SESSION_KEY);
@@ -48,6 +49,7 @@
     initializeChatbot();
     bindWhatsAppTracking();
     scheduleWhatsappPopup();
+    scheduleDemoLeadPopup();
     enhanceLeadGenSections();
     window.setTimeout(normalizeContactLinks, 200);
   }
@@ -485,6 +487,27 @@
     }, 20000);
   }
 
+  function scheduleDemoLeadPopup() {
+    if (shouldSuppressLeadPopup()) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      if (shouldSuppressLeadPopup()) {
+        return;
+      }
+      showDemoLeadPopup();
+    }, 32000);
+  }
+
+  function shouldSuppressLeadPopup() {
+    if (localStorage.getItem(POPUP_ENGAGED_KEY) === "true") {
+      return true;
+    }
+    const dismissedAt = Number(localStorage.getItem(LEAD_POPUP_DISMISS_KEY) || "0");
+    return dismissedAt > 0 && Date.now() - dismissedAt < 24 * 60 * 60 * 1000;
+  }
+
   function shouldSuppressPopup() {
     if (localStorage.getItem(POPUP_ENGAGED_KEY) === "true") {
       return true;
@@ -528,6 +551,80 @@
   function dismissWhatsappPopup() {
     localStorage.setItem(POPUP_DISMISS_KEY, String(Date.now()));
     hideWhatsappPopup();
+  }
+
+  function dismissDemoLeadPopup() {
+    localStorage.setItem(LEAD_POPUP_DISMISS_KEY, String(Date.now()));
+    const popup = document.getElementById("marketingDemoLeadPopup");
+    if (popup) {
+      popup.hidden = true;
+    }
+  }
+
+  function showDemoLeadPopup() {
+    if (document.getElementById("marketingDemoLeadPopup")) {
+      document.getElementById("marketingDemoLeadPopup").hidden = false;
+      return;
+    }
+
+    const popup = document.createElement("aside");
+    popup.className = "marketing-demo-popup";
+    popup.id = "marketingDemoLeadPopup";
+    popup.innerHTML = `
+      <button class="marketing-demo-popup__close" type="button" aria-label="Dismiss demo popup">×</button>
+      <p class="marketing-demo-popup__eyebrow">Limited Demo Slots</p>
+      <h3>Book a FREE Demo + Fee Estimate</h3>
+      <p class="marketing-demo-popup__text">Share details and get a quick callback from our admission advisor.</p>
+      <form class="marketing-demo-popup__form" id="marketingDemoLeadForm">
+        <input id="demoLeadName" type="text" maxlength="100" placeholder="Parent name" required>
+        <input id="demoLeadClass" type="text" maxlength="30" placeholder="Class (8-12)" required>
+        <input id="demoLeadPhone" type="tel" maxlength="20" placeholder="Phone number" required>
+        <button type="submit">Request Callback</button>
+      </form>
+      <p class="marketing-demo-popup__hint" id="marketingDemoLeadHint">Response usually within 15 minutes.</p>
+    `;
+    document.body.appendChild(popup);
+
+    popup.querySelector(".marketing-demo-popup__close")?.addEventListener("click", dismissDemoLeadPopup);
+    popup.querySelector("#marketingDemoLeadForm")?.addEventListener("submit", submitDemoLeadPopup);
+  }
+
+  async function submitDemoLeadPopup(event) {
+    event.preventDefault();
+    const name = document.getElementById("demoLeadName")?.value.trim();
+    const studentClass = document.getElementById("demoLeadClass")?.value.trim();
+    const parentPhone = document.getElementById("demoLeadPhone")?.value.trim();
+    const hint = document.getElementById("marketingDemoLeadHint");
+
+    if (!name || !studentClass || !parentPhone) {
+      if (hint) {
+        hint.textContent = "Please fill all fields.";
+      }
+      return;
+    }
+
+    try {
+      await fetch(`${resolveApiBaseUrl()}/counseling`, {
+        method: "POST",
+        headers: buildApiHeaders(),
+        credentials: "include",
+        body: JSON.stringify({
+          studentName: name,
+          studentClass,
+          board: "Not specified",
+          parentPhone,
+        }),
+      });
+      if (hint) {
+        hint.textContent = "Thanks. Our advisor will contact you shortly.";
+      }
+      localStorage.setItem(POPUP_ENGAGED_KEY, "true");
+      window.setTimeout(dismissDemoLeadPopup, 1200);
+    } catch (_) {
+      if (hint) {
+        hint.textContent = "Unable to submit now. Please use WhatsApp.";
+      }
+    }
   }
 
   function enhanceLeadGenSections() {
