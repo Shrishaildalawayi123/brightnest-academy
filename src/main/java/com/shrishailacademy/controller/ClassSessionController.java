@@ -2,12 +2,15 @@ package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ClassSessionDTO;
 import com.shrishailacademy.model.ClassSession;
+import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.ClassSessionRepository;
+import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.tenant.TenantContext;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -19,11 +22,31 @@ import java.util.stream.Collectors;
  * REST API for managing class sessions
  */
 @RestController
-@RequestMapping("/api/v1/sessions")
+@RequestMapping({"/api/sessions", "/api/v1/sessions"})
 @RequiredArgsConstructor
 public class ClassSessionController {
     
     private final ClassSessionRepository sessionRepository;
+    private final UserRepository userRepository;
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<List<ClassSessionDTO>> getSessions(
+            @RequestParam(defaultValue = "false") boolean today,
+            Authentication authentication) {
+        if (!today) {
+            return getUpcomingSessions();
+        }
+
+        Long tenantId = TenantContext.requireTenantId();
+        User currentUser = userRepository.findByEmailAndTenantId(authentication.getName(), tenantId)
+                .orElseThrow(() -> new IllegalStateException("User not found: " + authentication.getName()));
+
+        List<ClassSession> sessions = currentUser.getRole() == User.Role.ADMIN
+                ? sessionRepository.findTodaySessions(tenantId, LocalDate.now())
+                : sessionRepository.findTodaySessionsForTeacher(tenantId, currentUser.getId(), LocalDate.now());
+        return ResponseEntity.ok(sessions.stream().map(this::convertToDTO).collect(Collectors.toList()));
+    }
     
     /**
      * Get upcoming sessions
@@ -54,8 +77,7 @@ public class ClassSessionController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<ClassSessionDTO> getSessionById(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        ClassSession session = sessionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        ClassSession session = sessionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + id));
         return ResponseEntity.ok(convertToDTO(session));
     }
@@ -67,8 +89,7 @@ public class ClassSessionController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ClassSessionDTO> startSession(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        ClassSession session = sessionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        ClassSession session = sessionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + id));
         
         session.start();
@@ -83,8 +104,7 @@ public class ClassSessionController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ClassSessionDTO> completeSession(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        ClassSession session = sessionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        ClassSession session = sessionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + id));
         
         session.markCompleted(session.getActualStartTime() != null ? session.getActualStartTime() : LocalTime.now(), LocalTime.now());
@@ -101,8 +121,7 @@ public class ClassSessionController {
             @PathVariable Long id,
             @RequestBody(required = false) String reason) {
         Long tenantId = TenantContext.requireTenantId();
-        ClassSession session = sessionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        ClassSession session = sessionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + id));
         
         session.cancel(reason);
@@ -119,8 +138,7 @@ public class ClassSessionController {
             @PathVariable Long id,
             @RequestBody @Valid ClassSessionDTO dto) {
         Long tenantId = TenantContext.requireTenantId();
-        ClassSession session = sessionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        ClassSession session = sessionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + id));
         
         session.setNotes(dto.getNotes());

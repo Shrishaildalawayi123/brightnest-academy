@@ -1,6 +1,7 @@
 package com.shrishailacademy.repository;
 
 import com.shrishailacademy.model.ContactMessage;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +15,12 @@ public interface ContactMessageRepository extends JpaRepository<ContactMessage, 
 
     List<ContactMessage> findByTenantIdOrderByCreatedAtDesc(Long tenantId);
 
+        List<ContactMessage> findByTenantIdOrderByCreatedAtDesc(Long tenantId, Pageable pageable);
+
     List<ContactMessage> findByTenantIdAndStatusOrderByCreatedAtDesc(Long tenantId, ContactMessage.Status status);
+
+        List<ContactMessage> findByTenantIdAndStatusOrderByCreatedAtDesc(Long tenantId, ContactMessage.Status status,
+            Pageable pageable);
 
     long countByTenantIdAndStatus(Long tenantId, ContactMessage.Status status);
 

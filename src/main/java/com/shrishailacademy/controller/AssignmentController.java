@@ -81,8 +81,7 @@ public class AssignmentController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<AssignmentDTO> getAssignmentById(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        Assignment assignment = assignmentRepository.findById(id)
-                .filter(a -> a.getTenantId().equals(tenantId))
+        Assignment assignment = assignmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
         return ResponseEntity.ok(convertToDTO(assignment));
     }
@@ -107,8 +106,7 @@ public class AssignmentController {
             @PathVariable Long id,
             @Valid @RequestBody AssignmentDTO dto) {
         Long tenantId = TenantContext.requireTenantId();
-        Assignment assignment = assignmentRepository.findById(id)
-                .filter(a -> a.getTenantId().equals(tenantId))
+        Assignment assignment = assignmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
 
         // Update fields
@@ -129,8 +127,7 @@ public class AssignmentController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<AssignmentDTO> publishAssignment(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        Assignment assignment = assignmentRepository.findById(id)
-                .filter(a -> a.getTenantId().equals(tenantId))
+        Assignment assignment = assignmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
 
         assignment.publish();
@@ -145,8 +142,7 @@ public class AssignmentController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<AssignmentDTO> unpublishAssignment(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        Assignment assignment = assignmentRepository.findById(id)
-                .filter(a -> a.getTenantId().equals(tenantId))
+        Assignment assignment = assignmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
 
         assignment.unpublish();
@@ -161,8 +157,7 @@ public class AssignmentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAssignment(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        Assignment assignment = assignmentRepository.findById(id)
-                .filter(a -> a.getTenantId().equals(tenantId))
+        Assignment assignment = assignmentRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
 
         assignmentRepository.delete(assignment);
@@ -198,10 +193,10 @@ public class AssignmentController {
     private Assignment convertToEntity(AssignmentDTO dto) {
         Long tenantId = TenantContext.requireTenantId();
 
-        Course course = courseRepository.findById(dto.getCourseId())
+        Course course = courseRepository.findByIdAndTenantId(dto.getCourseId(), tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found: " + dto.getCourseId()));
 
-        User teacher = userRepository.findById(dto.getTeacherId())
+        User teacher = userRepository.findByIdAndTenantId(dto.getTeacherId(), tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Teacher not found: " + dto.getTeacherId()));
 
         return Assignment.builder()

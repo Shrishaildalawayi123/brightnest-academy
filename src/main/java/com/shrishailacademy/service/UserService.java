@@ -10,6 +10,8 @@ import com.shrishailacademy.tenant.TenantContext;
 import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +62,11 @@ public class UserService {
     public List<User> getAllUsers() {
         Long tenantId = TenantContext.requireTenantId();
         return userRepository.findAllByTenantId(tenantId);
+    }
+
+    public Page<User> getAllUsers(Pageable pageable) {
+        Long tenantId = TenantContext.requireTenantId();
+        return userRepository.findAllByTenantId(tenantId, pageable);
     }
 
     @Transactional
@@ -127,5 +134,31 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         userRepository.delete(user);
         log.info("User deleted by admin: id={} email={}", id, user.getEmail());
+    }
+
+    @Transactional
+    public User changeUserRole(Long userId, User.Role newRole) {
+        Long tenantId = TenantContext.requireTenantId();
+
+        if (newRole == null) {
+            throw new IllegalArgumentException("Role cannot be null");
+        }
+
+        User user = userRepository.findByIdAndTenantId(userId, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        if (user.getRole() == User.Role.ADMIN && newRole != User.Role.ADMIN) {
+            long adminCount = userRepository.countByRoleAndTenantId(User.Role.ADMIN, tenantId);
+            if (adminCount <= 1) {
+                throw new IllegalStateException("Cannot downgrade the last admin in the tenant");
+            }
+        }
+
+        User.Role oldRole = user.getRole();
+        user.setRole(newRole);
+        User updated = userRepository.save(user);
+        log.info("User role changed by admin: id={} email={} oldRole={} newRole={}", 
+            updated.getId(), updated.getEmail(), oldRole, newRole);
+        return updated;
     }
 }

@@ -335,6 +335,52 @@
             background: #F1F5F9;
         }
 
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .pagination-shell {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 999px;
+            background: white;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        .pagination-shell .btn-icon {
+            font-size: 0.9rem;
+            padding: 0.4rem 0.75rem;
+            border: 1px solid #CBD5E1;
+            background: #F8FAFC;
+        }
+
+        .pagination-shell .btn-icon:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            background: #F8FAFC;
+        }
+
+        .table-action-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .table-action-group .form-input {
+            min-width: 130px;
+            width: auto;
+            margin: 0;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+        }
+
         .btn-danger:hover {
             background: #FEE2E2;
         }
@@ -698,14 +744,16 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Role</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="4" class="loading">Loading...</td>
+                            <td colspan="5" class="loading">Loading...</td>
                         </tr>
                     </tbody>
                 </table>
+                <div class="pagination-controls" id="studentsPagination"></div>
             </div>
 
             <!-- Enrollments -->
@@ -728,6 +776,7 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="pagination-controls" id="enrollmentsPagination"></div>
             </div>
 
             <!-- Attendance -->
@@ -859,6 +908,7 @@
                         <tr><td colspan="8" class="loading">Loading...</td></tr>
                     </tbody>
                 </table>
+                <div class="pagination-controls" id="paymentsPagination"></div>
             </div>
 
             <!-- CRM Leads -->

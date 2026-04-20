@@ -28,13 +28,13 @@ public class RateLimiterConfiguration {
             // Explicit Redis mode: initialize eagerly; if Redis is down, application
             // startup will fail.
             LettuceRedisBucket4jRateLimiterBackend redisBackend = new LettuceRedisBucket4jRateLimiterBackend(
-                    buildRedisUri(redisProperties));
+                    buildRedisUri(redisProperties), redisProperties.getConnectTimeout());
             return new AutoClosingRedisBackend(redisBackend, redisBackend);
         }
 
         // auto: lazily try Redis; fall back to in-memory if Redis is down.
         LazyRedisBucket4jRateLimiterBackend lazyRedis = new LazyRedisBucket4jRateLimiterBackend(
-                () -> buildRedisUri(redisProperties));
+                () -> buildRedisUri(redisProperties), redisProperties.getConnectTimeout());
         RateLimiterBackend delegating = new FallbackRateLimiterBackend(lazyRedis, inMemory, Duration.ofSeconds(10));
         return new AutoClosingRedisBackend(delegating, lazyRedis);
     }

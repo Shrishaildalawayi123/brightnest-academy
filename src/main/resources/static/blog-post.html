@@ -106,6 +106,73 @@
             });
         }
 
+        const staticFallbackPosts = {
+            "tuition-classes-in-bengaluru-guide": {
+                title: "How to Choose the Best Tuition Classes in Bengaluru for Grades 1-10",
+                category: "LEARNING_TIPS",
+                publishedAt: "2026-04-10T09:00:00Z",
+                author: "BrightNest Academic Team",
+                content: `
+                    <p>Parents searching for <strong>tuition classes in Bengaluru</strong> often compare many centers but miss a few high-impact checkpoints. Use this quick guide to make a confident decision.</p>
+                    <h2>1. Check Grade and Board Fit First</h2>
+                    <p>For Grades 1-10, ask whether batches are separated by board (CBSE, ICSE, Karnataka State Board). Board-specific planning improves exam outcomes.</p>
+                    <h2>2. Ask About Batch Size</h2>
+                    <p>Smaller batches usually allow better doubt-solving. Ideal batch sizes are often 8-14 students depending on subject complexity.</p>
+                    <h2>3. Evaluate Weekly Testing Process</h2>
+                    <p>Look for chapter tests, revision tests, and parent feedback loops. Progress tracking should be consistent, not occasional.</p>
+                    <h2>4. Validate Faculty Experience</h2>
+                    <p>Request subject-wise educator profiles and years of experience. Strong results usually come from experienced, board-aware teachers.</p>
+                    <h2>5. Confirm Timings and Commute Practicality</h2>
+                    <p>Choose timings that avoid student fatigue. Bengaluru traffic can impact attendance and learning continuity.</p>
+                    <p>Shortlist centers that combine subject depth, measurable progress, and transparent communication with parents.</p>
+                `,
+            },
+            "cbse-coaching-banashankari-checklist": {
+                title: "CBSE Coaching Banashankari: What Parents Should Check Before Enrollment",
+                category: "EXAM_STRATEGIES",
+                publishedAt: "2026-04-06T10:30:00Z",
+                author: "BrightNest Academic Team",
+                content: `
+                    <p>If you are evaluating <strong>CBSE coaching Banashankari</strong>, avoid choosing only by distance. Use this practical quality checklist.</p>
+                    <h2>1. Chapter Planning and Completion Discipline</h2>
+                    <p>Ask for monthly plans and test timelines. Structured pacing prevents syllabus rush near exams.</p>
+                    <h2>2. Concept-to-Application Teaching</h2>
+                    <p>CBSE papers increasingly test understanding and application. Ensure classes include HOTS and competency-style questions.</p>
+                    <h2>3. Doubt Resolution Workflow</h2>
+                    <p>Good centers run dedicated doubt windows and follow-up worksheets for weak topics.</p>
+                    <h2>4. Parent Reporting Frequency</h2>
+                    <p>Parents should receive periodic updates on attendance, test scores, and improvement areas.</p>
+                    <h2>5. Batch Strength and Mentoring</h2>
+                    <p>Balanced batches help peer learning while allowing individual attention before unit tests and board exams.</p>
+                    <p>When these five systems are visible, students usually gain stronger confidence and better score consistency.</p>
+                `,
+            },
+            "spoken-kannada-classes-online-tips": {
+                title: "Spoken Kannada Classes Online: 7 Ways School Students Build Fluency Faster",
+                category: "LANGUAGE_INSIGHTS",
+                publishedAt: "2026-04-02T12:00:00Z",
+                author: "BrightNest Language Team",
+                content: `
+                    <p><strong>Spoken Kannada classes online</strong> can significantly help school students who are new to Kannada conversations and classroom expression.</p>
+                    <h2>1. Daily 10-minute speaking drills</h2>
+                    <p>Short daily speaking practice builds comfort faster than long but irregular sessions.</p>
+                    <h2>2. Situation-based vocabulary</h2>
+                    <p>Teach phrases for school, friends, and teachers first. Practical vocabulary sticks better.</p>
+                    <h2>3. Pronunciation correction loops</h2>
+                    <p>Immediate feedback on common sounds improves confidence in real conversations.</p>
+                    <h2>4. Listening-first method</h2>
+                    <p>Students should hear clear Kannada audio before reading and speaking tasks.</p>
+                    <h2>5. Parent-supported recap</h2>
+                    <p>Even 5 minutes of home recap helps students retain weekly speaking patterns.</p>
+                    <h2>6. Blend spoken and school Kannada</h2>
+                    <p>Integrating textbook language with everyday conversation improves both marks and fluency.</p>
+                    <h2>7. Micro-assessments every week</h2>
+                    <p>Short fluency checks keep motivation high and reveal specific areas to improve.</p>
+                    <p>With the right structure, online Kannada learning can be highly effective for school learners in Bengaluru and beyond.</p>
+                `,
+            },
+        };
+
         (async function loadPost() {
             const params = new URLSearchParams(window.location.search);
             const slug = params.get('slug');
@@ -129,6 +196,17 @@
                 contentEl.innerHTML = `${coverHtml}${post.content || '<p>No content available.</p>'}`;
                 normalizeArticleImages(contentEl);
             } catch(e) {
+                const fallback = staticFallbackPosts[slug];
+                if (fallback) {
+                    document.title = `${fallback.title} | BrightNest Academy Blog`;
+                    document.getElementById('postTitle').textContent = fallback.title;
+                    const dateStr = fallback.publishedAt ? new Date(fallback.publishedAt).toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'}) : '';
+                    const cat = catLabels[fallback.category] || fallback.category || '';
+                    document.getElementById('postMeta').innerHTML = `${dateStr}${cat ? ' &bull; ' + cat : ''}${fallback.author ? ' &bull; By ' + fallback.author : ''}`;
+                    document.getElementById('postContent').innerHTML = fallback.content;
+                    return;
+                }
+
                 console.error('Post load error:', e);
                 document.getElementById('postTitle').textContent = 'Article Not Found';
                 document.getElementById('postContent').innerHTML = '<p style="text-align:center;color:#ef4444;">Could not load this article. It may have been removed or unpublished. <a href="blog.html">Browse all articles</a>.</p>';

@@ -8,6 +8,8 @@ import io.github.bucket4j.distributed.proxy.RecoveryStrategy;
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SocketOptions;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -36,7 +38,18 @@ public class LettuceRedisBucket4jRateLimiterBackend implements RateLimiterBacken
     private final Map<String, BucketProxy> bucketCache = new ConcurrentHashMap<>();
 
     public LettuceRedisBucket4jRateLimiterBackend(RedisURI redisUri) {
+        this(redisUri, null);
+    }
+
+    public LettuceRedisBucket4jRateLimiterBackend(RedisURI redisUri, Duration connectTimeout) {
         this.redisClient = RedisClient.create(redisUri);
+
+        if (connectTimeout != null && !connectTimeout.isNegative() && !connectTimeout.isZero()) {
+            ClientOptions options = ClientOptions.builder()
+                    .socketOptions(SocketOptions.builder().connectTimeout(connectTimeout).build())
+                    .build();
+            this.redisClient.setOptions(options);
+        }
 
         RedisCodec<byte[], byte[]> codec = ByteArrayCodec.INSTANCE;
         this.connection = redisClient.connect(codec);

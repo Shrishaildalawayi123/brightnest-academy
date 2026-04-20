@@ -2,8 +2,11 @@
 # Intended location on server: /opt/brightnest/docker-compose.yml
 # Requires: /opt/brightnest/.env
 #
-# Replace REPLACE_ME_OWNER with your GitHub username/org, e.g.:
-#   image: ghcr.io/shrishaildalawayi123/brightnest-academy:latest
+# Set GITHUB_REPOSITORY_OWNER in /opt/brightnest/.env or inject it from GitHub
+# Actions using ${{ github.repository_owner }} when templating this file.
+# Example:
+#   GITHUB_REPOSITORY_OWNER=shrishaildalawayi123
+#   image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/brightnest-academy:latest
 #
 # Login to GHCR before pulling on EC2:
 #   echo "$GITHUB_TOKEN" | docker login ghcr.io -u USERNAME --password-stdin
@@ -12,7 +15,7 @@ version: "3.8"
 
 services:
   app:
-    image: ghcr.io/REPLACE_ME_OWNER/brightnest-academy:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/brightnest-academy:latest
     container_name: brightnest-academy
     env_file:
       - /opt/brightnest/.env

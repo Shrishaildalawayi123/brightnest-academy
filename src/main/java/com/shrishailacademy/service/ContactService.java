@@ -9,6 +9,9 @@ import com.shrishailacademy.tenant.TenantContext;
 import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +27,15 @@ public class ContactService {
 
     private final ContactMessageRepository contactRepo;
     private final TenantService tenantService;
+    private final EmailService emailService;
 
-    public ContactService(ContactMessageRepository contactRepo, TenantService tenantService) {
+    public ContactService(
+            ContactMessageRepository contactRepo,
+            TenantService tenantService,
+            ObjectProvider<EmailService> emailServiceProvider) {
         this.contactRepo = contactRepo;
         this.tenantService = tenantService;
+        this.emailService = emailServiceProvider.getIfAvailable();
     }
 
     @Transactional
@@ -43,6 +51,16 @@ public class ContactService {
 
         ContactMessage saved = contactRepo.save(msg);
         log.info("CONTACT_SUBMITTED: from='{}' email='{}'", saved.getName(), saved.getEmail());
+
+        try {
+            if (emailService != null) {
+                emailService.sendContactAcknowledgement(saved);
+                emailService.sendAdminNewLeadAlert("Contact Message", saved.getName(), saved.getEmail());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send contact email for id={}: {}", saved.getId(), e.getMessage());
+        }
+
         return saved;
     }
 
@@ -51,9 +69,28 @@ public class ContactService {
         return contactRepo.findByTenantIdOrderByCreatedAtDesc(tenantId);
     }
 
+    public List<ContactMessage> getAllMessages(int page, int size) {
+        Long tenantId = TenantContext.requireTenantId();
+        int boundedSize = Math.max(1, Math.min(size, 100));
+        int boundedPage = Math.max(page, 0);
+        return contactRepo.findByTenantIdOrderByCreatedAtDesc(
+                tenantId,
+                PageRequest.of(boundedPage, boundedSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+    }
+
     public List<ContactMessage> getUnreadMessages() {
         Long tenantId = TenantContext.requireTenantId();
         return contactRepo.findByTenantIdAndStatusOrderByCreatedAtDesc(tenantId, ContactMessage.Status.NEW);
+    }
+
+    public List<ContactMessage> getUnreadMessages(int page, int size) {
+        Long tenantId = TenantContext.requireTenantId();
+        int boundedSize = Math.max(1, Math.min(size, 100));
+        int boundedPage = Math.max(page, 0);
+        return contactRepo.findByTenantIdAndStatusOrderByCreatedAtDesc(
+                tenantId,
+                ContactMessage.Status.NEW,
+                PageRequest.of(boundedPage, boundedSize, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 
     @Transactional

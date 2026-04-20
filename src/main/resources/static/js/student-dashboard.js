@@ -45,6 +45,8 @@ function toggleSidebar() {
 
 // Set user info
 document.getElementById("userName").textContent = user.name || "Student";
+document.getElementById("sidebarStudentName").textContent =
+  user.name || "Student";
 document.getElementById("userAvatar").textContent = (user.name ||
   "S")[0].toUpperCase();
 document.getElementById("bigAvatar").textContent = (user.name ||
@@ -61,6 +63,8 @@ document.getElementById("dateDisplay").textContent =
 
 let allCourses = [];
 let myEnrollments = [];
+let myProgress = [];
+let notifications = [];
 const titles = {
   overview: "Overview",
   myCourses: "My Courses",
@@ -77,6 +81,113 @@ function showToast(msg, type = "success") {
   setTimeout(() => {
     t.classList.remove("show");
   }, 3000);
+}
+
+function formatRelativeTime(dateValue) {
+  if (!dateValue) return "just now";
+  const then = new Date(dateValue).getTime();
+  const now = Date.now();
+  const diffSec = Math.max(0, Math.floor((now - then) / 1000));
+
+  if (diffSec < 60) return "just now";
+  const min = Math.floor(diffSec / 60);
+  if (min < 60) return `${min} minute${min === 1 ? "" : "s"} ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hour${hr === 1 ? "" : "s"} ago`;
+  const day = Math.floor(hr / 24);
+  return `${day} day${day === 1 ? "" : "s"} ago`;
+}
+
+function notificationIconFor(type) {
+  const normalized = (type || "").toUpperCase();
+  if (normalized.includes("PAYMENT")) return "💳";
+  if (normalized.includes("ATTEND")) return "✅";
+  if (normalized.includes("ASSIGN")) return "📝";
+  if (normalized.includes("ENROLL")) return "🎓";
+  return "🔔";
+}
+
+function updateNotificationsBadge() {
+  const badge = document.getElementById("notificationsBadge");
+  const unread = notifications.filter((n) => !n.read).length;
+  if (unread > 0) {
+    badge.textContent = unread > 99 ? "99+" : String(unread);
+    badge.classList.add("show");
+  } else {
+    badge.classList.remove("show");
+  }
+}
+
+function renderNotifications() {
+  const list = document.getElementById("notificationsList");
+  if (!notifications.length) {
+    list.innerHTML =
+      '<div class="notifications-empty">No notifications yet.</div>';
+    updateNotificationsBadge();
+    return;
+  }
+
+  list.innerHTML = notifications
+    .map(
+      (n) => `
+      <article class="notification-item" data-id="${n.id}">
+        <span class="notification-icon">${notificationIconFor(n.type)}</span>
+        <div>
+          <p class="notification-message">${esc(n.message || "Notification")}</p>
+          <div class="notification-time">${formatRelativeTime(n.createdAt)}</div>
+        </div>
+      </article>
+    `,
+    )
+    .join("");
+
+  list.querySelectorAll(".notification-item").forEach((el) => {
+    el.addEventListener("click", async () => {
+      const notificationId = Number(el.getAttribute("data-id"));
+      await markNotificationRead(notificationId);
+    });
+  });
+
+  updateNotificationsBadge();
+}
+
+async function fetchNotifications() {
+  try {
+    const result = await API.getMyNotifications();
+    notifications = Array.isArray(result) ? result : [];
+    renderNotifications();
+  } catch (e) {
+    const list = document.getElementById("notificationsList");
+    list.innerHTML =
+      '<div class="notifications-empty">Failed to load notifications.</div>';
+  }
+}
+
+async function markNotificationRead(notificationId) {
+  if (!notificationId) return;
+
+  try {
+    await API.markNotificationRead(notificationId);
+    notifications = notifications.map((n) =>
+      n.id === notificationId ? { ...n, read: true } : n,
+    );
+    updateNotificationsBadge();
+    await fetchNotifications();
+  } catch (e) {
+    showToast("Failed to mark notification as read", "error");
+  }
+}
+
+function openNotificationsPanel() {
+  const panel = document.getElementById("notificationsPanel");
+  panel.classList.add("open");
+  panel.setAttribute("aria-hidden", "false");
+}
+
+function closeNotificationsPanel() {
+  const panel = document.getElementById("notificationsPanel");
+  panel.classList.remove("open");
+  panel.setAttribute("aria-hidden", "true");
 }
 
 function showSection(name) {
@@ -146,6 +257,46 @@ function renderMyCourses() {
     .map((e) => {
       const c = e.course || {};
       return courseCard(c, true);
+    })
+    .join("");
+
+  renderMyProgress();
+}
+
+function renderMyProgress() {
+  const progressGrid = document.getElementById("myProgressGrid");
+  if (!progressGrid) return;
+
+  if (!myProgress.length) {
+    progressGrid.innerHTML =
+      '<div class="empty-state"><div class="icon">Info</div><p>No progress data available yet.</p></div>';
+    return;
+  }
+
+  progressGrid.innerHTML = myProgress
+    .map((p) => {
+      const attendance = Number(p.attendancePercent || 0);
+      const submitted = Number(p.assignmentsSubmitted || 0);
+      const totalAssignments = Number(p.assignmentsTotal || 0);
+      const averageScore =
+        p.averageScore === null || p.averageScore === undefined
+          ? "N/A"
+          : `${Math.round(Number(p.averageScore))}%`;
+
+      return `
+        <article class="progress-card">
+          <h4>${esc(p.courseName || "Course")}</h4>
+          <div class="progress-row">
+            ${attendance.toFixed(0)}% attendance
+            <div class="progress-track">
+              <div class="progress-fill" style="width:${Math.max(0, Math.min(100, attendance))}%;"></div>
+            </div>
+          </div>
+          <div class="progress-row">
+            ${submitted}/${totalAssignments} submitted, avg ${averageScore}
+          </div>
+        </article>
+      `;
     })
     .join("");
 }
@@ -271,14 +422,16 @@ async function loadStudentPayments() {
 async function loadData() {
   try {
     const hdr = {};
-    const [courses, enrollments] = await Promise.all([
+    const [courses, enrollments, progress] = await Promise.all([
       fetch("/api/courses").then((r) => r.json()),
       fetch("/api/enrollments/my-courses", { headers: hdr }).then((r) =>
         r.json(),
       ),
+      API.getMyProgress().catch(() => []),
     ]);
     allCourses = Array.isArray(courses) ? courses : [];
     myEnrollments = Array.isArray(enrollments) ? enrollments : [];
+    myProgress = Array.isArray(progress) ? progress : [];
 
     // Stats
     document.getElementById("enrolledCount").textContent = myEnrollments.length;
@@ -301,9 +454,30 @@ async function loadData() {
         .map((e) => courseCard(e.course || {}, true))
         .join("");
     }
+
+    renderMyProgress();
   } catch (e) {
     console.error("Load error:", e);
   }
 }
 
+document
+  .getElementById("notificationsBell")
+  .addEventListener("click", async () => {
+    openNotificationsPanel();
+    await fetchNotifications();
+  });
+
+document
+  .getElementById("notificationsClose")
+  .addEventListener("click", closeNotificationsPanel);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeNotificationsPanel();
+  }
+});
+
 loadData();
+fetchNotifications();
+setInterval(fetchNotifications, 60000);

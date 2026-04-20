@@ -260,10 +260,19 @@ docker compose -f docker-compose.monitoring.yml up -d
 ## 🎯 Remaining Production Gaps (for future work)
 
 1. **Multi-Tenant Isolation** (High Priority)
-   - Status: PARTIALLY RESOLVED in continuation (Mar 8, 2026)
+    - Status: PARTIALLY RESOLVED in continuation (Mar 8, 2026) and expanded (Mar 27, 2026)
    - Dashboard analytics now tenant-scoped (`AnalyticsService` uses `countByTenantId*` instead of global counts)
    - ContactMessage, DemoBooking, TeacherApplication, Blog metrics no longer leak cross-tenant totals
-   - Follow-up: run targeted integration tests to verify tenant isolation for all admin endpoints
+    - ✅ Added endpoint-level isolation integration tests:
+       - `AnalyticsTenantIsolationIntegrationTest` verifies `/api/admin/analytics/dashboard` returns tenant-scoped counts and rejects token/header tenant mismatch (403)
+       - `CrmLeadTenantIsolationIntegrationTest` verifies `/api/admin/leads` and `/api/admin/leads/stats` are tenant-scoped and reject cross-tenant token/header mismatch (403)
+    - ✅ Added shared test helper to reduce duplication across integration tests:
+       - `src/test/java/com/shrishailacademy/integration/support/TenantAdminTestHelper.java`
+       - Provides reusable tenant creation, admin provisioning, login cookie retrieval, and contact seeding methods
+    - Remaining endpoint coverage to add (targeted isolation tests):
+       - `/api/contact`, `/api/contact/unread`, `/api/contact/stats`, `/api/contact/{id}/status`
+       - `/api/users` and any role-restricted admin management APIs
+       - Additional admin/statistics endpoints introduced outside `/api/admin/*`
 
 2. **Performance Optimization**
    - Load test shows p95 latency at 500ms (target: <200ms)
@@ -295,3 +304,25 @@ docker compose -f docker-compose.monitoring.yml up -d
 **Production Readiness: 78% → 85%**
 
 The application is now much closer to production-ready with enterprise-grade monitoring, alerting, and observability capabilities. The monitoring setup alone saves ~$200-300/month vs AWS CloudWatch custom metrics.
+
+---
+
+## 🔄 Continuation Update - March 27, 2026
+
+### Completed in this continuation
+
+1. Added endpoint-level tenant isolation test for admin analytics endpoint
+2. Added endpoint-level tenant isolation tests for admin CRM leads endpoints (`/api/admin/leads`, `/api/admin/leads/stats`)
+3. Introduced reusable integration test helper for tenant-admin setup and auth cookie generation
+4. Refactored analytics integration test to use shared helper
+
+### Verification
+
+```bash
+mvn "-Dtest=AnalyticsTenantIsolationIntegrationTest,CrmLeadTenantIsolationIntegrationTest" test
+# Result: BUILD SUCCESS (2 tests run, 0 failures)
+```
+
+### Current focus
+
+Continue expanding tenant isolation integration coverage for remaining admin/role-restricted endpoints listed above.

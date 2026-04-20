@@ -66,8 +66,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
     private boolean isCsrfExempt(String path) {
         return path.equals("/api/auth/login")
                 || path.equals("/api/auth/register")
-                || path.equals("/api/auth/refresh")
-                || path.equals("/api/auth/logout");
+                || path.equals("/api/auth/refresh");
     }
 
     private String getCookieValue(HttpServletRequest request, String cookieName) {

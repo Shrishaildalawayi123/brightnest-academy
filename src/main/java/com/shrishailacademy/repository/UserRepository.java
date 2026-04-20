@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -59,6 +61,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRoleInAndTenantId(Collection<User.Role> roles, Long tenantId);
 
     List<User> findAllByTenantId(Long tenantId);
+
+    Page<User> findAllByTenantId(Long tenantId, Pageable pageable);
 
     long countByTenantId(Long tenantId);
 

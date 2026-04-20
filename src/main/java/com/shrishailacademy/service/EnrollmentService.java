@@ -1,5 +1,6 @@
 package com.shrishailacademy.service;
 
+import com.shrishailacademy.dto.response.StudentProgressDto;
 import com.shrishailacademy.exception.AccessDeniedException;
 import com.shrishailacademy.exception.BusinessException;
 import com.shrishailacademy.exception.DuplicateResourceException;
@@ -60,7 +61,7 @@ public class EnrollmentService {
         enrollment.setTenant(tenantService.requireCurrentTenant());
         enrollment.setUser(user);
         enrollment.setCourse(course);
-        enrollment.setStatus(Enrollment.Status.ACTIVE);
+        enrollment.setStatus(Enrollment.Status.PENDING);
 
         Enrollment saved = enrollmentRepository.save(enrollment);
         log.info("ENROLLMENT_CREATED: user={} course='{}'", user.getEmail(), course.getTitle());
@@ -77,6 +78,11 @@ public class EnrollmentService {
     public List<Enrollment> getStudentEnrollments(Long userId) {
         Long tenantId = TenantContext.requireTenantId();
         return enrollmentRepository.findByUserIdAndTenantIdWithDetails(userId, tenantId);
+    }
+
+    public List<StudentProgressDto> getStudentProgress(Long userId) {
+        Long tenantId = TenantContext.requireTenantId();
+        return enrollmentRepository.findStudentProgressByUserIdAndTenantId(userId, tenantId);
     }
 
     public List<Enrollment> getAllEnrollments() {

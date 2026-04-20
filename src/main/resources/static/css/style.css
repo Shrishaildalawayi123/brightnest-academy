@@ -961,13 +961,12 @@ textarea:focus-visible,
 
 .feature-description {
   color: var(--navy-500);
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 [data-theme="dark"] .feature-description {
   color: var(--dark-text-secondary);
-}
-  font-size: 0.95rem;
-  line-height: 1.6;
 }
 
 /* ========== Grid System ========== */
@@ -3307,6 +3306,188 @@ textarea:focus-visible,
   color: var(--navy-500);
 }
 
+/* ========== Homepage Program Finder & Decision Blocks ========== */
+.quick-path-section {
+  background: linear-gradient(180deg, #fff8f2 0%, #fff 100%);
+}
+
+.quick-path-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: stretch;
+  background: #fff;
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.quick-path-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.quick-path-field label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy-700);
+}
+
+.quick-path-field select {
+  width: 100%;
+  min-height: 52px;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid var(--navy-200);
+  border-radius: var(--border-radius-sm);
+  background: #fff;
+  color: var(--navy-800);
+  font-family: var(--font-primary);
+  font-size: 0.96rem;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.quick-path-field select:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.quick-path-result {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: var(--border-radius);
+  padding: clamp(1.1rem, 2vw, 1.6rem);
+  background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);
+  color: white;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.quick-path-result h3 {
+  color: white;
+  margin-bottom: 0.75rem;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+}
+
+.quick-path-result p {
+  color: rgba(255, 255, 255, 0.86);
+  margin-bottom: 1rem;
+}
+
+.quick-path-result__eyebrow {
+  margin-bottom: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fdba74;
+}
+
+.quick-path-result__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.quick-path-result__list li {
+  padding-left: 1rem;
+  position: relative;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.quick-path-result__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: #fdba74;
+}
+
+.quick-path-result__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quick-path-result .btn-outline {
+  border-color: rgba(255, 255, 255, 0.34);
+  color: white;
+}
+
+.quick-path-result .btn-outline:hover {
+  background: white;
+  color: var(--navy-900);
+  border-color: white;
+}
+
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xl);
+}
+
+.decision-card {
+  background: white;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.decision-card h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.15rem;
+}
+
+.decision-card p {
+  margin: 0;
+  color: var(--navy-600);
+}
+
+.decision-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
+  margin-bottom: 1rem;
+  background: var(--primary-50);
+  font-size: 1.45rem;
+}
+
+[data-theme="dark"] .quick-path-card,
+[data-theme="dark"] .decision-card {
+  background: var(--dark-bg-secondary);
+  border-color: var(--dark-border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+[data-theme="dark"] .quick-path-field label,
+[data-theme="dark"] .decision-card p {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .quick-path-field select {
+  background: #0b1220;
+  color: var(--dark-text-primary);
+  border-color: var(--dark-border-light);
+}
+
+[data-theme="dark"] .decision-card h3 {
+  color: var(--dark-text-primary);
+}
+
 /* ========== Homepage Location Card ========== */
 .location-quick {
   background: linear-gradient(180deg, #f8fbff 0%, #f1f5ff 100%);
@@ -3439,8 +3620,18 @@ textarea:focus-visible,
 }
 
 @media (max-width: 900px) {
+  .quick-path-card,
+  .decision-grid,
   .location-quick__card {
     grid-template-columns: 1fr;
+  }
+
+  .quick-path-result__actions {
+    flex-direction: column;
+  }
+
+  .quick-path-result__actions .btn {
+    width: 100%;
   }
 
   .location-quick__mini-map,

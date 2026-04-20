@@ -28,8 +28,13 @@ public interface SessionAttendanceRepository extends JpaRepository<SessionAttend
     /**
      * Find specific attendance record
      */
-    @Query("SELECT sa FROM SessionAttendance sa WHERE sa.session.id = :sessionId AND sa.student.id = :studentId")
-    Optional<SessionAttendance> findBySessionIdAndStudentId(@Param("sessionId") Long sessionId, @Param("studentId") Long studentId);
+        @Query("SELECT sa FROM SessionAttendance sa WHERE sa.session.id = :sessionId AND sa.student.id = :studentId AND sa.tenantId = :tenantId")
+        Optional<SessionAttendance> findBySessionIdAndStudentIdAndTenantId(
+            @Param("sessionId") Long sessionId,
+            @Param("studentId") Long studentId,
+            @Param("tenantId") Long tenantId);
+
+        Optional<SessionAttendance> findByIdAndTenantId(Long id, Long tenantId);
     
     /**
      * Count present students for a session

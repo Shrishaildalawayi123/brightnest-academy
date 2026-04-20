@@ -108,10 +108,16 @@ const API = {
 
       if (!response.ok) {
         let errMsg = "Request failed";
+        const requestId =
+          response.headers.get("X-Request-ID") ||
+          response.headers.get("X-Request-Id");
         try {
           const errBody = await response.json();
           errMsg = errBody.message || errBody.error || errMsg;
         } catch (_) {}
+        if (requestId) {
+          errMsg = `${errMsg} Reference: ${requestId}`;
+        }
         throw new Error(errMsg);
       }
       // Handle empty responses (e.g. DELETE)
@@ -206,6 +212,12 @@ const API = {
       headers: this.getHeaders(true),
     });
   },
+  async getMyProgress() {
+    return this.request("/enrollments/my-progress", {
+      method: "GET",
+      headers: this.getHeaders(true),
+    });
+  },
   async getAllEnrollments() {
     return this.request("/enrollments", {
       method: "GET",
@@ -216,6 +228,20 @@ const API = {
     return this.request(`/enrollments/${enrollmentId}`, {
       method: "DELETE",
       headers: this.getHeaders(true),
+    });
+  },
+
+  // ===== NOTIFICATIONS =====
+  async getMyNotifications() {
+    return this.request("/notifications/my", {
+      method: "GET",
+      headers: this.getHeaders(true, false),
+    });
+  },
+  async markNotificationRead(notificationId) {
+    return this.request(`/notifications/${notificationId}/read`, {
+      method: "PATCH",
+      headers: this.getHeaders(true, false),
     });
   },
 

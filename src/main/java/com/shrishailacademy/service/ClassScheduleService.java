@@ -2,9 +2,14 @@ package com.shrishailacademy.service;
 
 import com.shrishailacademy.model.ClassSchedule;
 import com.shrishailacademy.model.ClassSession;
+import com.shrishailacademy.model.Course;
+import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.ClassScheduleRepository;
 import com.shrishailacademy.repository.ClassSessionRepository;
+import com.shrishailacademy.repository.CourseRepository;
+import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,6 +26,8 @@ public class ClassScheduleService {
     
     private final ClassScheduleRepository scheduleRepository;
     private final ClassSessionRepository sessionRepository;
+    private final CourseRepository courseRepository;
+    private final UserRepository userRepository;
     
     /**
      * Create a new class schedule with conflict detection
@@ -37,6 +44,7 @@ public class ClassScheduleService {
         
         // Check for conflicts with existing schedules
         List<ClassSchedule> conflicts = scheduleRepository.findConflictingSchedules(
+            tenantId,
             schedule.getTeacher().getId(),
             schedule.getDayOfWeek(),
             schedule.getStartTime(),
@@ -71,15 +79,88 @@ public class ClassScheduleService {
      * Get schedules for a specific course
      */
     public List<ClassSchedule> getSchedulesByCourse(Long courseId) {
-        return scheduleRepository.findByCourseIdOrderByDayOfWeekAsc(courseId);
+        Long tenantId = TenantContext.requireTenantId();
+        return scheduleRepository.findByTenantIdAndCourseIdOrderByDayOfWeekAsc(tenantId, courseId);
     }
     
     /**
      * Get schedules for a specific teacher
      */
     public List<ClassSchedule> getSchedulesByTeacher(Long teacherId) {
-        return scheduleRepository.findByTeacherIdOrderByDayOfWeekAsc(teacherId);
+        Long tenantId = TenantContext.requireTenantId();
+        return scheduleRepository.findByTenantIdAndTeacherIdOrderByDayOfWeekAsc(tenantId, teacherId);
     }
+
+        public ClassSchedule getScheduleById(Long id) {
+        Long tenantId = TenantContext.requireTenantId();
+        return scheduleRepository.findByIdAndTenantId(id, tenantId)
+            .orElseThrow(() -> new ResourceNotFoundException("ClassSchedule", "id", id));
+        }
+
+        public ClassSchedule createSchedule(Long courseId,
+            Long teacherId,
+            java.time.DayOfWeek dayOfWeek,
+            java.time.LocalTime startTime,
+            java.time.LocalTime endTime,
+            String roomNumber,
+            Integer maxStudents,
+            Boolean isActive) {
+        Long tenantId = TenantContext.requireTenantId();
+        Course course = courseRepository.findByIdAndTenantId(courseId, tenantId)
+            .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
+        User teacher = userRepository.findByIdAndTenantId(teacherId, tenantId)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", teacherId));
+
+        ClassSchedule schedule = ClassSchedule.builder()
+            .tenantId(tenantId)
+            .course(course)
+            .teacher(teacher)
+            .dayOfWeek(dayOfWeek)
+            .startTime(startTime)
+            .endTime(endTime)
+            .roomNumber(roomNumber)
+            .maxStudents(maxStudents)
+            .isActive(Boolean.TRUE.equals(isActive) || isActive == null)
+            .build();
+
+        return createSchedule(schedule);
+        }
+
+        public ClassSchedule updateSchedule(Long id,
+            Long courseId,
+            Long teacherId,
+            java.time.DayOfWeek dayOfWeek,
+            java.time.LocalTime startTime,
+            java.time.LocalTime endTime,
+            String roomNumber,
+            Integer maxStudents,
+            Boolean isActive) {
+        Long tenantId = TenantContext.requireTenantId();
+        Course course = courseRepository.findByIdAndTenantId(courseId, tenantId)
+            .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
+        User teacher = userRepository.findByIdAndTenantId(teacherId, tenantId)
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", teacherId));
+
+        ClassSchedule updates = ClassSchedule.builder()
+            .tenantId(tenantId)
+            .course(course)
+            .teacher(teacher)
+            .dayOfWeek(dayOfWeek)
+            .startTime(startTime)
+            .endTime(endTime)
+            .roomNumber(roomNumber)
+            .maxStudents(maxStudents)
+            .isActive(Boolean.TRUE.equals(isActive) || isActive == null)
+            .build();
+
+        return updateSchedule(id, updates);
+        }
+
+        @Transactional
+        public void generateSessionsForScheduleId(Long scheduleId, int weeksAhead) {
+        ClassSchedule schedule = getScheduleById(scheduleId);
+        generateSessionsForSchedule(schedule, weeksAhead);
+        }
     
     /**
      * Update an existing schedule
@@ -92,6 +173,8 @@ public class ClassScheduleService {
             .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
         
         // Update fields
+        existing.setCourse(updates.getCourse());
+        existing.setTeacher(updates.getTeacher());
         existing.setDayOfWeek(updates.getDayOfWeek());
         existing.setStartTime(updates.getStartTime());
         existing.setEndTime(updates.getEndTime());
@@ -152,9 +235,7 @@ public class ClassScheduleService {
     public void autoGenerateWeeklySchedule() {
         log.info("Running auto-generation of weekly class sessions");
         
-        List<ClassSchedule> activeSchedules = scheduleRepository.findAll().stream()
-            .filter(ClassSchedule::getIsActive)
-            .toList();
+        List<ClassSchedule> activeSchedules = scheduleRepository.findByIsActiveTrueOrderByTenantIdAscDayOfWeekAsc();
         
         for (ClassSchedule schedule : activeSchedules) {
             try {

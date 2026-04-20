@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import jakarta.servlet.http.HttpServletResponse;
@@ -133,8 +134,8 @@ public class SecurityConfig {
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(
                                 Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With",
-                                                "X-CSRF-Token", "X-Request-Id", "X-Tenant-ID"));
-                configuration.setExposedHeaders(List.of("X-Request-Id"));
+                                                "X-CSRF-Token", "X-Request-ID", "X-Request-Id", "X-Tenant-ID"));
+                configuration.setExposedHeaders(List.of("X-Request-ID", "X-Request-Id"));
                 configuration.setAllowCredentials(true);
                 configuration.setMaxAge(3600L);
 
@@ -170,8 +171,8 @@ public class SecurityConfig {
                                                 .frameOptions(frame -> frame.deny())
                                                 .referrerPolicy(referrer -> referrer
                                                                 .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
-                                                .permissionsPolicy(permissions -> permissions
-                                                                .policy("camera=(), microphone=(), geolocation=(), payment=(self)")))
+                                                .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy",
+                                                                "camera=(), microphone=(), geolocation=(), payment=(self)")))
                                 .requiresChannel(channel -> {
                                         if (httpsRequired) {
                                                 channel.requestMatchers(request -> {
@@ -204,6 +205,11 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .requestMatchers("/student-dashboard.html")
                                                 .hasAnyRole("STUDENT", "TEACHER", "ADMIN")
+                                                .requestMatchers("/teacher-dashboard.html",
+                                                                "/manage-schedules.html",
+                                                                "/manage-sessions.html",
+                                                                "/manage-assignments.html")
+                                                .hasAnyRole("TEACHER", "ADMIN")
                                                 .requestMatchers("/admin-dashboard.html").hasAnyRole("TEACHER", "ADMIN")
                                                 .requestMatchers("/health", "/actuator/health", "/actuator/info")
                                                 .permitAll()

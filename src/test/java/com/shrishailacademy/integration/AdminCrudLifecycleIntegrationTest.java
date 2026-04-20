@@ -250,7 +250,7 @@ class AdminCrudLifecycleIntegrationTest {
         void adminShouldListAllUsers() throws Exception {
                 mockMvc.perform(withAdmin(get("/api/users")))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$").isArray());
+                                .andExpect(jsonPath("$.content").isArray());
         }
 
         @Test

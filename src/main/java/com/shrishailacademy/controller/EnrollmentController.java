@@ -2,6 +2,7 @@ package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ApiResponse;
 import com.shrishailacademy.dto.response.EnrollmentResponse;
+import com.shrishailacademy.dto.response.StudentProgressDto;
 import com.shrishailacademy.model.Enrollment;
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.service.EnrollmentService;
@@ -46,6 +47,13 @@ public class EnrollmentController {
                 .map(EnrollmentResponse::fromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(enrollments);
+    }
+
+    @GetMapping("/my-progress")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<StudentProgressDto>> getMyProgress(Authentication authentication) {
+        User user = userService.getUserByEmail(authentication.getName());
+        return ResponseEntity.ok(enrollmentService.getStudentProgress(user.getId()));
     }
 
     @GetMapping

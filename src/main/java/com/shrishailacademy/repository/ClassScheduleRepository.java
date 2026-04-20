@@ -22,12 +22,17 @@ public interface ClassScheduleRepository  extends JpaRepository<ClassSchedule, L
     /**
      * Find all schedules for a specific course
      */
-    List<ClassSchedule> findByCourseIdOrderByDayOfWeekAsc(Long courseId);
+    List<ClassSchedule> findByTenantIdAndCourseIdOrderByDayOfWeekAsc(Long tenantId, Long courseId);
     
     /**
      * Find all schedules for a specific teacher
      */
-    List<ClassSchedule> findByTeacherIdOrderByDayOfWeekAsc(Long teacherId);
+    List<ClassSchedule> findByTenantIdAndTeacherIdOrderByDayOfWeekAsc(Long tenantId, Long teacherId);
+
+    /**
+     * Find all active schedules across all tenants.
+     */
+    List<ClassSchedule> findByIsActiveTrueOrderByTenantIdAscDayOfWeekAsc();
     
     /**
      * Find schedule by ID and tenant (for security)
@@ -43,12 +48,14 @@ public interface ClassScheduleRepository  extends JpaRepository<ClassSchedule, L
      * Find conflicting schedules (same teacher, same day, overlapping time)
      */
     @Query("SELECT cs FROM ClassSchedule cs WHERE " +
+           "cs.tenantId = :tenantId AND " +
            "cs.teacher.id = :teacherId AND " +
            "cs.dayOfWeek = :dayOfWeek AND " +
            "cs.isActive = true AND " +
            "((cs.startTime < :endTime AND cs.endTime > :startTime) OR " +
            "(cs.startTime >= :startTime AND cs.startTime < :endTime))")
     List<ClassSchedule> findConflictingSchedules(
+        @Param("tenantId") Long tenantId,
         @Param("teacherId") Long teacherId,
         @Param("dayOfWeek") DayOfWeek dayOfWeek,
         @Param("startTime") LocalTime startTime,

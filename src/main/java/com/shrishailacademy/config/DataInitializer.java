@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 /**
  * DataInitializer - Runs at startup to ensure default admin and courses exist.
@@ -23,18 +24,25 @@ import java.math.BigDecimal;
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
-    private static final String DEFAULT_TEACHER_PASSWORD = "Teacher@123!";
 
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final PasswordEncoder passwordEncoder;
     private final TenantService tenantService;
 
+    private String generatedTeacherPassword;
+
     @Value("${admin.email:}")
     private String adminEmail;
 
     @Value("${admin.password:}")
     private String adminPassword;
+
+    @Value("${bootstrap.seed.catalog:false}")
+    private boolean seedCatalog;
+
+    @Value("${bootstrap.teacher.default-password:}")
+    private String teacherBootstrapPassword;
 
     public DataInitializer(UserRepository userRepository,
             CourseRepository courseRepository,
@@ -64,9 +72,9 @@ public class DataInitializer implements CommandLineRunner {
                 userRepository.save(admin);
                 log.info("Default admin created: {}", adminEmail);
             } else {
-                // Always sync the admin password with configured value
+                // Sync only when password differs so we do not overwrite runtime changes.
                 User admin = userRepository.findByEmailAndTenantId(adminEmail, tenantId).orElse(null);
-                if (admin != null) {
+                if (admin != null && !passwordEncoder.matches(adminPassword, admin.getPassword())) {
                     admin.setPassword(passwordEncoder.encode(adminPassword));
                     userRepository.save(admin);
                     log.info("Admin password synced to configured value: {}", adminEmail);
@@ -76,17 +84,20 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Admin bootstrap skipped: set ADMIN_EMAIL and ADMIN_PASSWORD to create/sync admin user.");
         }
 
-        User bharati = ensureTeacher(defaultTenant, "Bharati R Satappagol", "bharati@brightnest-academy.com",
-                "6363464005");
-        User chetana = ensureTeacher(defaultTenant, "Chetana", "chetana@brightnest-academy.com", "9000000001");
-        User mahadev = ensureTeacher(defaultTenant, "Mahadev S", "mahadev@brightnest-academy.com", "9000000002");
-        User pooja = ensureTeacher(defaultTenant, "Pooja", "pooja@brightnest-academy.com", "9000000003");
-        User nagesh = ensureTeacher(defaultTenant, "Nagesh Kumar M U", "nagesh@brightnest-academy.com",
-                "9000000004");
-        User preeti = ensureTeacher(defaultTenant, "Preeti R S", "preeti@brightnest-academy.com", "9000000005");
-        User prema = ensureTeacher(defaultTenant, "Prema G", "prema@brightnest-academy.com", "9000000006");
-        User shrishail = ensureTeacher(defaultTenant, "Mr. Shrishail Dalawayi",
-                "shrishail@brightnest-academy.com", "9000000007");
+        if (!seedCatalog) {
+            log.info("Catalog seeding disabled (bootstrap.seed.catalog=false). Skipping teacher/course bootstrap.");
+            return;
+        }
+
+        User bharati = ensureTeacher(defaultTenant, "Bharati R Satappagol", "bharati@brightnest-academy.com", null);
+        User chetana = ensureTeacher(defaultTenant, "Chetana", "chetana@brightnest-academy.com", null);
+        User mahadev = ensureTeacher(defaultTenant, "Mahadev S", "mahadev@brightnest-academy.com", null);
+        User pooja = ensureTeacher(defaultTenant, "Pooja", "pooja@brightnest-academy.com", null);
+        User nagesh = ensureTeacher(defaultTenant, "Nagesh Kumar M U", "nagesh@brightnest-academy.com", null);
+        User preeti = ensureTeacher(defaultTenant, "Preeti R S", "preeti@brightnest-academy.com", null);
+        User prema = ensureTeacher(defaultTenant, "Prema G", "prema@brightnest-academy.com", null);
+        User shrishail = ensureTeacher(defaultTenant, "Mr. Shrishail Dalawayi", "shrishail@brightnest-academy.com",
+            null);
 
         ensureCourse(defaultTenant, "Mathematics", "maths",
                 "Master mathematical concepts from basics to advanced levels. Our structured curriculum covers algebra, geometry, calculus, and more with practical problem-solving techniques.",
@@ -141,11 +152,22 @@ public class DataInitializer implements CommandLineRunner {
                     teacher.setTenant(tenant);
                     teacher.setName(name);
                     teacher.setEmail(email);
-                    teacher.setPassword(passwordEncoder.encode(DEFAULT_TEACHER_PASSWORD));
+                    teacher.setPassword(passwordEncoder.encode(resolveTeacherBootstrapPassword()));
                     teacher.setPhone(phone);
                     teacher.setRole(User.Role.TEACHER);
                     return userRepository.save(teacher);
                 });
+    }
+
+    private String resolveTeacherBootstrapPassword() {
+        if (teacherBootstrapPassword != null && !teacherBootstrapPassword.isBlank()) {
+            return teacherBootstrapPassword;
+        }
+        if (generatedTeacherPassword == null) {
+            generatedTeacherPassword = "Tmp!" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+            log.warn("bootstrap.teacher.default-password is not set. Generated one-time random password for seeded teachers.");
+        }
+        return generatedTeacherPassword;
     }
 
     private void ensureCourse(Tenant tenant, String title, String subjectKey, String description, String duration,

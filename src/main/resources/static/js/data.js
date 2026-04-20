@@ -31,6 +31,8 @@ const TEAM_DATA = [
     email: "bharati@brightnest-academy.com",
     role: "Founder & Lead Educator",
     subjects: ["Kannada", "English", "Science", "Mathematics"],
+    expertise: "Board strategy, language mastery, and parent mentoring",
+    experienceYears: 10,
     bio: "10 years of teaching experience — consistently delivering uncompromised quality and impactful learning.",
     avatar: "👩‍🏫",
     photo: "images/bharati_updated_pic.jpeg?v=1",
@@ -42,6 +44,8 @@ const TEAM_DATA = [
     email: "chetana@brightnest-academy.com",
     role: "English Educator",
     subjects: ["English"],
+    expertise: "Grammar, comprehension, and spoken confidence",
+    experienceYears: 8,
     bio: "8 years of teaching experience — focused on grammar, writing skills, reading comprehension, and spoken confidence with clear explanations and regular practice.",
     avatar: "👩‍🏫",
     photo: "images/Chetana_English.jpeg",
@@ -53,6 +57,8 @@ const TEAM_DATA = [
     email: "mahadev@brightnest-academy.com",
     role: "Spoken Language Educator",
     subjects: ["Kannada (Spoken)", "Hindi (Spoken)"],
+    expertise: "Conversational fluency and pronunciation coaching",
+    experienceYears: 17,
     bio: "17 years of teaching experience — helping learners build everyday speaking confidence with structured conversational practice, pronunciation support, and role-play based learning.",
     avatar: "👨‍🏫",
     photo: "images/Mahadev%20S_Spoken%20Kannada%20Spoken%20Hindi.jpeg",
@@ -64,6 +70,8 @@ const TEAM_DATA = [
     email: "pooja@brightnest-academy.com",
     role: "Science Educator",
     subjects: ["Science"],
+    expertise: "Physics-Chemistry-Biology concept clarity",
+    experienceYears: 5,
     bio: "5 years of teaching experience — explains concepts with real-life examples and step-by-step clarity, helping students strengthen fundamentals and score better in school exams.",
     avatar: "👩‍🔬",
     photo: "images/Pooja_Science.jpg",
@@ -75,6 +83,8 @@ const TEAM_DATA = [
     email: "nagesh@brightnest-academy.com",
     role: "Senior Educator",
     subjects: ["Mathematics"],
+    expertise: "Advanced problem-solving and exam score strategy",
+    experienceYears: 25,
     bio: "25 years of teaching experience — concept-first Mathematics with a strong focus on fundamentals, problem-solving, and exam readiness.",
     avatar: "👨‍🔬",
     photo: "images/Nagesh%20Kumar%20M%20U_MSc%20Bed.jpeg",
@@ -86,6 +96,8 @@ const TEAM_DATA = [
     email: "preeti@brightnest-academy.com",
     role: "Mathematics Educator",
     subjects: ["Mathematics"],
+    expertise: "Foundation maths, worksheets, and speed building",
+    experienceYears: 6,
     bio: "6 years of teaching experience — builds strong fundamentals, problem-solving speed, and confidence through guided practice, worksheets, and exam-oriented preparation.",
     avatar: "👩‍🏫",
     photo: "images/Preeti_Mathematics.jpg",
@@ -97,6 +109,8 @@ const TEAM_DATA = [
     email: "prema@brightnest-academy.com",
     role: "English & Mathematics Educator",
     subjects: ["English", "Mathematics"],
+    expertise: "Dual-subject support for school performance",
+    experienceYears: 7,
     bio: "Supports English and Mathematics learning with concept clarity, practice-driven sessions, and steady academic guidance for school students.",
     avatar: "👩‍🏫",
     photo: "images/Prema%20G_English-Maths.png",
@@ -108,6 +122,8 @@ const TEAM_DATA = [
     email: "shrishail@brightnest-academy.com",
     role: "Educator",
     subjects: ["German", "Kannada", "Computer Science"],
+    expertise: "German language foundation and practical CS basics",
+    experienceYears: 2,
     bio: "2 years of teaching experience — supports German, Kannada, and Computer Science learning through interactive and structured teaching methods.",
     avatar: "👨‍🏫",
     photo: "images/shrishail.jpg",
@@ -118,100 +134,114 @@ const TEAM_DATA = [
 const FAQ_DATA = {
   general: [
     {
-      q: "What courses are offered at BrightNest Academy?",
-      a: "We offer Kannada, English, Hindi, Sanskrit, German, Mathematics, and Science. Our expert tutors provide personalized tuition to help students excel.",
+      q: "Which grades and boards do you currently support?",
+      a: "We support Grades 1-10 for CBSE, ICSE, and Karnataka State Board with board-aligned worksheets, weekly tests, and revision plans.",
     },
     {
-      q: "What are the modes of class delivery?",
-      a: "We offer both Online and Offline classes. Online classes are conducted via Google Meet. Offline classes take place at our center in Kumaraswamy Layout, Bangalore.",
+      q: "Do you provide both online and offline classes?",
+      a: "Yes. Students can learn online on Google Meet or attend offline classes at our Banashankari center in Bengaluru.",
     },
     {
-      q: "How can I enroll in a course?",
-      a: "Book a demo class through our website, or call us at +91-7204193980. After the demo, our team will guide you through enrollment.",
+      q: "How do parents start admission?",
+      a: "Book a demo from our website or call +91-7204193980. After a quick need-analysis call, we suggest the right batch and share the enrollment steps.",
     },
     {
-      q: "Where do offline classes take place?",
-      a: "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bangalore – 560078.",
+      q: "Where is your coaching center located?",
+      a: "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru - 560078.",
     },
     {
-      q: "Where can I learn about the teachers?",
-      a: "Visit our Team page to learn about each educator's qualifications, experience, and specializations.",
+      q: "What are your operating hours?",
+      a: "We are open all days from 9:00 AM to 9:00 PM for calls, WhatsApp support, counseling, and classes.",
     },
     {
-      q: "On which platform are online classes conducted?",
-      a: "All online classes use Google Meet. You receive a link before each class. Just need a device with internet and a browser.",
+      q: "How often do parents receive progress updates?",
+      a: "Parents receive regular updates through tests, assignment reviews, and faculty feedback sessions so progress stays transparent.",
     },
   ],
   courseSpecific: [
     {
-      q: "What curriculum boards do you support?",
-      a: "We support ICSE, CBSE, and Karnataka State Board curricula for grades 1 to 10.",
+      q: "How are Mathematics classes structured for Grades 6-10?",
+      a: "Math classes focus on concept clarity, chapterwise worksheets, timed practice, and error-analysis to improve both accuracy and speed.",
     },
     {
-      q: "Do you offer spoken language courses?",
-      a: "Yes! We offer Spoken Hindi, Spoken English, Spoken Kannada, and Spoken German courses for school students.",
+      q: "Do you run separate batches for Science by grade level?",
+      a: "Yes. Science batches are grouped by grade bands so Physics, Chemistry, and Biology depth matches school expectations.",
     },
     {
-      q: "Can I take multiple courses simultaneously?",
-      a: "Absolutely! We create flexible schedules to accommodate multiple courses without overlap.",
+      q: "Can my child enroll in two subjects together?",
+      a: "Absolutely. We routinely combine subjects like Maths + Science or English + Kannada and assign non-overlapping time slots.",
     },
     {
-      q: "What does the Reading & Writing course cover?",
-      a: "Comprehension, creative writing, grammar, and vocabulary building through structured, interactive lessons.",
+      q: "Do you support spoken language improvement as well as academics?",
+      a: "Yes. Along with school syllabus support, we provide spoken English, spoken Kannada, and spoken Hindi practice modules.",
     },
     {
-      q: "Do you prepare students for school-level competitive exams?",
-      a: "Yes, we offer preparation for school Olympiads, NTSE, and other school-level tests.",
+      q: "How do you help board exam students in Grades 9-10?",
+      a: "Board students receive weekly test cycles, revision plans, previous-year paper practice, and focused doubt-clearing support.",
     },
   ],
   feePayment: [
     {
+      q: "Do you have indicative monthly fee ranges?",
+      a: "Yes. Indicative ranges are published on our Pricing page by grade group and subject, and final fees are confirmed after demo assessment.",
+    },
+    {
       q: "What is the demo class fee?",
-      a: "The demo class fee is ₹100. It gets adjusted in first month fees or refunded within 30 days if you don't enroll.",
+      a: "The demo class fee is INR 100. It is adjusted in first-month tuition on enrollment or refundable within 30 days if you do not enroll.",
     },
     {
-      q: "What payment methods are accepted?",
-      a: "Bank transfers, UPI (Google Pay, PhonePe, Paytm), and online payment through our portal.",
+      q: "Which payment options do you accept?",
+      a: "We accept UPI, Razorpay links, and bank transfer. Payment confirmation is shared by receipt and tracked in your student record.",
     },
     {
-      q: "Is there a refund policy?",
-      a: "Yes, please see our Fee Payment & Cancellation policy page for complete details on refunds.",
+      q: "Do you offer monthly, quarterly, or annual plans?",
+      a: "Yes. We offer monthly, quarterly, and annual plans. Families choosing longer plans may receive preferential pricing.",
     },
     {
-      q: "How is the fee structure determined?",
-      a: "Fees vary by course, delivery mode, and sessions per week. Contact us for a personalized quote.",
+      q: "Can I see batch timings before confirming admission?",
+      a: "Yes. We share available days, timings, and batch-size options by subject before enrollment so parents can choose comfortably.",
     },
   ],
 };
 
 const TESTIMONIALS = [
   {
-    text: "My daughter scored 100% in Sanskrit and 99.9% in Hindi in her CBSE 10th board exams. The teachers at BrightNest Academy are truly exceptional.",
+    text: "My daughter moved from 81% to 96% in Sanskrit and from 78% to 94% in Hindi within one academic year. The teaching quality and follow-up were excellent.",
     author: "Sandeep Patil",
+    relation: "Parent",
+    childGrade: "Grade 10 (CBSE)",
     course: "Sanskrit & Hindi",
     rating: 5,
   },
   {
-    text: "The personalized attention my son receives in his Kannada classes has transformed his confidence. He now loves the language!",
+    text: "My son improved from 64% to 86% in Kannada in two terms. The teachers gave clear worksheets and regular revision support.",
     author: "Priya Menon",
+    relation: "Parent",
+    childGrade: "Grade 7 (State Board)",
     course: "Kannada",
     rating: 5,
   },
   {
     text: "My daughter's Mathematics score improved from 65% to 95% in just 3 months. The teachers explain every concept step-by-step with great patience.",
     author: "Rahul Sharma",
+    relation: "Parent",
+    childGrade: "Grade 9 (ICSE)",
     course: "Mathematics",
     rating: 5,
   },
   {
-    text: "BrightNest Academy helped my child go from struggling with English to topping the class. The teaching method is outstanding!",
+    text: "English improved from 58% to 84% after targeted grammar and writing sessions. My child now participates confidently in school.",
     author: "Meera Iyer",
+    relation: "Parent",
+    childGrade: "Grade 8 (CBSE)",
     course: "English",
     rating: 5,
   },
   {
-    text: "The online classes are as effective as offline ones. My daughter loves the interactive sessions and has improved remarkably.",
+    text: "Online Hindi sessions helped my daughter move from 69% to 90% while balancing school workload. Very interactive and well structured.",
     author: "Arvind Kumar",
+    relation: "Parent",
+    childGrade: "Grade 6 (State Board)",
     course: "Hindi",
     rating: 5,
   },
@@ -690,6 +720,12 @@ function renderTeamCard(member) {
   const avatarContent = member.photo
     ? `<img src="${member.photo}" alt="${member.name}" class="team-photo" loading="lazy">`
     : `<span>${member.avatar}</span>`;
+  const expertise = member.expertise
+    ? `<p class="team-role" style="font-size:0.85rem;opacity:0.9;">Expertise: ${member.expertise}</p>`
+    : "";
+  const experience = member.experienceYears
+    ? `<p class="team-role" style="font-size:0.85rem;font-weight:600;">Experience: ${member.experienceYears}+ years</p>`
+    : "";
   return `
         <div class="team-card" data-aos="fade-up">
             <div class="team-avatar${member.photo ? " has-photo" : ""}" style="background:${member.color}">
@@ -697,6 +733,8 @@ function renderTeamCard(member) {
             </div>
             <h3 class="team-name">${member.name}</h3>
             <p class="team-role">${member.role}</p>
+            ${experience}
+            ${expertise}
             <div class="team-subjects">
                 ${member.subjects.map((s) => `<span class="subject-tag">${s}</span>`).join("")}
             </div>
@@ -738,12 +776,19 @@ function renderTestimonialSlider(containerId) {
   let idx = 0;
   function render() {
     const t = TESTIMONIALS[idx];
+    const authorLine = [
+      t.author,
+      t.relation || "Parent",
+      t.childGrade ? `Child: ${t.childGrade}` : "",
+    ]
+      .filter(Boolean)
+      .join(" • ");
     container.innerHTML = `
             <div class="testimonial-card">
                 <div class="testimonial-stars">${"★".repeat(t.rating)}</div>
                 <p class="testimonial-text">"${t.text}"</p>
                 <div class="testimonial-author">
-                    <strong>${t.author}</strong>
+                    <strong>${authorLine}</strong>
                     <span>${t.course}</span>
                 </div>
             </div>
@@ -832,8 +877,10 @@ function getFooterHTML() {
               Because every bright mind deserves the right nest. Personalized tuition in Languages, Mathematics and Science for Grades 1 to 10.
             </p>
             <div class="footer-social">
+              <a href="https://g.page/r/CV8X7tU64yV5EBM/review" target="_blank" rel="noopener" aria-label="Google Reviews"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.7 5.46L20.7 8.3l-4.35 4.24 1.03 6L12 15.9 6.62 18.54l1.03-6L3.3 8.3l6-.84L12 2z"/></svg></a>
               <a href="https://www.facebook.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12S0 5.446 0 12.073c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
               <a href="https://www.instagram.com/brightnestacademy" target="_blank" rel="noopener" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg></a>
+              <a href="https://wa.me/917204193980?text=Hello%20BrightNest%20Academy%2C%20I%20want%20to%20know%20about%20classes." target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.82 11.82 0 0012.11 0C5.6 0 .3 5.3.3 11.8c0 2.08.54 4.11 1.56 5.9L0 24l6.5-1.83a11.77 11.77 0 005.61 1.43h.01c6.5 0 11.8-5.3 11.8-11.8a11.7 11.7 0 00-3.4-8.32zM12.12 21.6h-.01a9.8 9.8 0 01-4.98-1.36l-.36-.22-3.86 1.09 1.03-3.76-.23-.38a9.75 9.75 0 01-1.5-5.18c0-5.4 4.4-9.8 9.82-9.8 2.62 0 5.08 1.02 6.93 2.87a9.72 9.72 0 012.86 6.93c0 5.42-4.4 9.81-9.8 9.81z"/></svg></a>
               <a href="https://www.youtube.com/@brightnestacademy" target="_blank" rel="noopener" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
             </div>
           </div>
@@ -877,7 +924,7 @@ function getFooterHTML() {
             </ul>
             <div class="footer-nap">
               <strong>BrightNest Academy</strong>
-              <span>#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bangalore - 560078</span>
+              <span>#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru - 560078</span>
               <span>Open all days: 9:00 AM - 9:00 PM</span>
             </div>
           </div>

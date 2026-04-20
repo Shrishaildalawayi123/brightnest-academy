@@ -67,24 +67,25 @@ public class SessionAttendanceController {
 
                 Long tenantId = TenantContext.requireTenantId();
                 String markedByEmail = authentication.getName();
-                User markedBy = userRepository.findByEmail(markedByEmail)
+                User markedBy = userRepository.findByEmailAndTenantId(markedByEmail, tenantId)
                                 .orElseThrow(() -> new IllegalStateException("User not found: " + markedByEmail));
 
                 List<SessionAttendance> attendances = attendanceDTOs.stream()
                                 .map(dto -> {
-                                        ClassSession session = sessionRepository.findById(dto.getSessionId())
-                                                        .filter(s -> s.getTenantId().equals(tenantId))
+                                        ClassSession session = sessionRepository.findByIdAndTenantId(dto.getSessionId(),
+                                                        tenantId)
                                                         .orElseThrow(() -> new IllegalArgumentException(
                                                                         "Session not found: " + dto.getSessionId()));
 
-                                        User student = userRepository.findById(dto.getStudentId())
+                                        User student = userRepository.findByIdAndTenantId(dto.getStudentId(),
+                                                        tenantId)
                                                         .orElseThrow(() -> new IllegalArgumentException(
                                                                         "Student not found: " + dto.getStudentId()));
 
                                         // Check if attendance already exists
                                         SessionAttendance attendance = attendanceRepository
-                                                        .findBySessionIdAndStudentId(dto.getSessionId(),
-                                                                        dto.getStudentId())
+                                                        .findBySessionIdAndStudentIdAndTenantId(dto.getSessionId(),
+                                                                        dto.getStudentId(), tenantId)
                                                         .orElse(SessionAttendance.builder()
                                                                         .tenantId(tenantId)
                                                                         .session(session)
@@ -119,7 +120,7 @@ public class SessionAttendanceController {
                 // Mark session as attendance completed
                 if (!attendanceDTOs.isEmpty()) {
                         Long sessionId = attendanceDTOs.get(0).getSessionId();
-                        sessionRepository.findById(sessionId).ifPresent(session -> {
+                        sessionRepository.findByIdAndTenantId(sessionId, tenantId).ifPresent(session -> {
                                 session.setAttendanceMarked(true);
                                 sessionRepository.save(session);
                         });
@@ -141,11 +142,10 @@ public class SessionAttendanceController {
 
                 Long tenantId = TenantContext.requireTenantId();
                 String markedByEmail = authentication.getName();
-                User markedBy = userRepository.findByEmail(markedByEmail)
+                User markedBy = userRepository.findByEmailAndTenantId(markedByEmail, tenantId)
                                 .orElseThrow(() -> new IllegalStateException("User not found: " + markedByEmail));
 
-                SessionAttendance attendance = attendanceRepository.findById(id)
-                                .filter(a -> a.getTenantId().equals(tenantId))
+                SessionAttendance attendance = attendanceRepository.findByIdAndTenantId(id, tenantId)
                                 .orElseThrow(() -> new IllegalArgumentException("Attendance record not found: " + id));
 
                 // Update based on status

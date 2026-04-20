@@ -35,6 +35,15 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
      * Find sessions for a specific date
      */
     List<ClassSession> findByTenantIdAndSessionDate(Long tenantId, LocalDate sessionDate);
+
+    @Query("SELECT cs FROM ClassSession cs WHERE cs.tenantId = :tenantId AND cs.sessionDate = :sessionDate ORDER BY cs.schedule.startTime ASC, cs.id ASC")
+    List<ClassSession> findTodaySessions(@Param("tenantId") Long tenantId, @Param("sessionDate") LocalDate sessionDate);
+
+    @Query("SELECT cs FROM ClassSession cs WHERE cs.tenantId = :tenantId AND cs.schedule.teacher.id = :teacherId AND cs.sessionDate = :sessionDate ORDER BY cs.schedule.startTime ASC, cs.id ASC")
+    List<ClassSession> findTodaySessionsForTeacher(
+            @Param("tenantId") Long tenantId,
+            @Param("teacherId") Long teacherId,
+            @Param("sessionDate") LocalDate sessionDate);
     
     /**
      * Find sessions by status

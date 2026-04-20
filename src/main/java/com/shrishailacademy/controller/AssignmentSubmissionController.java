@@ -24,13 +24,35 @@ import java.util.stream.Collectors;
  * REST API for assignment submissions and grading
  */
 @RestController
-@RequestMapping("/api/v1/submissions")
+@RequestMapping({"/api/assignment-submissions", "/api/v1/submissions"})
 @RequiredArgsConstructor
 public class AssignmentSubmissionController {
     
     private final AssignmentSubmissionRepository submissionRepository;
     private final AssignmentRepository assignmentRepository;
     private final UserRepository userRepository;
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<List<AssignmentSubmissionDTO>> getSubmissions(
+            @RequestParam(required = false) Boolean graded,
+            Authentication authentication) {
+        if (!Boolean.FALSE.equals(graded)) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        Long tenantId = TenantContext.requireTenantId();
+        User currentUser = userRepository.findByEmailAndTenantId(authentication.getName(), tenantId)
+                .orElseThrow(() -> new IllegalStateException("User not found: " + authentication.getName()));
+
+        List<AssignmentSubmission> submissions = currentUser.getRole() == User.Role.ADMIN
+                ? submissionRepository.findByTenantIdAndGradedAtIsNullOrderBySubmittedAtAsc(tenantId)
+                : submissionRepository.findByTenantIdAndAssignment_Teacher_IdAndGradedAtIsNullOrderBySubmittedAtAsc(
+                        tenantId,
+                        currentUser.getId());
+
+        return ResponseEntity.ok(submissions.stream().map(this::convertToDTO).collect(Collectors.toList()));
+    }
     
     /**
      * Get all submissions for an assignment (TEACHER/ADMIN only)
@@ -60,14 +82,21 @@ public class AssignmentSubmissionController {
     @GetMapping("/ungraded")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<List<AssignmentSubmissionDTO>> getUngradedSubmissions(
-            @RequestParam(required = false) Long assignmentId) {
+            @RequestParam(required = false) Long assignmentId,
+            Authentication authentication) {
         Long tenantId = TenantContext.requireTenantId();
         
         List<AssignmentSubmission> submissions;
         if (assignmentId != null) {
-            submissions = submissionRepository.findUngradedSubmissions(assignmentId);
+            submissions = submissionRepository.findUngradedSubmissionsByTenant(assignmentId, tenantId);
         } else {
-            submissions = submissionRepository.findByTenantIdAndGradedAtIsNull(tenantId);
+            User currentUser = userRepository.findByEmailAndTenantId(authentication.getName(), tenantId)
+                    .orElseThrow(() -> new IllegalStateException("User not found: " + authentication.getName()));
+            submissions = currentUser.getRole() == User.Role.ADMIN
+                    ? submissionRepository.findByTenantIdAndGradedAtIsNullOrderBySubmittedAtAsc(tenantId)
+                    : submissionRepository.findByTenantIdAndAssignment_Teacher_IdAndGradedAtIsNullOrderBySubmittedAtAsc(
+                            tenantId,
+                            currentUser.getId());
         }
         
         return ResponseEntity.ok(submissions.stream().map(this::convertToDTO).collect(Collectors.toList()));
@@ -84,15 +113,16 @@ public class AssignmentSubmissionController {
         
         Long tenantId = TenantContext.requireTenantId();
         String studentEmail = authentication.getName();
-        User student = userRepository.findByEmail(studentEmail)
+        User student = userRepository.findByEmailAndTenantId(studentEmail, tenantId)
                 .orElseThrow(() -> new IllegalStateException("Student not found: " + studentEmail));
         
-        Assignment assignment = assignmentRepository.findById(dto.getAssignmentId())
-                .filter(a -> a.getTenantId().equals(tenantId))
+        Assignment assignment = assignmentRepository.findByIdAndTenantId(dto.getAssignmentId(), tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + dto.getAssignmentId()));
         
         // Check if already submitted
-        if (submissionRepository.findByAssignmentIdAndStudentId(dto.getAssignmentId(), student.getId()).isPresent()) {
+        if (submissionRepository
+            .findByAssignmentIdAndStudentIdAndTenantId(dto.getAssignmentId(), student.getId(), tenantId)
+            .isPresent()) {
             throw new IllegalStateException("Assignment already submitted. Use update endpoint to modify.");
         }
         
@@ -129,11 +159,10 @@ public class AssignmentSubmissionController {
         
         Long tenantId = TenantContext.requireTenantId();
         String studentEmail = authentication.getName();
-        User student = userRepository.findByEmail(studentEmail)
+        User student = userRepository.findByEmailAndTenantId(studentEmail, tenantId)
                 .orElseThrow(() -> new IllegalStateException("Student not found: " + studentEmail));
         
-        AssignmentSubmission submission = submissionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        AssignmentSubmission submission = submissionRepository.findByIdAndTenantId(id, tenantId)
                 .filter(s -> s.getStudent().getId().equals(student.getId()))
                 .orElseThrow(() -> new IllegalArgumentException("Submission not found or unauthorized: " + id));
         
@@ -163,11 +192,10 @@ public class AssignmentSubmissionController {
         
         Long tenantId = TenantContext.requireTenantId();
         String teacherEmail = authentication.getName();
-        User teacher = userRepository.findByEmail(teacherEmail)
+        User teacher = userRepository.findByEmailAndTenantId(teacherEmail, tenantId)
                 .orElseThrow(() -> new IllegalStateException("Teacher not found: " + teacherEmail));
         
-        AssignmentSubmission submission = submissionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        AssignmentSubmission submission = submissionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Submission not found: " + id));
         
         // Validate score
@@ -188,8 +216,7 @@ public class AssignmentSubmissionController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSubmission(@PathVariable Long id) {
         Long tenantId = TenantContext.requireTenantId();
-        AssignmentSubmission submission = submissionRepository.findById(id)
-                .filter(s -> s.getTenantId().equals(tenantId))
+        AssignmentSubmission submission = submissionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Submission not found: " + id));
         
         submissionRepository.delete(submission);
@@ -203,6 +230,7 @@ public class AssignmentSubmissionController {
                 .id(submission.getId())
                 .assignmentId(submission.getAssignment().getId())
                 .assignmentTitle(submission.getAssignment().getTitle())
+                .courseName(submission.getAssignment().getCourse().getTitle())
                 .studentId(submission.getStudent().getId())
                 .studentName(submission.getStudent().getName())
                 .studentEmail(submission.getStudent().getEmail())

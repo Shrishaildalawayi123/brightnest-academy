@@ -1,8 +1,6 @@
 package com.shrishailacademy.chaos;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,8 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the required configuration for safe deployments: Docker health checks,
  * restart policies, CI/CD guards, and production config.
  */
-@SpringBootTest
-@ActiveProfiles("test")
 class DeploymentFailureTest {
 
     @Test

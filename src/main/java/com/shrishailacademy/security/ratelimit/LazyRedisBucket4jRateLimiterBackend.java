@@ -2,6 +2,7 @@ package com.shrishailacademy.security.ratelimit;
 
 import io.lettuce.core.RedisURI;
 
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -15,10 +16,16 @@ import java.util.function.Supplier;
 public class LazyRedisBucket4jRateLimiterBackend implements RateLimiterBackend {
 
     private final Supplier<RedisURI> redisUriSupplier;
+    private final Duration connectTimeout;
     private final AtomicReference<LettuceRedisBucket4jRateLimiterBackend> delegate = new AtomicReference<>();
 
     public LazyRedisBucket4jRateLimiterBackend(Supplier<RedisURI> redisUriSupplier) {
+        this(redisUriSupplier, null);
+    }
+
+    public LazyRedisBucket4jRateLimiterBackend(Supplier<RedisURI> redisUriSupplier, Duration connectTimeout) {
         this.redisUriSupplier = Objects.requireNonNull(redisUriSupplier, "redisUriSupplier");
+        this.connectTimeout = connectTimeout;
     }
 
     @Override
@@ -45,7 +52,7 @@ public class LazyRedisBucket4jRateLimiterBackend implements RateLimiterBackend {
                 return doubleCheck;
             }
             LettuceRedisBucket4jRateLimiterBackend created = new LettuceRedisBucket4jRateLimiterBackend(
-                    redisUriSupplier.get());
+                    redisUriSupplier.get(), connectTimeout);
             delegate.set(created);
             return created;
         }

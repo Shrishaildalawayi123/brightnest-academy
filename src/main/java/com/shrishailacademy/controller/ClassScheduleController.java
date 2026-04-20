@@ -2,18 +2,15 @@ package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.ClassScheduleDTO;
 import com.shrishailacademy.model.ClassSchedule;
-import com.shrishailacademy.model.Course;
-import com.shrishailacademy.model.User;
-import com.shrishailacademy.repository.ClassScheduleRepository;
-import com.shrishailacademy.repository.CourseRepository;
-import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.service.ClassScheduleService;
-import com.shrishailacademy.tenant.TenantContext;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,12 +23,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/schedules")
 @RequiredArgsConstructor
+@Validated
 public class ClassScheduleController {
 
     private final ClassScheduleService scheduleService;
-    private final ClassScheduleRepository scheduleRepository;
-    private final CourseRepository courseRepository;
-    private final UserRepository userRepository;
 
     /**
      * Get all active schedules
@@ -52,9 +47,7 @@ public class ClassScheduleController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<ClassScheduleDTO> getScheduleById(@PathVariable Long id) {
-        Long tenantId = TenantContext.requireTenantId();
-        ClassSchedule schedule = scheduleRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
+        ClassSchedule schedule = scheduleService.getScheduleById(id);
         return ResponseEntity.ok(convertToDTO(schedule));
     }
 
@@ -64,8 +57,15 @@ public class ClassScheduleController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ClassScheduleDTO> createSchedule(@Valid @RequestBody ClassScheduleDTO dto) {
-        ClassSchedule schedule = convertToEntity(dto);
-        ClassSchedule created = scheduleService.createSchedule(schedule);
+        ClassSchedule created = scheduleService.createSchedule(
+                dto.getCourseId(),
+                dto.getTeacherId(),
+                dto.getDayOfWeek(),
+                dto.getStartTime(),
+                dto.getEndTime(),
+                dto.getRoomNumber(),
+                dto.getMaxStudents(),
+                dto.getIsActive());
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(created));
     }
 
@@ -77,8 +77,16 @@ public class ClassScheduleController {
     public ResponseEntity<ClassScheduleDTO> updateSchedule(
             @PathVariable Long id,
             @Valid @RequestBody ClassScheduleDTO dto) {
-        ClassSchedule updates = convertToEntity(dto);
-        ClassSchedule updated = scheduleService.updateSchedule(id, updates);
+        ClassSchedule updated = scheduleService.updateSchedule(
+            id,
+            dto.getCourseId(),
+            dto.getTeacherId(),
+            dto.getDayOfWeek(),
+            dto.getStartTime(),
+            dto.getEndTime(),
+            dto.getRoomNumber(),
+            dto.getMaxStudents(),
+            dto.getIsActive());
         return ResponseEntity.ok(convertToDTO(updated));
     }
 
@@ -99,11 +107,10 @@ public class ClassScheduleController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<String> generateSessions(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "4") Integer weeksAhead) {
-        Long tenantId = TenantContext.requireTenantId();
-        ClassSchedule schedule = scheduleRepository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
-        scheduleService.generateSessionsForSchedule(schedule, weeksAhead);
+            @RequestParam(defaultValue = "4")
+            @Min(value = 1, message = "weeksAhead must be at least 1")
+            @Max(value = 12, message = "weeksAhead must not exceed 12") Integer weeksAhead) {
+        scheduleService.generateSessionsForScheduleId(id, weeksAhead);
         return ResponseEntity.ok(String.format("Generated sessions for the next %d weeks", weeksAhead));
     }
 
@@ -126,25 +133,4 @@ public class ClassScheduleController {
                 .build();
     }
 
-    private ClassSchedule convertToEntity(ClassScheduleDTO dto) {
-        Long tenantId = TenantContext.requireTenantId();
-
-        Course course = courseRepository.findById(dto.getCourseId())
-                .orElseThrow(() -> new IllegalArgumentException("Course not found: " + dto.getCourseId()));
-
-        User teacher = userRepository.findById(dto.getTeacherId())
-                .orElseThrow(() -> new IllegalArgumentException("Teacher not found: " + dto.getTeacherId()));
-
-        return ClassSchedule.builder()
-                .tenantId(tenantId)
-                .course(course)
-                .teacher(teacher)
-                .dayOfWeek(dto.getDayOfWeek())
-                .startTime(dto.getStartTime())
-                .endTime(dto.getEndTime())
-                .roomNumber(dto.getRoomNumber())
-                .maxStudents(dto.getMaxStudents())
-                .isActive(Boolean.TRUE.equals(dto.getIsActive()) || dto.getIsActive() == null)
-                .build();
-    }
 }

@@ -11,6 +11,7 @@ import com.shrishailacademy.tenant.TenantContext;
 import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,19 +32,22 @@ public class PaymentService {
     private final EnrollmentRepository enrollmentRepository;
     private final NotificationService notificationService;
     private final TenantService tenantService;
+    private final EmailService emailService;
 
     public PaymentService(PaymentRepository paymentRepository,
             UserRepository userRepository,
             CourseRepository courseRepository,
             EnrollmentRepository enrollmentRepository,
             NotificationService notificationService,
-            TenantService tenantService) {
+            TenantService tenantService,
+            ObjectProvider<EmailService> emailServiceProvider) {
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.enrollmentRepository = enrollmentRepository;
         this.notificationService = notificationService;
         this.tenantService = tenantService;
+        this.emailService = emailServiceProvider.getIfAvailable();
     }
 
     /**
@@ -209,6 +213,15 @@ public class PaymentService {
                     payment.getReceiptNumber(), e.getMessage());
         }
 
+        try {
+            if (emailService != null) {
+                emailService.sendPaymentReceipt(saved, saved.getUser());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send payment receipt email for receipt={}: {}",
+                    payment.getReceiptNumber(), e.getMessage());
+        }
+
         return saved;
     }
 
@@ -266,6 +279,23 @@ public class PaymentService {
         Long tenantId = TenantContext.requireTenantId();
         return paymentRepository.findByIdAndTenantId(paymentId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", paymentId));
+    }
+
+    @Transactional
+    public Payment attachGatewayOrderId(Long paymentId, String gatewayOrderId) {
+        Payment payment = getPaymentById(paymentId);
+        payment.setGatewayOrderId(InputSanitizer.sanitizeAndTruncate(gatewayOrderId, 100));
+        return paymentRepository.save(payment);
+    }
+
+    public Payment getPaymentByGatewayOrderIdForStudent(String gatewayOrderId, Long userId) {
+        Long tenantId = TenantContext.requireTenantId();
+        Payment payment = paymentRepository.findByGatewayOrderIdAndTenantId(gatewayOrderId, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", "gatewayOrderId", gatewayOrderId));
+        if (!payment.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException("You can only verify your own payments");
+        }
+        return payment;
     }
 
     public Map<String, Object> getRevenueStats() {

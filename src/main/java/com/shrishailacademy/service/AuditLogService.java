@@ -7,6 +7,7 @@ import com.shrishailacademy.util.InputSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -26,6 +27,9 @@ public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
 
+    @Value("${audit.trust-forward-headers:false}")
+    private boolean trustForwardHeaders;
+
     public AuditLogService(AuditLogRepository auditLogRepository) {
         this.auditLogRepository = auditLogRepository;
     }
@@ -34,13 +38,25 @@ public class AuditLogService {
      * Record an audit event asynchronously to avoid slowing down request
      * processing. tenantId must be resolved on the calling thread.
      */
+    public void logEvent(Long tenantId, Long userId, String action, String details, HttpServletRequest request) {
+        String remoteAddr = request != null ? request.getRemoteAddr() : null;
+        String xff = request != null ? request.getHeader("X-Forwarded-For") : null;
+        String realIp = request != null ? request.getHeader("X-Real-IP") : null;
+        String userAgent = request != null ? request.getHeader("User-Agent") : null;
+        String ipAddress = resolveClientIp(remoteAddr, xff, realIp);
+
+        logEvent(tenantId, userId, action, details, ipAddress, userAgent);
+    }
+
     @Async
     @Transactional
-    public void logEvent(Long tenantId, Long userId, String action, String details, HttpServletRequest request) {
+    public void logEvent(Long tenantId,
+            Long userId,
+            String action,
+            String details,
+            String ipAddress,
+            String userAgent) {
         try {
-            String ipAddress = extractClientIp(request);
-            String userAgent = request.getHeader("User-Agent");
-
             AuditLog auditLog = new AuditLog();
             auditLog.setTenantId(tenantId);
             auditLog.setUserId(userId);
@@ -64,18 +80,7 @@ public class AuditLogService {
     @Async
     @Transactional
     public void logEvent(Long tenantId, Long userId, String action, String details, String ipAddress) {
-        try {
-            AuditLog auditLog = new AuditLog(
-                    tenantId,
-                    userId,
-                    InputSanitizer.sanitizeAndTruncate(action, 100),
-                    InputSanitizer.sanitizeAndTruncateNullable(details, 500),
-                    InputSanitizer.sanitizeAndTruncateNullable(ipAddress, 45));
-            auditLogRepository.save(auditLog);
-            log.debug("Audit logged: action={} userId={}", action, userId);
-        } catch (Exception e) {
-            log.error("Failed to write audit log: action={} error={}", action, e.getMessage());
-        }
+        logEvent(tenantId, userId, action, details, ipAddress, null);
     }
 
     /**
@@ -105,20 +110,29 @@ public class AuditLogService {
         return auditLogRepository.findByTenantIdAndAction(tenantId, action, pageable);
     }
 
-    /**
-     * Extract real client IP, respecting reverse proxy headers.
-     */
-    private String extractClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
+    private String resolveClientIp(String remoteAddr, String xff, String realIp) {
+        if (!trustForwardHeaders || !isTrustedProxy(remoteAddr)) {
+            return remoteAddr;
+        }
+
         if (xff != null && !xff.isBlank()) {
-            // First IP in X-Forwarded-For is the original client
             return xff.split(",")[0].trim();
         }
-        String realIp = request.getHeader("X-Real-IP");
         if (realIp != null && !realIp.isBlank()) {
             return realIp.trim();
         }
-        return request.getRemoteAddr();
+        return remoteAddr;
     }
 
+    private boolean isTrustedProxy(String remoteAddr) {
+        if (remoteAddr == null) {
+            return false;
+        }
+        return remoteAddr.equals("127.0.0.1")
+                || remoteAddr.equals("0:0:0:0:0:0:0:1")
+                || remoteAddr.equals("::1")
+                || remoteAddr.startsWith("10.")
+                || remoteAddr.startsWith("192.168.")
+                || remoteAddr.matches("172\\.(1[6-9]|2[0-9]|3[0-1])\\..*");
+    }
 }

@@ -2,6 +2,7 @@ package com.shrishailacademy.controller;
 
 import com.shrishailacademy.dto.TeacherApplicationRequest;
 import com.shrishailacademy.dto.StatusUpdateRequest;
+import com.shrishailacademy.dto.response.TeacherApplicationResponse;
 import com.shrishailacademy.service.ResumeStorageService;
 import com.shrishailacademy.service.TeacherApplicationService;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -82,8 +84,11 @@ public class TeacherApplicationController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllApplications(@RequestParam(required = false) String status) {
-        return ResponseEntity.ok(teacherApplicationService.getAllApplications(status));
+    public ResponseEntity<List<TeacherApplicationResponse>> getAllApplications(@RequestParam(required = false) String status) {
+        List<TeacherApplicationResponse> responses = teacherApplicationService.getAllApplications(status).stream()
+                .map(TeacherApplicationResponse::fromEntity)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/{id}/status")

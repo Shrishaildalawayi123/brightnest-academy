@@ -31,12 +31,24 @@ public interface AssignmentSubmissionRepository extends JpaRepository<Assignment
      * Find ungraded submissions by tenant
      */
     List<AssignmentSubmission> findByTenantIdAndGradedAtIsNull(Long tenantId);
+
+    List<AssignmentSubmission> findByTenantIdAndGradedAtIsNullOrderBySubmittedAtAsc(Long tenantId);
+
+    List<AssignmentSubmission> findByTenantIdAndAssignment_Teacher_IdAndGradedAtIsNullOrderBySubmittedAtAsc(
+            Long tenantId,
+            Long teacherId);
     
     /**
      * Find submission by assignment and student
      */
     @Query("SELECT s FROM AssignmentSubmission s WHERE s.assignment.id = :assignmentId AND s.student.id = :studentId")
     Optional<AssignmentSubmission> findByAssignmentIdAndStudentId(@Param("assignmentId") Long assignmentId, @Param("studentId") Long studentId);
+
+    @Query("SELECT s FROM AssignmentSubmission s WHERE s.assignment.id = :assignmentId AND s.student.id = :studentId AND s.tenantId = :tenantId")
+    Optional<AssignmentSubmission> findByAssignmentIdAndStudentIdAndTenantId(
+           @Param("assignmentId") Long assignmentId,
+           @Param("studentId") Long studentId,
+           @Param("tenantId") Long tenantId);
     
     /**
      * Find all submissions for an assignment
@@ -61,6 +73,15 @@ public interface AssignmentSubmissionRepository extends JpaRepository<Assignment
            "s.gradedAt IS NULL " +
            "ORDER BY s.submittedAt ASC")
     List<AssignmentSubmission> findUngradedSubmissions(@Param("assignmentId") Long assignmentId);
+
+    @Query("SELECT s FROM AssignmentSubmission s WHERE " +
+           "s.assignment.id = :assignmentId AND " +
+           "s.tenantId = :tenantId AND " +
+           "s.gradedAt IS NULL " +
+           "ORDER BY s.submittedAt ASC")
+    List<AssignmentSubmission> findUngradedSubmissionsByTenant(
+            @Param("assignmentId") Long assignmentId,
+            @Param("tenantId") Long tenantId);
     
     /**
      * Find late submissions

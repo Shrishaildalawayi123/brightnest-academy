@@ -3,9 +3,9 @@
     name: "BrightNest Academy",
     phoneDisplay: "+91-7204193980",
     phoneHref: "+917204193980",
-    city: "Bangalore",
+    city: "Bengaluru",
     address:
-      "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bangalore - 560078",
+      "#662, 1st Floor, 67th Cross, Near Blossom School, Kumaraswamy Layout, Banashankari 1st Stage, Bengaluru - 560078",
     directionsUrl:
       "https://www.google.com/maps/dir/?api=1&destination=12.907025,77.566184",
     whatsappMessage:
@@ -15,10 +15,10 @@
   SITE_INFO.whatsappUrl = `https://wa.me/917204193980?text=${encodeURIComponent(SITE_INFO.whatsappMessage)}`;
 
   const CHATBOT_QUICK_REPLIES = [
-    "Book FREE demo class",
+    "Book a demo",
     "Fees for my child's class",
     "CBSE tuition near me",
-    "Maths coaching Bangalore",
+    "Maths coaching Bengaluru",
   ];
 
   const POPUP_DISMISS_KEY = "brightnest_whatsapp_popup_dismissed_at";
@@ -151,7 +151,7 @@
         <button type="submit">Send</button>
       </form>
       <a class="marketing-chatbot__human" href="${SITE_INFO.whatsappUrl}" target="_blank" rel="noopener" data-source-page="${window.location.pathname || "/"}">
-        Need human help? Chat on WhatsApp
+        Need human help? WhatsApp Us
       </a>
     `;
 
@@ -160,7 +160,7 @@
     const messages = chatbot.querySelector("#marketingChatMessages");
     addBotMessage(
       messages,
-      "Hi 👋 Want to improve your child's marks? 🎯 Book FREE demo class. You can also share Name, Class, and Phone here for a quick callback.",
+      "Hi 👋 Want to improve your child's marks? 🎯 Book a demo. You can also share Name, Class, and Phone here for a quick callback.",
     );
     renderQuickReplies(chatbot.querySelector("#marketingChatQuickReplies"), CHATBOT_QUICK_REPLIES);
 
@@ -377,7 +377,7 @@
       return "You can book a demo class from the website demo page or chat with us on WhatsApp and our team will schedule it for you.";
     }
     if (normalized.includes("online") || normalized.includes("offline")) {
-      return "We provide both online tuition through Google Meet and offline tuition at our Bangalore center.";
+      return "We provide both online tuition through Google Meet and offline tuition at our Bengaluru center.";
     }
     return "I can help with courses, fees, demo booking, and board-specific tuition. For personal guidance, please chat with our team on WhatsApp.";
   }
@@ -573,11 +573,11 @@
     popup.innerHTML = `
       <button class="marketing-demo-popup__close" type="button" aria-label="Dismiss demo popup">×</button>
       <p class="marketing-demo-popup__eyebrow">Limited Demo Slots</p>
-      <h3>Book a FREE Demo + Fee Estimate</h3>
+      <h3>Book a Demo + Fee Estimate</h3>
       <p class="marketing-demo-popup__text">Share details and get a quick callback from our admission advisor.</p>
       <form class="marketing-demo-popup__form" id="marketingDemoLeadForm">
         <input id="demoLeadName" type="text" maxlength="100" placeholder="Parent name" required>
-        <input id="demoLeadClass" type="text" maxlength="30" placeholder="Class (8-12)" required>
+        <input id="demoLeadClass" type="text" maxlength="30" placeholder="Grade (1-10)" required>
         <input id="demoLeadPhone" type="tel" maxlength="20" placeholder="Phone number" required>
         <button type="submit">Request Callback</button>
       </form>
@@ -654,12 +654,12 @@
         <div class="section-header">
           <p class="eyebrow">Results That Build Trust</p>
           <h2 class="section-title">Families choose BrightNest Academy for steady progress</h2>
-          <p class="section-subtitle">Board-aligned teaching, responsive communication, and measurable academic improvement across Bangalore.</p>
+          <p class="section-subtitle">Board-aligned teaching, responsive communication, and measurable academic improvement across Bengaluru.</p>
         </div>
         <div class="marketing-proof-grid">
           <article>
             <strong>500+</strong>
-            <span>Students trained across Bangalore and online</span>
+            <span>Students trained across Bengaluru and online</span>
           </article>
           <article>
             <strong>4.9/5</strong>
@@ -701,7 +701,7 @@
           <li>Board and grade fit assessment before scheduling</li>
           <li>Clear fee guidance after the student's learning need is understood</li>
         </ul>
-        <a href="${SITE_INFO.whatsappUrl}" target="_blank" rel="noopener" data-source-page="${window.location.pathname || "/"}">Need help before booking? Chat on WhatsApp</a>
+        <a href="${SITE_INFO.whatsappUrl}" target="_blank" rel="noopener" data-source-page="${window.location.pathname || "/"}">Need help before booking? WhatsApp Us</a>
       </div>
     `;
 

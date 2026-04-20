@@ -40,6 +40,7 @@ public class AssignmentSubmissionDTO {
     
     // Response-only fields
     private String assignmentTitle;
+    private String courseName;
     private String studentName;
     private String studentEmail;
     private LocalDateTime submittedAt;

@@ -33,8 +33,10 @@ public class ContactController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> getAllMessages() {
-        return ResponseEntity.ok(ApiResponse.success("Messages retrieved", contactService.getAllMessages()));
+    public ResponseEntity<ApiResponse> getAllMessages(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(ApiResponse.success("Messages retrieved", contactService.getAllMessages(page, size)));
     }
 
     /**
@@ -42,8 +44,11 @@ public class ContactController {
      */
     @GetMapping("/unread")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse> getUnreadMessages() {
-        return ResponseEntity.ok(ApiResponse.success("Unread messages retrieved", contactService.getUnreadMessages()));
+    public ResponseEntity<ApiResponse> getUnreadMessages(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Unread messages retrieved", contactService.getUnreadMessages(page, size)));
     }
 
     /**

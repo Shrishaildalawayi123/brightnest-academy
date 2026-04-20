@@ -357,7 +357,7 @@ function initializeMobileStickyCta() {
   bar.innerHTML = `
     <a class="mobile-bar__item mobile-contact-bar__item mobile-cta-bar__item" href="tel:+917204193980" aria-label="Call BrightNest Academy">Call</a>
     <a class="mobile-bar__item mobile-contact-bar__item mobile-cta-bar__item" href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy%2C%20I%20need%20course%20details." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">WhatsApp</a>
-    <a class="mobile-bar__item mobile-contact-bar__item mobile-cta-bar__item" href="demo.html" aria-label="Book a free demo class">Book Demo</a>
+    <a class="mobile-bar__item mobile-contact-bar__item mobile-cta-bar__item" href="demo.html" aria-label="Book a demo">Book a Demo</a>
   `;
 
   document.body.appendChild(bar);

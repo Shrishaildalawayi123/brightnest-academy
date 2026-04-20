@@ -155,7 +155,6 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of(
                 "message", "Token refreshed successfully",
-                "token", newAccessToken,
                 "type", "Bearer"));
     }
 

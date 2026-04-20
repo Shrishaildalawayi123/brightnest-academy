@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard | BrightNest Academy</title>
+    <meta name="description" content="Teacher dashboard for sessions, grading, and classroom operations at BrightNest Academy.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="https://brightnest-academy.com/teacher-dashboard.html">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            background: #f8fafc;
+        }
+
+        .teacher-dashboard-shell {
+            padding: 2rem 0 4rem;
+        }
+
+        .dashboard-hero {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            border-radius: 24px;
+            color: white;
+            padding: 2rem;
+            margin-bottom: 1.75rem;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16);
+        }
+
+        .dashboard-hero__meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-hero h1 {
+            margin: 0 0 0.5rem;
+            color: white;
+        }
+
+        .dashboard-hero p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            font-weight: 600;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card,
+        .panel-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 14px 35px rgba(15, 23, 42, 0.06);
+        }
+
+        .summary-card {
+            padding: 1.25rem;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .summary-label {
+            color: #64748b;
+            font-size: 0.92rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .summary-note {
+            color: #475569;
+            font-size: 0.88rem;
+            margin-top: 0.35rem;
+        }
+
+        .dashboard-columns {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .panel-card {
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            font-size: 1.15rem;
+        }
+
+        .panel-header p {
+            margin: 0.2rem 0 0;
+            color: #64748b;
+            font-size: 0.92rem;
+        }
+
+        .session-list {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .session-item {
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 1rem;
+            display: grid;
+            gap: 0.45rem;
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+        }
+
+        .session-title-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .session-title {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .session-meta {
+            color: #475569;
+            font-size: 0.92rem;
+        }
+
+        .quick-links {
+            display: grid;
+            gap: 0.85rem;
+        }
+
+        .quick-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            padding: 1rem 1.1rem;
+            border-radius: 16px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .quick-link small {
+            display: block;
+            color: #475569;
+            font-weight: 500;
+            margin-top: 0.2rem;
+        }
+
+        .dashboard-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .status-scheduled {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-in-progress {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-completed {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .empty-state-inline {
+            padding: 1.25rem;
+            border-radius: 16px;
+            background: #f8fafc;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .table-actions a {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .dashboard-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .teacher-dashboard-shell {
+                padding-top: 1.25rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-hero {
+                padding: 1.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">BrightNest Academy</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/teacher-dashboard.html" class="active">Dashboard</a>
+                <a href="/manage-schedules.html">Schedules</a>
+                <a href="/manage-sessions.html">Sessions</a>
+                <a href="/manage-assignments.html">Assignments</a>
+                <a href="#" id="logoutLink">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container teacher-dashboard-shell">
+        <section class="dashboard-hero">
+            <div class="dashboard-hero__meta">
+                <div>
+                    <h1>Teacher Dashboard</h1>
+                    <p id="heroSubtitle">Loading your teaching overview...</p>
+                </div>
+                <div class="hero-badge" id="todayBadge">Today</div>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            <article class="summary-card">
+                <div class="summary-label">Today's Sessions</div>
+                <div class="summary-value" id="todaySessionsCount">0</div>
+                <div class="summary-note">Sessions scheduled for the current day.</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-label">Pending Grading</div>
+                <div class="summary-value" id="pendingGradingCount">0</div>
+                <div class="summary-note">Ungraded submissions waiting for review.</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-label">Active Courses</div>
+                <div class="summary-value" id="activeCoursesCount">0</div>
+                <div class="summary-note">Live courses assigned to your dashboard.</div>
+            </article>
+            <article class="summary-card">
+                <div class="summary-label">Students Enrolled</div>
+                <div class="summary-value" id="studentsEnrolledCount">0</div>
+                <div class="summary-note">Enrollment total across active courses.</div>
+            </article>
+        </section>
+
+        <section class="dashboard-columns">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div>
+                        <h2>Recent Submissions</h2>
+                        <p>Jump straight into grading from the newest work that still needs attention.</p>
+                    </div>
+                    <a href="/manage-assignments.html" class="btn btn-primary">Open Assignments</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Assignment</th>
+                                <th>Course</th>
+                                <th>Submitted At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentSubmissionsBody">
+                            <tr>
+                                <td colspan="5" class="text-center">Loading submissions...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel-stack">
+                <div class="panel-card" style="margin-bottom: 1.5rem;">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Today's Sessions</h2>
+                            <p>Your classroom plan for the day.</p>
+                        </div>
+                        <a href="/manage-sessions.html" class="btn btn-secondary">Manage Sessions</a>
+                    </div>
+                    <div class="session-list" id="todaySessionsList">
+                        <div class="empty-state-inline">Loading today's sessions...</div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Quick Links</h2>
+                            <p>Common teacher tools in one place.</p>
+                        </div>
+                    </div>
+                    <div class="quick-links">
+                        <a class="quick-link" href="/manage-schedules.html">
+                            <span>Manage Schedules<small>Review time slots and course plans.</small></span>
+                            <span>&rarr;</span>
+                        </a>
+                        <a class="quick-link" href="/manage-sessions.html">
+                            <span>Manage Sessions<small>Start, complete, and update daily classes.</small></span>
+                            <span>&rarr;</span>
+                        </a>
+                        <a class="quick-link" href="/manage-assignments.html">
+                            <span>Manage Assignments<small>Create work, publish tasks, and grade submissions.</small></span>
+                            <span>&rarr;</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/teacher-dashboard.js"></script>
+</body>
+
+</html>

@@ -62,6 +62,63 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        .sidebar-header-row {
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .sidebar-header-name {
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notification-bell {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-bell:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.7rem;
+            line-height: 18px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .notification-badge.show {
+            display: inline-block;
+        }
+
         .sidebar-nav {
             flex: 1;
             padding: 1.5rem 0;
@@ -389,6 +446,48 @@
             background: #F8FAFC;
         }
 
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .progress-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .progress-card h4 {
+            margin: 0 0 0.75rem;
+            color: var(--neutral-900);
+            font-size: 1rem;
+        }
+
+        .progress-row {
+            margin-bottom: 0.75rem;
+            color: var(--neutral-600);
+            font-size: 0.88rem;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--neutral-200);
+            overflow: hidden;
+            margin-top: 0.35rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #14b8a6, #0d9488);
+            border-radius: 999px;
+        }
+
         /* Toast */
         .toast {
             position: fixed;
@@ -439,6 +538,96 @@
             padding: 3rem;
             color: var(--neutral-400);
             font-size: 1.1rem;
+        }
+
+        .notifications-panel {
+            position: fixed;
+            top: 0;
+            right: -360px;
+            width: 360px;
+            max-width: 92vw;
+            height: 100vh;
+            background: #fff;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+            z-index: 120;
+            transition: right 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notifications-panel.open {
+            right: 0;
+        }
+
+        .notifications-header {
+            padding: 1rem 1.1rem;
+            border-bottom: 1px solid var(--neutral-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notifications-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--neutral-900);
+        }
+
+        .notifications-close {
+            border: none;
+            background: transparent;
+            font-size: 1.1rem;
+            color: var(--neutral-500);
+            cursor: pointer;
+        }
+
+        .notifications-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .notification-item {
+            border: 1px solid var(--neutral-200);
+            border-radius: 10px;
+            padding: 0.8rem;
+            background: var(--neutral-50);
+            display: grid;
+            grid-template-columns: 30px 1fr;
+            gap: 0.65rem;
+            cursor: pointer;
+        }
+
+        .notification-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.95rem;
+        }
+
+        .notification-message {
+            color: var(--neutral-800);
+            font-size: 0.9rem;
+            line-height: 1.35;
+            margin: 0 0 0.35rem;
+        }
+
+        .notification-time {
+            color: var(--neutral-500);
+            font-size: 0.78rem;
+        }
+
+        .notifications-empty {
+            text-align: center;
+            color: var(--neutral-500);
+            padding: 2rem 1rem;
         }
 
         @media (max-width: 768px) {
@@ -496,6 +685,13 @@
                 <span>ðŸŽ“</span>
                 <h2>BrightNest Academy</h2>
                 <p>Student Portal</p>
+                <div class="sidebar-header-row">
+                    <span id="sidebarStudentName" class="sidebar-header-name">Student</span>
+                    <button id="notificationsBell" class="notification-bell" type="button" aria-label="Open notifications">
+                        <span>🔔</span>
+                        <span id="notificationsBadge" class="notification-badge">0</span>
+                    </button>
+                </div>
             </div>
 
             <nav class="sidebar-nav">
@@ -590,6 +786,13 @@
                 </div>
                 <div class="courses-grid" id="myCoursesGrid">
                     <div class="loading">Loading...</div>
+                </div>
+
+                <div class="section-header" style="margin-top: 1.5rem;">
+                    <div class="section-title">My Progress</div>
+                </div>
+                <div id="myProgressGrid" class="progress-grid">
+                    <div class="loading">Loading progress...</div>
                 </div>
             </div>
 
@@ -692,6 +895,16 @@
 
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
+
+    <aside id="notificationsPanel" class="notifications-panel" aria-hidden="true">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <button id="notificationsClose" class="notifications-close" type="button" aria-label="Close notifications">✕</button>
+        </div>
+        <div id="notificationsList" class="notifications-list">
+            <div class="notifications-empty">Loading notifications...</div>
+        </div>
+    </aside>
 
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;"></div>
     <script src="js/data.js"></script>

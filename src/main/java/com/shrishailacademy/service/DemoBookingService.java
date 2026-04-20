@@ -9,6 +9,7 @@ import com.shrishailacademy.tenant.TenantContext;
 import com.shrishailacademy.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,10 +24,15 @@ public class DemoBookingService {
 
     private final DemoBookingRepository demoBookingRepository;
     private final TenantService tenantService;
+    private final EmailService emailService;
 
-    public DemoBookingService(DemoBookingRepository demoBookingRepository, TenantService tenantService) {
+    public DemoBookingService(
+            DemoBookingRepository demoBookingRepository,
+            TenantService tenantService,
+            ObjectProvider<EmailService> emailServiceProvider) {
         this.demoBookingRepository = demoBookingRepository;
         this.tenantService = tenantService;
+        this.emailService = emailServiceProvider.getIfAvailable();
     }
 
     @Transactional
@@ -55,6 +61,16 @@ public class DemoBookingService {
         DemoBooking saved = demoBookingRepository.save(booking);
         log.info("DEMO_BOOKING_CREATED: id={}, student='{}', email='{}'",
                 saved.getId(), saved.getStudentName(), saved.getEmail());
+
+        try {
+            if (emailService != null) {
+                emailService.sendDemoBookingConfirmation(saved);
+                emailService.sendAdminNewLeadAlert("Demo Booking", saved.getStudentName(), saved.getEmail());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send demo-booking email for id={}: {}", saved.getId(), e.getMessage());
+        }
+
         return saved;
     }
 

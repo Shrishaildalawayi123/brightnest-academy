@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.4.3</version>
         <relativePath/>
     </parent>
     
@@ -21,7 +21,7 @@
     <properties>
         <java.version>21</java.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <jacoco.minimum.coverage>0.55</jacoco.minimum.coverage>
+        <jacoco.minimum.coverage>0.75</jacoco.minimum.coverage>
         <lombok.version>1.18.38</lombok.version>
     </properties>
     
@@ -67,12 +67,24 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
+
+        <!-- Caffeine cache provider (TTL + bounded size) -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
         
         <!-- MySQL Connector -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Email notifications -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         
         <!-- JWT for authentication -->
@@ -117,6 +129,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.razorpay</groupId>
+            <artifactId>razorpay-java</artifactId>
+            <version>1.4.5</version>
         </dependency>
 
         <!-- SpringDoc OpenAPI - Auto-generates OpenAPI/Swagger docs -->
@@ -277,7 +295,7 @@
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
-                    <argLine>${argLine} -Dspring.classformat.ignore=true -Djdk.net.URLClassPath.disableClassPathURLCheck=true -Xmx256m -XX:MaxMetaspaceSize=256m -XX:+UseSerialGC</argLine>
+                    <argLine>${argLine} -Dspring.classformat.ignore=true -Djdk.net.URLClassPath.disableClassPathURLCheck=true -Djdk.attach.allowAttachSelf=true -Xmx768m -XX:MaxMetaspaceSize=512m -XX:+UseSerialGC -XX:+EnableDynamicAgentLoading</argLine>
                 </configuration>
             </plugin>
             <plugin>

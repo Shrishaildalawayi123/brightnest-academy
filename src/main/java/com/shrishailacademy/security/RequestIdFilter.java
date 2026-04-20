@@ -15,7 +15,7 @@ import java.util.UUID;
 
 /**
  * Adds a stable request id for each incoming request.
- * - Reads from X-Request-Id if provided.
+ * - Reads from X-Request-ID if provided.
  * - Otherwise generates a UUID.
  * - Echoes it back in response headers.
  */
@@ -23,7 +23,7 @@ import java.util.UUID;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestIdFilter extends OncePerRequestFilter {
 
-    public static final String HEADER_NAME = "X-Request-Id";
+    public static final String HEADER_NAME = "X-Request-ID";
     public static final String MDC_KEY = "requestId";
 
     @Override

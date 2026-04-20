@@ -79,6 +79,57 @@ function authHeaders() {
   return API.getHeaders(true);
 }
 
+// Pagination state
+let studentsPage = 0;
+let enrollmentsPage = 0;
+let paymentsPage = 0;
+const pageSize = 20;
+
+// Pagination helper
+function renderPaginationControls(containerId, currentPage, totalPages, loadFunction) {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    return;
+  }
+
+  const safeTotalPages = Math.max(totalPages || 0, 1);
+  const safeCurrentPage = Math.min(Math.max(currentPage || 0, 0), safeTotalPages - 1);
+  const prevDisabled = safeCurrentPage <= 0 ? "disabled" : "";
+  const nextDisabled = safeCurrentPage >= safeTotalPages - 1 ? "disabled" : "";
+
+  let html = `<div class="pagination-shell">
+    <span>Page ${safeCurrentPage + 1} of ${safeTotalPages}</span>
+    <button class="btn-icon" type="button" onclick="${loadFunction}(${safeCurrentPage - 1})" ${prevDisabled}>Prev</button>
+    <button class="btn-icon" type="button" onclick="${loadFunction}(${safeCurrentPage + 1})" ${nextDisabled}>Next</button>
+  </div>`;
+  container.innerHTML = html;
+}
+
+function unpackPageResponse(payload) {
+  if (Array.isArray(payload)) {
+    return {
+      content: payload,
+      totalPages: payload.length > 0 ? 1 : 0,
+      totalElements: payload.length,
+      number: 0,
+    };
+  }
+
+  if (payload && Array.isArray(payload.content)) {
+    return {
+      content: payload.content,
+      totalPages: typeof payload.totalPages === "number" ? payload.totalPages : 0,
+      totalElements:
+        typeof payload.totalElements === "number"
+          ? payload.totalElements
+          : payload.content.length,
+      number: typeof payload.number === "number" ? payload.number : 0,
+    };
+  }
+
+  return { content: [], totalPages: 0, totalElements: 0, number: 0 };
+}
+
 function resolveApiRequestUrl(url) {
   if (typeof url !== "string") {
     return url;
@@ -260,13 +311,16 @@ function crmQueryParams() {
 // Overview
 async function loadOverview() {
   try {
-    const [users, courses, enrollments] = await Promise.all([
-      fetch("/api/users", { headers: authHeaders() }).then((r) => r.json()),
-      fetch("/api/courses").then((r) => r.json()),
-      fetch("/api/enrollments", { headers: authHeaders() }).then((r) =>
+    const [users, courses, enrollmentsPayload] = await Promise.all([
+      fetch("/api/users/students", { headers: authHeaders() }).then((r) =>
         r.json(),
       ),
+      fetch("/api/courses").then((r) => r.json()),
+      fetch(`/api/enrollments?page=0&size=${pageSize}`, {
+        headers: authHeaders(),
+      }).then((r) => r.json()),
     ]);
+    const enrollments = unpackPageResponse(enrollmentsPayload).content;
     const students = Array.isArray(users)
       ? users.filter((u) => u.role === "STUDENT")
       : [];
@@ -328,33 +382,91 @@ async function loadCourses() {
 }
 
 // Students
-async function loadStudents() {
+async function loadStudents(page = studentsPage) {
+  studentsPage = page;
   const tbody = document.querySelector("#studentsTable tbody");
   try {
-    const users = await fetch("/api/users", { headers: authHeaders() }).then(
-      (r) => r.json(),
-    );
+    const payload = await fetch(
+      `/api/users?page=${studentsPage}&size=${pageSize}`,
+      { headers: authHeaders() },
+    ).then((r) => r.json());
+    const usersPage = unpackPageResponse(payload);
+    const users = usersPage.content;
     tbody.innerHTML =
       (Array.isArray(users) ? users : [])
         .map(
           (u) => `
                     <tr><td><strong>${esc(u.name)}</strong></td><td>${esc(u.email)}</td>
                     <td>${esc(u.phone || "-")}</td>
-                    <td><span class="badge badge-${u.role.toLowerCase()}">${u.role}</span></td></tr>`,
+                    <td><span class="badge badge-${u.role.toLowerCase()}">${u.role}</span></td>
+                    <td>
+                      <div class="table-action-group">
+                        <select id="roleSelect-${u.id}" class="form-input" aria-label="Change role for ${esc(u.name)}">
+                          <option value="ADMIN" ${u.role === "ADMIN" ? "selected" : ""}>ADMIN</option>
+                          <option value="TEACHER" ${u.role === "TEACHER" ? "selected" : ""}>TEACHER</option>
+                          <option value="STUDENT" ${u.role === "STUDENT" ? "selected" : ""}>STUDENT</option>
+                        </select>
+                        <button class="btn-icon" type="button" onclick="changeStudentRole(${u.id}, '${esc(u.role)}')">Change Role</button>
+                      </div>
+                    </td></tr>`,
         )
-        .join("") || '<tr><td colspan="4">No users found</td></tr>';
+        .join("") || '<tr><td colspan="5">No users found</td></tr>';
+    renderPaginationControls(
+      "studentsPagination",
+      usersPage.number,
+      usersPage.totalPages,
+      "loadStudents",
+    );
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="4">Error loading students</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5">Error loading students</td></tr>';
+    renderPaginationControls("studentsPagination", 0, 0, "loadStudents");
+  }
+}
+
+async function changeStudentRole(userId, currentRole) {
+  const roleSelect = document.getElementById(`roleSelect-${userId}`);
+  const role = roleSelect ? roleSelect.value : null;
+  if (!role) {
+    showToast("Please select a valid role", "error");
+    return;
+  }
+
+  if (role === currentRole) {
+    showToast("Select a different role before updating", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/users/${userId}/role`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify({ role }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(data.message || "Failed to update role", "error");
+      return;
+    }
+    showToast("Role updated successfully");
+    loadStudents(studentsPage);
+  } catch (e) {
+    showToast("Error updating role", "error");
   }
 }
 
 // Enrollments
-async function loadEnrollments() {
+async function loadEnrollments(page = enrollmentsPage) {
+  enrollmentsPage = Math.max(page, 0);
   const tbody = document.querySelector("#enrollmentsTable tbody");
   try {
-    const enrollments = await fetch("/api/enrollments", {
+    const payload = await fetch(
+      `/api/enrollments?page=${enrollmentsPage}&size=${pageSize}`,
+      {
       headers: authHeaders(),
-    }).then((r) => r.json());
+      },
+    ).then((r) => r.json());
+    const enrollmentsPageData = unpackPageResponse(payload);
+    const enrollments = enrollmentsPageData.content;
     tbody.innerHTML =
       (Array.isArray(enrollments) ? enrollments : [])
         .map(
@@ -367,8 +479,15 @@ async function loadEnrollments() {
                     </tr>`,
         )
         .join("") || '<tr><td colspan="4">No enrollments yet</td></tr>';
+    renderPaginationControls(
+      "enrollmentsPagination",
+      enrollmentsPageData.number,
+      enrollmentsPageData.totalPages,
+      "loadEnrollments",
+    );
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="4">Error loading enrollments</td></tr>';
+    renderPaginationControls("enrollmentsPagination", 0, 0, "loadEnrollments");
   }
 }
 
@@ -491,9 +610,10 @@ async function loadCourseStudents() {
     return;
   }
   try {
-    const enrollments = await fetch("/api/enrollments", {
+    const enrollmentsPayload = await fetch(`/api/enrollments?page=0&size=1000`, {
       headers: authHeaders(),
     }).then((r) => r.json());
+    const enrollments = unpackPageResponse(enrollmentsPayload).content;
     attStudents = (Array.isArray(enrollments) ? enrollments : []).filter(
       (e) => e.course && e.course.id == courseId && e.status === "ACTIVE",
     );
@@ -774,16 +894,15 @@ async function loadPaymentStats() {
 
 async function loadPaymentDropdowns() {
   try {
-    const [users, courses] = await Promise.all([
-      fetch("/api/users", { headers: authHeaders() }).then((r) => r.json()),
+    const [students, courses] = await Promise.all([
+      fetch("/api/users/students", { headers: authHeaders() }).then((r) =>
+        r.json(),
+      ),
       fetch("/api/courses").then((r) => r.json()),
     ]);
-    const students = (Array.isArray(users) ? users : []).filter(
-      (u) => u.role === "STUDENT",
-    );
     document.getElementById("payStudent").innerHTML =
       '<option value="">Select Student</option>' +
-      students
+      (Array.isArray(students) ? students : [])
         .map(
           (s) =>
             `<option value="${s.id}">${esc(s.name)} (${esc(s.email)})</option>`,
@@ -842,12 +961,18 @@ async function recordManualPayment() {
   }
 }
 
-async function loadAllPayments() {
+async function loadAllPayments(page = paymentsPage) {
+  paymentsPage = Math.max(page, 0);
   const tbody = document.querySelector("#paymentsTable tbody");
   try {
-    const payments = await fetch("/api/payments", {
-      headers: authHeaders(),
-    }).then((r) => r.json());
+    const payload = await fetch(
+      `/api/payments?page=${paymentsPage}&size=${pageSize}`,
+      {
+        headers: authHeaders(),
+      },
+    ).then((r) => r.json());
+    const paymentsPageData = unpackPageResponse(payload);
+    const payments = paymentsPageData.content;
     tbody.innerHTML =
       (Array.isArray(payments) ? payments : [])
         .map(
@@ -866,8 +991,15 @@ async function loadAllPayments() {
                     </tr>`,
         )
         .join("") || '<tr><td colspan="8">No payments yet</td></tr>';
+    renderPaginationControls(
+      "paymentsPagination",
+      paymentsPageData.number,
+      paymentsPageData.totalPages,
+      "loadAllPayments",
+    );
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="8">Error loading payments</td></tr>';
+    renderPaginationControls("paymentsPagination", 0, 0, "loadAllPayments");
   }
 }
 

@@ -13,8 +13,48 @@ env:
   JAR_NAME: shrishail-academy-1.0.0.jar
   DEPLOY_DIR: /home/ubuntu/brightnest-academy
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: brightnest_test
+          MYSQL_ROOT_PASSWORD: test
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ptest"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run Test Suite
+        run: >
+          mvn test
+          -Dspring.profiles.active=test
+          -Dspring.datasource.url=jdbc:mysql://127.0.0.1:3306/brightnest_test
+          -Dspring.datasource.username=root
+          -Dspring.datasource.password=test
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -45,6 +85,24 @@ jobs:
           source: target/${{ env.JAR_NAME }}
           target: ${{ env.DEPLOY_DIR }}/target/
           overwrite: true
+
+      - name: 5.1ï¸âƒ£ Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 5.2ï¸âƒ£ Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 5.3ï¸âƒ£ Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/brightnest-academy:latest
 
       - name: 6️⃣ Upload Nginx Config
         uses: appleboy/scp-action@v0.1.7

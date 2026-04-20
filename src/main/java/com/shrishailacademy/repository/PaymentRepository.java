@@ -1,6 +1,7 @@
 package com.shrishailacademy.repository;
 
 import com.shrishailacademy.model.Payment;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByUserId(Long userId);
 
+    @EntityGraph(attributePaths = { "user", "course", "enrollment" })
     List<Payment> findByUserIdAndTenantId(Long userId, Long tenantId);
 
     List<Payment> findByCourseId(Long courseId);
@@ -31,10 +33,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByStatus(Payment.Status status);
 
+    @EntityGraph(attributePaths = { "user", "course", "enrollment" })
     List<Payment> findAllByTenantId(Long tenantId);
 
     long countByTenantId(Long tenantId);
 
+    @EntityGraph(attributePaths = { "user", "course", "enrollment" })
     Page<Payment> findAllByTenantId(Long tenantId, Pageable pageable);
 
     Optional<Payment> findByTransactionId(String transactionId);
@@ -47,11 +51,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByGatewayOrderId(String gatewayOrderId);
 
+    Optional<Payment> findByGatewayOrderIdAndTenantId(String gatewayOrderId, Long tenantId);
+
     boolean existsByUserIdAndCourseIdAndStatus(Long userId, Long courseId, Payment.Status status);
 
     boolean existsByUserIdAndCourseIdAndTenantIdAndStatus(Long userId, Long courseId, Long tenantId,
             Payment.Status status);
 
+    @EntityGraph(attributePaths = { "user", "course", "enrollment" })
     Optional<Payment> findByIdAndTenantId(Long id, Long tenantId);
 
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = 'SUCCESS'")

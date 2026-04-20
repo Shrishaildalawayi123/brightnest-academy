@@ -1,5 +1,6 @@
 package com.shrishailacademy.repository;
 
+import com.shrishailacademy.dto.response.StudentProgressDto;
 import com.shrishailacademy.model.Enrollment;
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.model.Course;
@@ -108,9 +109,64 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
          */
         long countByCourseId(Long courseId);
 
+        long countByCourseIdAndTenantId(Long courseId, Long tenantId);
+
         /**
          * Get enrollment count per course
          */
         @Query("SELECT c.id, c.title, COUNT(e.id) FROM Course c LEFT JOIN c.enrollments e GROUP BY c.id, c.title")
         List<Object[]> getEnrollmentCountPerCourse();
+
+                                @Query("""
+                                                                                                SELECT new com.shrishailacademy.dto.response.StudentProgressDto(
+                                                                                                                                c.id,
+                                                                                                                                c.title,
+                                                                                                                                (SELECT COUNT(cs.id)
+                                                                                                                                 FROM ClassSession cs
+                                                                                                                                 WHERE cs.tenantId = :tenantId
+                                                                                                                                         AND cs.schedule.course.id = c.id),
+                                                                                                                                (SELECT COUNT(sa.id)
+                                                                                                                                 FROM SessionAttendance sa
+                                                                                                                                 WHERE sa.tenantId = :tenantId
+                                                                                                                                         AND sa.student.id = :userId
+                                                                                                                                         AND sa.session.schedule.course.id = c.id
+                                                                                                                                         AND sa.status <> com.shrishailacademy.model.SessionAttendance.AttendanceStatus.ABSENT),
+                                                                                                                                (SELECT CASE
+                                                                                                                                                                 WHEN COUNT(cs2.id) = 0 THEN 0.0
+                                                                                                                                                                 ELSE (100.0 * (SELECT COUNT(sa2.id)
+                                                                                                                                                                                                                                 FROM SessionAttendance sa2
+                                                                                                                                                                                                                                 WHERE sa2.tenantId = :tenantId
+                                                                                                                                                                                                                                         AND sa2.student.id = :userId
+                                                                                                                                                                                                                                         AND sa2.session.schedule.course.id = c.id
+                                                                                                                                                                                                                                         AND sa2.status <> com.shrishailacademy.model.SessionAttendance.AttendanceStatus.ABSENT)
+                                                                                                                                                                                         / COUNT(cs2.id))
+                                                                                                                                                                 END
+                                                                                                                                 FROM ClassSession cs2
+                                                                                                                                 WHERE cs2.tenantId = :tenantId
+                                                                                                                                         AND cs2.schedule.course.id = c.id),
+                                                                                                                                (SELECT COUNT(a.id)
+                                                                                                                                 FROM Assignment a
+                                                                                                                                 WHERE a.tenantId = :tenantId
+                                                                                                                                         AND a.course.id = c.id),
+                                                                                                                                (SELECT COUNT(asub.id)
+                                                                                                                                 FROM AssignmentSubmission asub
+                                                                                                                                 WHERE asub.tenantId = :tenantId
+                                                                                                                                         AND asub.student.id = :userId
+                                                                                                                                         AND asub.assignment.course.id = c.id),
+                                                                                                                                (SELECT AVG(CAST(asub2.score AS double))
+                                                                                                                                 FROM AssignmentSubmission asub2
+                                                                                                                                 WHERE asub2.tenantId = :tenantId
+                                                                                                                                         AND asub2.student.id = :userId
+                                                                                                                                         AND asub2.assignment.course.id = c.id
+                                                                                                                                         AND asub2.score IS NOT NULL)
+                                                                                                )
+                                                                                                FROM Enrollment e
+                                                                                                JOIN e.course c
+                                                                                                WHERE e.tenant.id = :tenantId
+                                                                                                        AND e.user.id = :userId
+                                                                                                        AND e.status = com.shrishailacademy.model.Enrollment.Status.ACTIVE
+                                                                                                ORDER BY c.title ASC
+                                                                                                """)
+                                List<StudentProgressDto> findStudentProgressByUserIdAndTenantId(@Param("userId") Long userId,
+                                                                                                @Param("tenantId") Long tenantId);
 }

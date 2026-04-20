@@ -56,12 +56,13 @@ public class Enrollment {
 
     @Column(length = 20)
     @Enumerated(EnumType.STRING)
-    private Status status = Status.ACTIVE;
+    private Status status = Status.PENDING;
 
     /**
      * Enrollment Status
      */
     public enum Status {
+        PENDING,
         ACTIVE,
         COMPLETED,
         CANCELLED

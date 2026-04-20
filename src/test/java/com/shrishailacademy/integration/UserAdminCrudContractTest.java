@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shrishailacademy.model.Tenant;
 import com.shrishailacademy.model.User;
 import com.shrishailacademy.repository.CourseRepository;
+import com.shrishailacademy.repository.EnrollmentRepository;
+import com.shrishailacademy.repository.NotificationRepository;
+import com.shrishailacademy.repository.PaymentRepository;
 import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.security.JwtTokenProvider;
 import com.shrishailacademy.service.TenantService;
@@ -46,6 +49,15 @@ class UserAdminCrudContractTest {
         private CourseRepository courseRepository;
 
         @Autowired
+        private EnrollmentRepository enrollmentRepository;
+
+        @Autowired
+        private PaymentRepository paymentRepository;
+
+        @Autowired
+        private NotificationRepository notificationRepository;
+
+        @Autowired
         private JwtTokenProvider jwtTokenProvider;
 
         @Autowired
@@ -56,6 +68,9 @@ class UserAdminCrudContractTest {
 
         @BeforeEach
         void setup() {
+                paymentRepository.deleteAll();
+                enrollmentRepository.deleteAll();
+                notificationRepository.deleteAll();
                 courseRepository.deleteAll();
                 userRepository.deleteAll();
         }
