@@ -19,6 +19,7 @@ public class ProductionSafetyValidator {
 
     private static final Logger log = LoggerFactory.getLogger(ProductionSafetyValidator.class);
 
+    private static final String DEFAULT_ADMIN_PASSWORD_CHANGE_ME = "CHANGE_ME_Strong!Pass123";
     private static final String DEFAULT_ADMIN_PASSWORD = "Admin@123";
     private static final String DEFAULT_DB_USER = "root";
     private static final String DEFAULT_DB_PASS = "root";
@@ -51,7 +52,8 @@ public class ProductionSafetyValidator {
             throw new IllegalStateException("Refusing to start in prod with blank JWT secret. Set JWT_SECRET.");
         }
 
-        if (DEFAULT_ADMIN_PASSWORD.equals(adminPassword)) {
+        if (DEFAULT_ADMIN_PASSWORD.equals(adminPassword)
+            || DEFAULT_ADMIN_PASSWORD_CHANGE_ME.equals(adminPassword)) {
             throw new IllegalStateException(
                     "Refusing to start in prod with default admin password. Set ADMIN_PASSWORD.");
         }
