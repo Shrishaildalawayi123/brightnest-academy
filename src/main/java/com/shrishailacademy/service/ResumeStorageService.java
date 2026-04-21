@@ -6,6 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,16 +41,28 @@ public class ResumeStorageService {
     private final long maxFileSize;
     private final Set<String> allowedTypes;
     private final Set<String> allowedExtensions;
+    private final boolean s3Enabled;
+    private final String s3Bucket;
+    private final String s3Prefix;
+    private final S3Client s3Client;
 
     public ResumeStorageService(
             @Value("${resume.upload.dir:uploads/resumes}") String uploadPath,
             @Value("${resume.upload.max-bytes:" + DEFAULT_MAX_FILE_SIZE + "}") long maxFileSize,
             @Value("${resume.upload.allowed-types:}") String allowedTypes,
-            @Value("${resume.upload.allowed-extensions:}") String allowedExtensions) {
+            @Value("${resume.upload.allowed-extensions:}") String allowedExtensions,
+            @Value("${resume.storage.s3.enabled:false}") boolean s3Enabled,
+            @Value("${resume.storage.s3.bucket:}") String s3Bucket,
+            @Value("${resume.storage.s3.prefix:resumes}") String s3Prefix,
+            @Value("${resume.storage.s3.region:ap-south-1}") String s3Region) {
         this.uploadDir = Paths.get(uploadPath).toAbsolutePath().normalize();
         this.maxFileSize = maxFileSize > 0 ? maxFileSize : DEFAULT_MAX_FILE_SIZE;
         this.allowedTypes = parseCsvOrDefault(allowedTypes, DEFAULT_ALLOWED_TYPES);
         this.allowedExtensions = parseCsvOrDefault(allowedExtensions, DEFAULT_ALLOWED_EXTENSIONS);
+        this.s3Enabled = s3Enabled;
+        this.s3Bucket = s3Bucket == null ? "" : s3Bucket.trim();
+        this.s3Prefix = (s3Prefix == null || s3Prefix.isBlank()) ? "resumes" : s3Prefix.trim();
+        this.s3Client = initializeS3Client(s3Region);
         try {
             Files.createDirectories(this.uploadDir);
             log.info("Resume upload directory: {}", this.uploadDir);
@@ -85,6 +102,23 @@ public class ResumeStorageService {
 
         // Generate unique filename
         String storedName = UUID.randomUUID() + "." + extension;
+
+        if (s3Enabled && !s3Bucket.isBlank() && s3Client != null) {
+            String key = s3Prefix + "/" + storedName;
+            try {
+                PutObjectRequest request = PutObjectRequest.builder()
+                        .bucket(s3Bucket)
+                        .key(key)
+                        .contentType(contentType)
+                        .build();
+                s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+                log.info("RESUME_UPLOADED_S3: original='{}' key='s3://{}/{}'", originalFilename, s3Bucket, key);
+                return new String[] { originalFilename, "s3://" + s3Bucket + "/" + key };
+            } catch (Exception ex) {
+                log.warn("S3 resume upload failed; falling back to local storage. reason={}", ex.getMessage());
+            }
+        }
+
         try {
             Path target = uploadDir.resolve(storedName).normalize();
             // Security: ensure target is within upload dir
@@ -113,5 +147,23 @@ public class ResumeStorageService {
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
+    private S3Client initializeS3Client(String s3Region) {
+        if (!s3Enabled) {
+            return null;
+        }
+        try {
+            Region region = Region.of((s3Region == null || s3Region.isBlank()) ? "ap-south-1" : s3Region.trim());
+            S3Client client = S3Client.builder()
+                    .region(region)
+                    .credentialsProvider(DefaultCredentialsProvider.create())
+                    .build();
+            log.info("Resume storage S3 mode enabled for region={} bucket={}", region.id(), s3Bucket);
+            return client;
+        } catch (Exception ex) {
+            log.warn("Unable to initialize S3 client; local fallback remains active. reason={}", ex.getMessage());
+            return null;
+        }
     }
 }

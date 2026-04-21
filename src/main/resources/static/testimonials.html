@@ -93,11 +93,50 @@
 
     <div id="footerPlaceholder"></div>
     <script src="js/data.js?v=20260302"></script>
+    <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script>
-        if (window.renderTestimonialSlider) {
-            renderTestimonialSlider('testimonialSlider');
-        }
+        (async function () {
+            const slider = document.getElementById('testimonialSlider');
+            if (!slider) return;
+
+            const fallback = function () {
+                if (window.renderTestimonialSlider) {
+                    renderTestimonialSlider('testimonialSlider');
+                }
+            };
+
+            if (!window.API || typeof window.API.getTestimonials !== 'function') {
+                fallback();
+                return;
+            }
+
+            try {
+                const apiTestimonials = await window.API.getTestimonials();
+                const list = Array.isArray(apiTestimonials) ? apiTestimonials : [];
+                if (!list.length) {
+                    fallback();
+                    return;
+                }
+
+                slider.innerHTML = '<div class="grid grid-2">' + list.slice(0, 6).map(function (item) {
+                    const name = item.studentName || item.name || 'BrightNest Parent';
+                    const course = item.courseName || item.course || 'BrightNest Program';
+                    const review = item.review || item.text || 'Great learning support and clear teaching approach.';
+                    const rating = Number(item.rating || 5);
+                    const stars = '★'.repeat(Math.max(1, Math.min(5, rating)));
+                    return '<article class="card" style="padding:var(--space-xl);">'
+                        + '<p style="color:#f59e0b;font-size:1rem;margin-bottom:.5rem;">' + stars + '</p>'
+                        + '<p style="color:var(--navy-700);line-height:1.7;margin-bottom:1rem;">' + review + '</p>'
+                        + '<p style="margin:0;font-weight:600;color:var(--navy-900);">' + name + '</p>'
+                        + '<p style="margin:0;color:var(--navy-500);font-size:.9rem;">' + course + '</p>'
+                        + '</article>';
+                }).join('') + '</div>';
+            } catch (_) {
+                fallback();
+            }
+        })();
+
         const footerEl = document.getElementById('footerPlaceholder');
         if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();
     </script>

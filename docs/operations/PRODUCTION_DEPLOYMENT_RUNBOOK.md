@@ -31,7 +31,7 @@ Use this checklist as a release gate. A production release should not proceed un
 - [x] Backend test suite passes with coverage gate.
 - [x] Production profile uses `ddl-auto=validate` and disables detailed error exposure.
 - [x] Graceful shutdown is enabled.
-- [ ] Smoke test runs against the exact image tag intended for release.
+- [x] Smoke test runs against the exact image tag intended for release.
 - [ ] Release checklist verifies login, registration, public pages, dashboards, and payment/contact flows.
 - [ ] Release candidate is tested with production-like environment variables.
 
@@ -60,8 +60,8 @@ Use this checklist as a release gate. A production release should not proceed un
 - [x] Nginx applies TLS 1.2/1.3 and core security headers.
 - [x] Image scanning exists in the Docker Hub deployment workflow.
 - [x] CodeQL exists in the GHCR workflow.
-- [ ] One authoritative release pipeline is selected to avoid conflicting production deployments.
-- [ ] Dependency CVE scanning is enforced on every release path.
+- [x] One authoritative release pipeline is selected to avoid conflicting production deployments.
+- [x] Dependency CVE scanning is enforced on every release path.
 - [ ] JWT secrets, DB credentials, and admin credentials are rotated and stored outside Git.
 - [ ] CSP is tightened further to remove `unsafe-inline` where feasible.
 - [ ] Tenant isolation gaps identified in prior audits are fully remediated and regression-tested.
@@ -97,6 +97,7 @@ Use this checklist as a release gate. A production release should not proceed un
 ### Scalability and High Availability Checks
 
 - [x] The application is containerized and stateless enough for horizontal scaling, except for local file upload dependency.
+- [x] Optional S3-based resume upload path exists with local fallback for safer rollout.
 - [ ] Uploaded files are moved from local disk to S3 for multi-instance compatibility.
 - [ ] Redis is provisioned and used in production for distributed rate limiting.
 - [ ] Database tier is upgraded to Amazon RDS MySQL Multi-AZ for enterprise HA.
@@ -375,7 +376,7 @@ Preferred enterprise approach:
 
 ### Recommended production pipeline
 
-One release pipeline should be authoritative. This repository currently has overlapping deployment workflows. Consolidate to one pipeline with the following stages:
+The production release path is centralized in `.github/workflows/deploy.yml`, which applies build, test, CVE, image scan, immutable image push, and production health-gated deployment in one pipeline:
 
 1. Checkout and dependency cache.
 2. Build and unit or integration test on JDK 21.

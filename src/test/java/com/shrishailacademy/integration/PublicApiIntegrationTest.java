@@ -111,6 +111,6 @@ class PublicApiIntegrationTest {
         mockMvc.perform(get("/tuition-classes-in-bangalore"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-            .andExpect(content().string(containsString("Best Tuition Classes in Bengaluru (Bangalore)")));
+                .andExpect(content().string(containsString("Best Tuition Classes in Bengaluru (Bangalore)")));
     }
 }

@@ -41,6 +41,9 @@ public class EnvironmentValidator {
     @Value("${admin.password:}")
     private String adminPassword;
 
+    @Value("${rate.limit.backend:inmemory}")
+    private String rateLimitBackend;
+
     @PostConstruct
     public void validate() {
         log.info("Validating production environment configuration...");
@@ -87,6 +90,13 @@ public class EnvironmentValidator {
         if ("admin@brightnest.com".equals(adminEmail) || "Admin@123".equals(adminPassword)) {
             log.warn(
                     "\u26a0 Admin credentials appear to be dev defaults. Set strong ADMIN_EMAIL/ADMIN_PASSWORD env vars.");
+        }
+
+        // Rate limiter must use Redis in production to avoid per-instance bypass.
+        if (rateLimitBackend == null || !"redis".equalsIgnoreCase(rateLimitBackend.trim())) {
+            log.warn("⚠ rate.limit.backend='{}' in production; expected 'redis'.", rateLimitBackend);
+            throw new IllegalStateException(
+                    "FATAL: rate.limit.backend must be 'redis' in production. Set RATE_LIMIT_BACKEND=redis.");
         }
 
         log.info("Production environment validation complete — all critical checks passed.");

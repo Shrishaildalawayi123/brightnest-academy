@@ -246,6 +246,13 @@ const API = {
   },
 
   // ===== USERS =====
+  async getEducators() {
+    return this.request("/users/faculty", {
+      method: "GET",
+      headers: this.getHeaders(false),
+    });
+  },
+
   async getCurrentUser() {
     return this.request("/users/me", {
       method: "GET",
@@ -279,6 +286,14 @@ const API = {
     return this.request("/users", {
       method: "GET",
       headers: this.getHeaders(true),
+    });
+  },
+
+  // ===== TESTIMONIALS (Public) =====
+  async getTestimonials() {
+    return this.request("/testimonials", {
+      method: "GET",
+      headers: this.getHeaders(false),
     });
   },
 

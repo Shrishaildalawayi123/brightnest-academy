@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -111,7 +111,7 @@
     <script src="js/app.js"></script>
     <script>
         const teamGrid = document.getElementById('teamGrid');
-        if (teamGrid && window.TEAM_DATA) {
+        if (teamGrid) {
             const subjects = [
                 { key: 'kannada', label: 'Kannada' },
                 { key: 'english', label: 'English' },
@@ -132,18 +132,59 @@
                 });
             };
 
-            teamGrid.innerHTML = subjects.map(({ label }) => {
-                const members = TEAM_DATA.filter(m => matchesSubject(m, label));
-                if (!members.length) return '';
-                return `
-                    <div class="section-header" style="text-align:left;margin-top:var(--space-2xl);">
-                        <h3 class="section-title">${label}</h3>
-                    </div>
-                    <div class="team-grid">
-                        ${members.map(m => renderTeamCard(m)).join('')}
-                    </div>
-                `;
-            }).join('');
+            const renderBySubjects = function (membersData) {
+                teamGrid.innerHTML = subjects.map(({ label }) => {
+                    const members = membersData.filter(m => matchesSubject(m, label));
+                    if (!members.length) return '';
+                    return `
+                        <div class="section-header" style="text-align:left;margin-top:var(--space-2xl);">
+                            <h3 class="section-title">${label}</h3>
+                        </div>
+                        <div class="team-grid">
+                            ${members.map(m => renderTeamCard(m)).join('')}
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            const fallbackMembers = Array.isArray(window.TEAM_DATA) ? window.TEAM_DATA : [];
+
+            (async function () {
+                if (!window.API || typeof window.API.getEducators !== 'function') {
+                    renderBySubjects(fallbackMembers);
+                    return;
+                }
+
+                try {
+                    const payload = await window.API.getEducators();
+                    const list = Array.isArray(payload)
+                        ? payload
+                        : (payload && Array.isArray(payload.content) ? payload.content : []);
+
+                    if (!list.length) {
+                        renderBySubjects(fallbackMembers);
+                        return;
+                    }
+
+                    const mapped = list.map(function (u, idx) {
+                        const keys = String(u.subjectSpecialization || u.specialization || 'General').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+                        return {
+                            id: u.id || ('api-' + idx),
+                            name: u.name || 'BrightNest Educator',
+                            role: 'Subject Educator',
+                            subject: keys[0] || 'General',
+                            subjects: keys.length ? keys : ['General'],
+                            qualification: u.qualification || 'Experienced faculty',
+                            experience: u.experience || 'Teaching expert',
+                            image: 'images/logo.png'
+                        };
+                    });
+
+                    renderBySubjects(mapped);
+                } catch (_) {
+                    renderBySubjects(fallbackMembers);
+                }
+            })();
         }
         const footerEl = document.getElementById('footerPlaceholder');
         if (footerEl && window.getFooterHTML) footerEl.innerHTML = getFooterHTML();

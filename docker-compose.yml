@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: brightnest-mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-brightnest}
+      MYSQL_USER: ${DB_USER:-brightnest}
+      MYSQL_PASSWORD: ${DB_PASS:-brightnest}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: brightnest-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  app:
+    build: .
+    container_name: brightnest-app-dev
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./.env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-brightnest}
+      DB_USER: ${DB_USER:-brightnest}
+      DB_PASS: ${DB_PASS:-brightnest}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+
+volumes:
+  mysql_data:

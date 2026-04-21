@@ -737,7 +737,21 @@ curl -X POST https://brightnest-academy.com/api/auth/login -H "Content-Type: app
 
 ## Step 5.1: Prepare Frontend Code
 
-**Assuming React frontend exists in your project:**
+**Current repository model (authoritative):**
+
+- Frontend assets are served from `src/main/resources/static` inside the Spring Boot app.
+- There is no separate production React build artifact in this repository.
+- Deploying the backend image in Phase 4.4 automatically deploys frontend pages as part of the same container release.
+
+**Execution for this repo:**
+
+1. Validate static pages render correctly in staging or production smoke tests (`/`, `/courses.html`, `/contact.html`).
+2. Validate API integrations from static pages still target `/api/*` routes on the same origin.
+3. Keep cache headers and compression tuned in Nginx (`deploy/aws/nginx-brightnest.conf`).
+
+### Optional future state (if frontend is split into React/Vite)
+
+If you later extract the frontend into a separate SPA repository or build output, use the steps below.
 
 ### Update API Configuration:
 
@@ -769,7 +783,7 @@ npm run build
 
 ---
 
-## Step 5.2: Deploy to AWS S3 + CloudFront
+## Step 5.2 (Optional): Deploy Split Frontend to AWS S3 + CloudFront
 
 ### Create S3 Bucket:
 
@@ -912,88 +926,31 @@ Create A record:
 
 **File:** `.github/workflows/deploy.yml`
 
-### Update ECR Push Configuration:
+### Current authoritative pipeline behavior:
 
-```yaml
-name: Deploy to AWS Production
+The repository now uses a single production release workflow that:
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+1. Runs backend tests and coverage gate on Java 21.
+2. Runs frontend unit tests from `qa`.
+3. Enforces dependency CVE threshold using OWASP Dependency Check.
+4. Builds and pushes immutable GHCR image tags (commit SHA) plus `latest`.
+5. Scans pushed container images with Trivy (critical severity fails).
+6. Deploys to production with blue-green switching and health checks.
+7. Keeps environment-gated production deployment controls via GitHub Environments.
 
-permissions:
-  contents: read
-  id-token: write  # For OIDC authentication
+Core secrets required for the current model:
 
-env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: brightnest-academy
-  ECS_CLUSTER: brightnest-prod-cluster
-  ECS_SERVICE: brightnest-app-service
-  ECS_TASK_DEFINITION: brightnest-app
+- `EC2_HOST`
+- `EC2_USER`
+- `EC2_SSH_KEY`
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+Container registry is GitHub Container Registry (`ghcr.io`).
 
-      - name: Setup Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
-
-      - name: Run tests
-        working-directory: ./shrishail-academy
-        env:
-          SPRING_PROFILES_ACTIVE: test
-        run: mvn clean verify
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push Docker image
-        working-directory: ./shrishail-academy
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-      - name: Update ECS service
-        run: |
-          aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE }} \
-            --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
-
-      - name: Wait for service stability
-        run: |
-          aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }}
-```
+If you migrate to ECS/ECR later, adapt this step to the optional ECR/ECS model below.
 
 ---
 
-## Step 6.2: Setup AWS OIDC for GitHub Actions
+## Step 6.2 (Optional for ECR/ECS): Setup AWS OIDC for GitHub Actions
 
 **Recommended:** Use OIDC instead of long-lived access keys.
 
@@ -1089,6 +1046,10 @@ git push origin main
 ---
 
 # PHASE 7: Security Hardening (Day 6)
+
+Use this operator worksheet while executing cloud-side hardening in your account:
+
+- `docs/operations/PHASE7_AWS_EXECUTION_CHECKLIST.md`
 
 ## Step 7.1: Enable AWS WAF
 
