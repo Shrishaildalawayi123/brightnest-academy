@@ -2,6 +2,10 @@
 test-output.txt
 test-results.txt
 test-results2.txt
+test-run-output.txt
 *.log
 target/
 uploads/
+node_modules/
+qa/node_modules/
+qa/coverage/
