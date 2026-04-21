@@ -312,13 +312,11 @@ function crmQueryParams() {
 async function loadOverview() {
   try {
     const [users, courses, enrollmentsPayload] = await Promise.all([
-      fetch("/api/users/students", { headers: authHeaders() }).then((r) =>
+      fetch("/api/users", { headers: authHeaders() }).then((r) => r.json()),
+      fetch("/api/courses").then((r) => r.json()),
+      fetch("/api/enrollments", { headers: authHeaders() }).then((r) =>
         r.json(),
       ),
-      fetch("/api/courses").then((r) => r.json()),
-      fetch(`/api/enrollments?page=0&size=${pageSize}`, {
-        headers: authHeaders(),
-      }).then((r) => r.json()),
     ]);
     const enrollments = unpackPageResponse(enrollmentsPayload).content;
     const students = Array.isArray(users)
