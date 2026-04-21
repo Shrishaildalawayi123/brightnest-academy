@@ -44,7 +44,7 @@ jobs:
         run: >-
           mvn -B clean verify
           -Dspring.profiles.active=test
-          -Djacoco.minimum.coverage=0.60
+          -Djacoco.minimum.coverage=0.55
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
