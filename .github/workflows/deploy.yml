@@ -1,231 +1,232 @@
-name: BrightNest CI/CD Deploy
+name: Release Pipeline
 
 on:
   push:
     branches: [main]
-
-concurrency:
-  group: brightnest-deploy
-  cancel-in-progress: true
-
-env:
-  APP_NAME: brightnest
-  JAR_NAME: shrishail-academy-1.0.0.jar
-  DEPLOY_DIR: /home/ubuntu/brightnest-academy
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Optional image tag override (default: commit SHA)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+env:
+  APP_NAME: brightnest
+  PROD_PORT: "8080"
+  BLUE_PORT: "18080"
+  GREEN_PORT: "18081"
+
 jobs:
-  test:
+  quality-gates:
+    name: Quality and Security Gates
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: brightnest_test
-          MYSQL_ROOT_PASSWORD: test
-        ports:
-          - "3306:3306"
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -ptest"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 21
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
-      - name: Run Test Suite
-        run: >
-          mvn test
+      - name: Run backend tests and coverage gate
+        run: >-
+          mvn -B clean verify
           -Dspring.profiles.active=test
-          -Dspring.datasource.url=jdbc:mysql://127.0.0.1:3306/brightnest_test
-          -Dspring.datasource.username=root
-          -Dspring.datasource.password=test
+          -Djacoco.minimum.coverage=0.60
 
-  deploy:
-    needs: test
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: qa/package-lock.json
+
+      - name: Run frontend unit tests
+        run: |
+          npm ci --prefix qa
+          npm run --prefix qa test:unit
+
+      - name: Enforce dependency CVE threshold
+        run: >-
+          mvn -B org.owasp:dependency-check-maven:check
+          -Dformat=JSON
+          -DfailBuildOnCVSS=7.0
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-gate-artifacts-${{ github.sha }}
+          path: |
+            target/surefire-reports/**
+            target/failsafe-reports/**
+            target/site/jacoco/**
+            target/dependency-check-report.json
+          if-no-files-found: warn
+
+  build-and-push:
+    name: Build and Push Image
     runs-on: ubuntu-latest
+    needs: quality-gates
+    outputs:
+      image_ref: ${{ steps.meta.outputs.image_ref }}
 
     steps:
-      - name: 1️⃣ Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 2️⃣ Setup Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: maven
-
-      - name: 3️⃣ Build Spring Boot Application
-        run: mvn clean package -DskipTests
-
-      - name: 4️⃣ Verify Build
-        run: |
-          echo "Listing build artifacts"
-          ls -lh target
-
-      - name: 5️⃣ Upload JAR to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: target/${{ env.JAR_NAME }}
-          target: ${{ env.DEPLOY_DIR }}/target/
-          overwrite: true
-
-      - name: 5.1ï¸âƒ£ Setup Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 5.2ï¸âƒ£ Login to GHCR
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 5.3ï¸âƒ£ Build and Push Docker Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/brightnest-academy:latest
+      - name: Resolve image metadata
+        id: meta
+        run: |
+          TAG_INPUT="${{ github.event.inputs.image_tag }}"
+          if [ -z "$TAG_INPUT" ]; then
+            TAG_INPUT="${{ github.sha }}"
+          fi
+          IMAGE_REF="ghcr.io/${{ github.repository_owner }}/brightnest-academy:${TAG_INPUT}"
+          echo "image_ref=$IMAGE_REF" >> "$GITHUB_OUTPUT"
 
-      - name: 6️⃣ Upload Nginx Config
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: deploy/aws/nginx-brightnest.conf
-          target: ${{ env.DEPLOY_DIR }}/deploy/aws/
-          overwrite: true
+      - name: Build and push immutable and latest tags
+        run: |
+          IMAGE_REF="${{ steps.meta.outputs.image_ref }}"
+          docker build -t "$IMAGE_REF" -t "ghcr.io/${{ github.repository_owner }}/brightnest-academy:latest" .
+          docker push "$IMAGE_REF"
+          docker push "ghcr.io/${{ github.repository_owner }}/brightnest-academy:latest"
 
-      - name: 7️⃣ Deploy Nginx Config and Restart
+      - name: Scan pushed image with Trivy (critical fails)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.meta.outputs.image_ref }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+  deploy-production:
+    name: Deploy to Production (Blue-Green)
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - name: Deploy candidate on inactive slot
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            set -u
-            DEPLOY_DIR="/home/ubuntu/brightnest-academy"
-            NGINX_CONF="$DEPLOY_DIR/deploy/aws/nginx-brightnest.conf"
-            CERT_DIR="/etc/letsencrypt/live/brightnest-academy.com"
+            set -euo pipefail
 
-            echo "=== Pre-deploy diagnostics ==="
-            nginx -v 2>&1 || true
-            echo "--- sites-available ---"
-            sudo ls -la /etc/nginx/sites-available/ 2>/dev/null || echo "directory missing"
-            echo "--- sites-enabled ---"
-            sudo ls -la /etc/nginx/sites-enabled/ 2>/dev/null || echo "directory missing"
-            echo "--- SSL cert directory ---"
-            sudo ls -la "$CERT_DIR/" 2>/dev/null || echo "cert dir missing"
-            echo "--- nginx service status ---"
-            sudo systemctl status nginx --no-pager -l | head -20 || true
+            IMAGE="${{ needs.build-and-push.outputs.image_ref }}"
+            APP_NAME="${{ env.APP_NAME }}"
+            PROD_PORT="${{ env.PROD_PORT }}"
+            BLUE_PORT="${{ env.BLUE_PORT }}"
+            GREEN_PORT="${{ env.GREEN_PORT }}"
 
-            echo "=== SSL certs: ensure valid ==="
-            CERT_VALID=false
-            if sudo test -f "$CERT_DIR/fullchain.pem" && sudo test -f "$CERT_DIR/privkey.pem"; then
-              expiry=$(sudo openssl x509 -in "$CERT_DIR/fullchain.pem" -noout -enddate 2>&1)
-              echo "Cert found — $expiry"
-              if sudo openssl x509 -checkend 3600 -noout -in "$CERT_DIR/fullchain.pem" 2>/dev/null; then
-                echo "Cert is valid (not expiring within 1h)"
-                CERT_VALID=true
-              else
-                echo "WARNING: cert is expired or expiring very soon!"
-              fi
-              if ! sudo test -f "$CERT_DIR/chain.pem"; then
-                echo "chain.pem missing — copying from fullchain.pem"
-                sudo cp "$CERT_DIR/fullchain.pem" "$CERT_DIR/chain.pem"
+            ACTIVE_SLOT="blue"
+            if docker ps --format '{{.Names}}' | grep -q "^${APP_NAME}-green$"; then
+              GREEN_PORT_LIVE=$(docker inspect -f '{{range .NetworkSettings.Ports}}{{(index . 0).HostPort}}{{end}}' "${APP_NAME}-green" 2>/dev/null || true)
+              if [ "$GREEN_PORT_LIVE" = "$PROD_PORT" ]; then
+                ACTIVE_SLOT="green"
               fi
             fi
 
-            if [ "$CERT_VALID" = "false" ]; then
-              echo "=== Creating self-signed certificate fallback ==="
-              sudo mkdir -p "$CERT_DIR"
-              sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-                -keyout "$CERT_DIR/privkey.pem" \
-                -out "$CERT_DIR/fullchain.pem" \
-                -subj "/C=IN/ST=Karnataka/O=BrightNest Academy/CN=brightnest-academy.com" 2>&1 || true
-              sudo cp "$CERT_DIR/fullchain.pem" "$CERT_DIR/chain.pem"
-              echo "Self-signed cert created"
-            fi
-
-            echo "=== Clearing sites-enabled (remove all for clean install) ==="
-            sudo find /etc/nginx/sites-enabled/ -maxdepth 1 \( -type l -o -type f \) -delete 2>/dev/null || true
-
-            echo "=== Installing nginx config ==="
-            sudo cp "$NGINX_CONF" /etc/nginx/sites-available/brightnest-academy
-            sudo ln -sf /etc/nginx/sites-available/brightnest-academy /etc/nginx/sites-enabled/brightnest-academy
-            echo "Installed: $(sudo ls -la /etc/nginx/sites-enabled/)"
-
-            echo "=== Nginx config test ==="
-            if sudo nginx -t 2>&1; then
-              echo "Config test PASSED"
+            if [ "$ACTIVE_SLOT" = "blue" ]; then
+              CANDIDATE_SLOT="green"
+              CANDIDATE_PORT="$GREEN_PORT"
+              ACTIVE_CONTAINER="${APP_NAME}-blue"
             else
-              echo "Config test FAILED — full nginx error:"
-              sudo nginx -T 2>&1 | grep -E "error|emerg|warn|nginx -t" | head -40 || true
-              exit 1
+              CANDIDATE_SLOT="blue"
+              CANDIDATE_PORT="$BLUE_PORT"
+              ACTIVE_CONTAINER="${APP_NAME}-green"
             fi
 
-            echo "=== Starting/restarting nginx ==="
-            sudo systemctl enable nginx
-            if sudo systemctl restart nginx; then
-              echo "Nginx started: $(sudo systemctl is-active nginx)"
-            else
-              echo "Nginx restart FAILED — journal:"
-              sudo journalctl -u nginx --lines=30 --no-pager 2>/dev/null || true
-              exit 1
-            fi
+            CANDIDATE_CONTAINER="${APP_NAME}-${CANDIDATE_SLOT}"
 
-            echo "=== Local connectivity check ==="
-            sleep 2
-            echo "-- HTTP (should redirect) --"
-            curl -sSI -H "Host: brightnest-academy.com" http://127.0.0.1/ | head -5 || true
-            echo "-- HTTPS root (should be 302 https) --"
-            curl -skSI -H "Host: brightnest-academy.com" https://127.0.0.1/ | head -10 || true
+            echo "Active slot: $ACTIVE_SLOT"
+            echo "Candidate slot: $CANDIDATE_SLOT"
+            echo "Deploying image: $IMAGE"
 
-      - name: 8️⃣ Restart Application
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/brightnest-academy
-            echo "Restarting application service"
-            sudo systemctl restart brightnest
-            sudo systemctl status brightnest --no-pager
+            docker pull "$IMAGE"
+            docker rm -f "$CANDIDATE_CONTAINER" || true
 
-      - name: 9️⃣ Health Check
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "Checking application health"
-            for i in {1..15}; do
-              if curl -fsS http://localhost:8080/health >/dev/null 2>&1; then
-                echo "Application started successfully"
-                exit 0
+            docker run -d \
+              --name "$CANDIDATE_CONTAINER" \
+              --restart unless-stopped \
+              -p "${CANDIDATE_PORT}:8080" \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              "$IMAGE"
+
+            for i in $(seq 1 30); do
+              if curl -fsS "http://127.0.0.1:${CANDIDATE_PORT}/health" >/dev/null; then
+                echo "Candidate container healthy"
+                break
               fi
-              echo "Waiting for app startup..."
-              sleep 5
+              if [ "$i" -eq 30 ]; then
+                echo "Candidate health check failed"
+                docker logs "$CANDIDATE_CONTAINER" --tail 150 || true
+                exit 1
+              fi
+              sleep 4
             done
-            echo "Application failed to start"
-            exit 1
+
+            TMP_CONF="/tmp/${APP_NAME}.conf"
+            sudo cp /etc/nginx/sites-available/brightnest-academy "$TMP_CONF"
+            sudo sed -i -E "s/(proxy_pass\s+http:\/\/127\.0\.0\.1:)[0-9]+/\1${CANDIDATE_PORT}/g" "$TMP_CONF"
+            sudo cp "$TMP_CONF" /etc/nginx/sites-available/brightnest-academy
+            sudo nginx -t
+            sudo systemctl reload nginx
+
+            for i in $(seq 1 20); do
+              if curl -fsS "http://127.0.0.1:${PROD_PORT}/health" >/dev/null; then
+                echo "Production endpoint healthy after switch"
+                break
+              fi
+              if [ "$i" -eq 20 ]; then
+                echo "Production health failed after switch, rolling back nginx"
+                sudo sed -i -E "s/(proxy_pass\s+http:\/\/127\.0\.0\.1:)[0-9]+/\1$( [ \"$ACTIVE_SLOT\" = \"blue\" ] && echo $BLUE_PORT || echo $GREEN_PORT )/g" /etc/nginx/sites-available/brightnest-academy
+                sudo nginx -t
+                sudo systemctl reload nginx
+                docker rm -f "$CANDIDATE_CONTAINER" || true
+                exit 1
+              fi
+              sleep 3
+            done
+
+            if [ -n "$ACTIVE_CONTAINER" ]; then
+              docker rm -f "$ACTIVE_CONTAINER" || true
+            fi
+
+            echo "Deployment complete. Active slot is now: $CANDIDATE_SLOT"
+
+      - name: Final health verification on production port
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            curl -fsS "http://127.0.0.1:${{ env.PROD_PORT }}/health" >/dev/null
+            echo "Final health check passed"
