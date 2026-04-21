@@ -9,9 +9,9 @@ function jsonResponse(body, status = 200) {
 }
 
 async function flushAsyncWork() {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve();
+  }
 }
 
 describe("admin dashboard overview", () => {
