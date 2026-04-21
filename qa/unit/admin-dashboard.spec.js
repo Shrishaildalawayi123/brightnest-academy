@@ -9,9 +9,9 @@ function jsonResponse(body, status = 200) {
 }
 
 async function flushAsyncWork() {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve();
+  }
 }
 
 describe("admin dashboard overview", () => {
@@ -46,15 +46,9 @@ describe("admin dashboard overview", () => {
 
   it("loads overview data with authenticated users request", async () => {
     const nativeFetch = vi.fn().mockImplementation((url) => {
-      if (url === "/api/users") {
+      if (url === "/api/users/students") {
         return Promise.resolve(
           jsonResponse([
-            {
-              name: "QA Admin",
-              email: "admin@example.com",
-              role: "ADMIN",
-              createdAt: "2026-03-06T00:00:00Z",
-            },
             {
               name: "Student One",
               email: "student@example.com",
@@ -72,7 +66,7 @@ describe("admin dashboard overview", () => {
           ]),
         );
       }
-      if (url === "/api/enrollments") {
+      if (url.startsWith("/api/enrollments")) {
         return Promise.resolve(
           jsonResponse([{ status: "ACTIVE" }, { status: "CANCELLED" }]),
         );
@@ -86,7 +80,7 @@ describe("admin dashboard overview", () => {
     await flushAsyncWork();
 
     const usersRequest = nativeFetch.mock.calls.find(
-      ([url]) => url === "/api/users",
+      ([url]) => url === "/api/users/students",
     );
     expect(usersRequest).toBeTruthy();
     expect(usersRequest[1].headers.Authorization).toBe("Bearer server-jwt");
