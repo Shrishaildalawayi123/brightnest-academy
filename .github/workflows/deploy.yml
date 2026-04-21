@@ -191,6 +191,26 @@ jobs:
               sleep 4
             done
 
+            # Pre-flight: remove conf.d files that duplicate directives already defined in
+            # sites-available/brightnest-academy (upstream block, limit_req_zone).
+            # These stale files were the root cause of "duplicate upstream" and
+            # "unknown directive" failures seen in previous deploy runs.
+            for STALE in brightnest-global.conf brightnest-performance.conf; do
+              STALE_PATH="/etc/nginx/conf.d/${STALE}"
+              if [ -f "$STALE_PATH" ]; then
+                echo "Removing stale conf.d file: $STALE_PATH"
+                sudo rm -f "$STALE_PATH"
+              fi
+            done
+
+            # Pre-flight: validate nginx config BEFORE touching sites-available so we
+            # fail fast on any pre-existing config errors rather than mid-deploy.
+            if ! sudo nginx -t 2>&1; then
+              echo "Pre-flight nginx -t failed. Aborting deployment to avoid breaking production."
+              sudo nginx -T 2>&1 | grep -E "error|emerg|warn" | head -20 || true
+              exit 1
+            fi
+
             TMP_CONF="/tmp/${APP_NAME}.conf"
             sudo cp /etc/nginx/sites-available/brightnest-academy "$TMP_CONF"
             sudo sed -i -E "s/(proxy_pass\s+http:\/\/127\.0\.0\.1:)[0-9]+/\1${CANDIDATE_PORT}/g" "$TMP_CONF"
