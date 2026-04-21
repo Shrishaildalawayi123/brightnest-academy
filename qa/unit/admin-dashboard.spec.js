@@ -9,7 +9,7 @@ function jsonResponse(body, status = 200) {
 }
 
 async function flushAsyncWork() {
-  for (let i = 0; i < 20; i++) {
+  for (let _i = 0; _i < 20; _i++) {
     await Promise.resolve();
   }
 }
