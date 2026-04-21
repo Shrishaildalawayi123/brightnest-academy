@@ -57,7 +57,9 @@ class JwtLifecycleIntegrationTest {
                                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)
                                 .cookie(refreshCookie))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.token").isString());
+                                .andExpect(cookie().exists("AUTH_TOKEN"))
+                                .andExpect(jsonPath("$.message").value("Token refreshed successfully"))
+                                .andExpect(jsonPath("$.type").value("Bearer"));
 
                 mockMvc.perform(post("/api/auth/logout")
                                 .header(TENANT_HEADER, DEFAULT_TENANT_KEY)

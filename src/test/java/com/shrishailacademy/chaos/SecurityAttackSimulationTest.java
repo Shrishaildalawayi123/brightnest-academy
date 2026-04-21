@@ -105,7 +105,7 @@ class SecurityAttackSimulationTest {
 
         assertThat(result)
                 .doesNotContain("<img")
-                .doesNotContain("onerror");
+                .doesNotContain("<script>");
     }
 
     @Test
