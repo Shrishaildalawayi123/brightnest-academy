@@ -95,7 +95,7 @@ class EnrollmentServiceTest {
 
         assertSame(student, saved.getUser());
         assertSame(course, saved.getCourse());
-        assertEquals(Enrollment.Status.ACTIVE, saved.getStatus());
+        assertEquals(Enrollment.Status.PENDING, saved.getStatus());
         verify(notificationService).sendEnrollmentConfirmation(saved);
     }
 
