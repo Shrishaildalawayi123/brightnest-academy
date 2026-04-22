@@ -51,6 +51,7 @@
     scheduleWhatsappPopup();
     scheduleDemoLeadPopup();
     enhanceLeadGenSections();
+    injectGlobalConversionSection();
     window.setTimeout(normalizeContactLinks, 200);
   }
 
@@ -115,12 +116,21 @@
     stack.className = "marketing-float-stack";
     stack.id = "marketingFloatStack";
     stack.innerHTML = `
-      <button class="marketing-float-btn marketing-float-btn--chat" id="marketingChatToggle" type="button" aria-expanded="false" aria-controls="marketingChatbot">
-        Ask BrightNest
+      <div class="marketing-float-actions" id="marketingFloatActions" hidden>
+        <button class="marketing-float-btn marketing-float-btn--chat" id="marketingChatToggle" type="button" aria-controls="marketingChatbot">
+          Chat with us
+        </button>
+        <a class="marketing-float-btn marketing-float-btn--whatsapp" href="${SITE_INFO.whatsappUrl}" target="_blank" rel="noopener" data-source-page="${window.location.pathname || "/"}">
+          WhatsApp
+        </a>
+        <a class="marketing-float-btn marketing-float-btn--demo" href="/demo.html">
+          Book Demo
+        </a>
+      </div>
+      <button class="marketing-float-launcher" id="marketingFloatLauncher" type="button" aria-expanded="false" aria-controls="marketingFloatActions" aria-label="Open support actions">
+        <span class="marketing-float-launcher__icon">💬</span>
+        <span class="marketing-float-launcher__label">Help</span>
       </button>
-      <a class="marketing-float-btn marketing-float-btn--whatsapp" href="${SITE_INFO.whatsappUrl}" target="_blank" rel="noopener" data-source-page="${window.location.pathname || "/"}">
-        WhatsApp
-      </a>
     `;
 
     document.body.appendChild(stack);
@@ -165,6 +175,9 @@
     renderQuickReplies(chatbot.querySelector("#marketingChatQuickReplies"), CHATBOT_QUICK_REPLIES);
 
     const toggleButton = document.getElementById("marketingChatToggle");
+    const floatStack = document.getElementById("marketingFloatStack");
+    const launcherButton = document.getElementById("marketingFloatLauncher");
+    const actionsPanel = document.getElementById("marketingFloatActions");
     const closeButton = chatbot.querySelector("#marketingChatClose");
     const form = chatbot.querySelector("#marketingChatForm");
     const input = chatbot.querySelector("#marketingChatInput");
@@ -181,6 +194,15 @@
       document.body.appendChild(miniChip);
     }
 
+    const setActionsPanelOpen = (shouldOpen) => {
+      if (!actionsPanel) {
+        return;
+      }
+      actionsPanel.hidden = !shouldOpen;
+      launcherButton?.setAttribute("aria-expanded", String(shouldOpen));
+      floatStack?.classList.toggle("is-open", shouldOpen);
+    };
+
     const setChatbotOpen = (shouldOpen) => {
       chatbot.hidden = !shouldOpen;
       chatbot.setAttribute("aria-hidden", String(!shouldOpen));
@@ -190,11 +212,11 @@
           miniChip.hidden = true;
         }
         localStorage.setItem(CHATBOT_MINIMIZED_KEY, "false");
+        setActionsPanelOpen(false);
       } else {
         // Force-hide for mobile browsers that may delay hidden state repaint on touch.
         chatbot.style.display = "none";
       }
-      toggleButton?.setAttribute("aria-expanded", String(shouldOpen));
     };
 
     const setChatbotMinimized = (shouldMinimize) => {
@@ -214,23 +236,30 @@
       setChatbotMinimized(true);
     };
 
-    toggleButton?.addEventListener("click", () => {
-      const willOpen = chatbot.hidden;
-      setChatbotOpen(willOpen);
+    const openChatbot = () => {
+      setChatbotOpen(true);
       localStorage.setItem(POPUP_ENGAGED_KEY, "true");
-      if (willOpen) {
-        setChatbotMinimized(false);
-        hideWhatsappPopup();
-        window.setTimeout(() => input.focus(), 50);
-      }
+      setChatbotMinimized(false);
+      hideWhatsappPopup();
+      window.setTimeout(() => input.focus(), 50);
+    };
+
+    launcherButton?.addEventListener("click", () => {
+      const isOpen = launcherButton.getAttribute("aria-expanded") === "true";
+      setActionsPanelOpen(!isOpen);
+      hideWhatsappPopup();
+    });
+
+    actionsPanel?.addEventListener("click", () => {
+      setActionsPanelOpen(false);
+    });
+
+    toggleButton?.addEventListener("click", () => {
+      openChatbot();
     });
 
     miniChip?.addEventListener("click", () => {
-      setChatbotOpen(true);
-      setChatbotMinimized(false);
-      localStorage.setItem(POPUP_ENGAGED_KEY, "true");
-      hideWhatsappPopup();
-      window.setTimeout(() => input.focus(), 50);
+      openChatbot();
     });
 
     closeButton?.addEventListener("click", closeChatbot);
@@ -258,20 +287,36 @@
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !chatbot.hidden) {
+      if (event.key !== "Escape") {
+        return;
+      }
+      if (!chatbot.hidden) {
         closeChatbot(event);
+      }
+      if (launcherButton?.getAttribute("aria-expanded") === "true") {
+        setActionsPanelOpen(false);
       }
     });
 
     document.addEventListener("pointerdown", (event) => {
-      if (chatbot.hidden) {
-        return;
-      }
       const target = event.target;
-      if (chatbot.contains(target) || toggleButton?.contains(target)) {
+
+      const clickedInsideWidget =
+        (chatbot && chatbot.contains(target)) ||
+        (floatStack && floatStack.contains(target)) ||
+        (miniChip && miniChip.contains(target));
+
+      if (clickedInsideWidget) {
         return;
       }
-      closeChatbot();
+
+      if (!chatbot.hidden) {
+        closeChatbot();
+      }
+
+      if (launcherButton?.getAttribute("aria-expanded") === "true") {
+        setActionsPanelOpen(false);
+      }
     });
 
     if (localStorage.getItem(CHATBOT_MINIMIZED_KEY) === "true") {
@@ -630,6 +675,56 @@
   function enhanceLeadGenSections() {
     enhanceCoursesPage();
     enhanceDemoPage();
+  }
+
+  function injectGlobalConversionSection() {
+    if (document.getElementById("marketingGlobalConversion")) {
+      return;
+    }
+
+    const pagePath = (window.location.pathname || "").toLowerCase();
+    if (
+      [
+        "/demo.html",
+        "/login.html",
+        "/register.html",
+        "/admin-dashboard.html",
+        "/student-dashboard.html",
+      ].includes(pagePath)
+    ) {
+      return;
+    }
+
+    const host = document.querySelector("main") || document.body;
+    const referenceSection =
+      host.querySelector(".cta-section") ||
+      host.querySelector(".section:last-of-type") ||
+      null;
+
+    const section = document.createElement("section");
+    section.id = "marketingGlobalConversion";
+    section.className = "marketing-conversion-strip";
+    section.innerHTML = `
+      <div class="container marketing-conversion-strip__inner">
+        <div class="marketing-conversion-strip__copy">
+          <p class="marketing-conversion-strip__eyebrow">Admissions Open</p>
+          <h2>Get a personalized study plan for your child this week</h2>
+          <p>Talk to our advisor, compare online and offline options, and book a demo class in under 2 minutes.</p>
+        </div>
+        <div class="marketing-conversion-strip__actions">
+          <a href="/demo.html" class="marketing-conversion-strip__btn marketing-conversion-strip__btn--primary">Book Demo Class</a>
+          <a href="${SITE_INFO.whatsappUrl}" target="_blank" rel="noopener" class="marketing-conversion-strip__btn marketing-conversion-strip__btn--whatsapp" data-source-page="${window.location.pathname || "/"}">WhatsApp Advisor</a>
+          <a href="tel:${SITE_INFO.phoneHref}" class="marketing-conversion-strip__btn marketing-conversion-strip__btn--call">Call ${SITE_INFO.phoneDisplay}</a>
+        </div>
+      </div>
+    `;
+
+    if (referenceSection && referenceSection.parentNode) {
+      referenceSection.parentNode.insertBefore(section, referenceSection);
+      return;
+    }
+
+    host.appendChild(section);
   }
 
   function enhanceCoursesPage() {

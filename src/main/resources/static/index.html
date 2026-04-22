@@ -224,6 +224,26 @@
             .about-stat strong { font-size: 1.15rem; }
             .about-stat small { font-size: 0.68rem; }
         }
+
+        .home-conversion-band {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #fff;
+            padding: 1.75rem 0;
+        }
+        .home-conversion-band__inner {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+        .home-conversion-band h2 { color: #fff; margin-bottom: 0.45rem; font-size: clamp(1.3rem, 2.7vw, 1.95rem); }
+        .home-conversion-band p { margin: 0; color: rgba(255,255,255,0.86); }
+        .home-conversion-band__actions { display: grid; gap: 0.6rem; }
+        .home-conversion-band__actions .btn { width: 100%; min-height: 46px; font-weight: 800; }
+
+        @media (max-width: 768px) {
+            .home-conversion-band__inner { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -683,12 +703,28 @@
         </section>
 
         <!-- CTA -->
+        <section class="home-conversion-band" aria-label="Fast enrollment actions">
+            <div class="container home-conversion-band__inner">
+                <div>
+                    <p class="eyebrow" style="color:#fdba74;">Limited Seats This Month</p>
+                    <h2>Book a Demo Class and Get a Personalized Study Plan</h2>
+                    <p>Speak to our admissions advisor and get the best subject-path recommendation for your child today.</p>
+                </div>
+                <div class="home-conversion-band__actions">
+                    <a href="demo.html" class="btn btn-accent">Book Demo Class</a>
+                    <a href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy%2C%20I%20want%20to%20book%20a%20demo%20class." class="btn btn-secondary" target="_blank" rel="noopener">WhatsApp Admissions</a>
+                    <a href="tel:+917204193980" class="btn btn-primary">Call +91-7204193980</a>
+                </div>
+            </div>
+        </section>
+
         <section class="cta-section">
             <div class="container">
                 <h2>Ready to Start Your Child's Progress Journey?</h2>
                 <p>Book a demo class today and experience personalized education that builds confidence and delivers results.</p>
                 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
                     <a href="demo.html" class="btn btn-accent btn-lg">Book a Demo</a>
+                    <a href="https://wa.me/917204193980?text=Hi%20BrightNest%20Academy%2C%20I%20need%20admission%20help." class="btn btn-primary btn-lg" target="_blank" rel="noopener">WhatsApp Now</a>
                     <a href="contact.html" class="btn btn-secondary btn-lg">Talk to an Advisor</a>
                 </div>
             </div>
