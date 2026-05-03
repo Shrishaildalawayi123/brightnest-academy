@@ -8,10 +8,14 @@ function jsonResponse(body, status = 200) {
   };
 }
 
+// The fetch wrapper in admin-dashboard.js adds auth headers via an async chain.
+// Each fetch goes through: nativeFetch await → wrapper return → .then(r => r.json()) → Promise.all.
+// This requires more microtask ticks than the minimal 3 to fully settle all three parallel fetches.
+const REQUIRED_MICROTASK_TICKS = 10;
 async function flushAsyncWork() {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let i = 0; i < REQUIRED_MICROTASK_TICKS; i++) {
+    await Promise.resolve();
+  }
 }
 
 describe("admin dashboard overview", () => {
