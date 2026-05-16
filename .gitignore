@@ -5,3 +5,5 @@ test-results2.txt
 *.log
 target/
 uploads/
+node_modules/
+qa/node_modules/
