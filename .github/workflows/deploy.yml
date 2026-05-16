@@ -58,11 +58,24 @@ jobs:
           npm ci --prefix qa
           npm run --prefix qa test:unit
 
-      - name: Enforce dependency CVE threshold
-        run: >-
-          mvn -B org.owasp:dependency-check-maven:check
-          -Dformat=JSON
-          -DfailBuildOnCVSS=7.0
+      - name: Enforce dependency CVE threshold (OWASP)
+        if: ${{ secrets.NVD_API_KEY != '' }}
+        run: |
+          mvn -B org.owasp:dependency-check-maven:check \
+            -Dformat=JSON \
+            -DfailBuildOnCVSS=7.0 \
+            -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+
+      - name: Enforce dependency CVE threshold (Trivy fallback)
+        if: ${{ secrets.NVD_API_KEY == '' }}
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
 
       - name: Upload gate artifacts
         if: always()
