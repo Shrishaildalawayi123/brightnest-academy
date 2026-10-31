@@ -65,7 +65,7 @@
     #4338ca 70%,
     #4f46e5 100%
   );
-  --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  --gradient-primary: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
   --gradient-accent: linear-gradient(
     135deg,
     #ea580c 0%,
@@ -364,7 +364,7 @@ textarea:focus-visible,
 }
 .section-subtitle {
   font-size: 1.05rem;
-  color: var(--navy-500);
+  color: var(--navy-600);
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.75;
@@ -1054,6 +1054,7 @@ textarea:focus-visible,
   flex-shrink: 0;
   font-size: 1.2rem;
 }
+.about-feature h3,
 .about-feature h4 {
   font-size: 0.95rem;
   margin-bottom: 0.25rem;
@@ -1961,6 +1962,7 @@ textarea:focus-visible,
 .footer-social a[aria-label="YouTube"]:hover {
   background: #ff0000;
 }
+.footer-col h3,
 .footer-col h4 {
   color: white;
   margin-bottom: var(--space-lg);
@@ -2010,7 +2012,7 @@ textarea:focus-visible,
 }
 .footer-bottom {
   text-align: center;
-  color: var(--navy-500);
+  color: var(--navy-400);
   font-size: 0.85rem;
 }
 
@@ -2740,7 +2742,8 @@ textarea:focus-visible,
   .footer {
     padding: var(--space-2xl) 0 var(--space-lg);
   }
-  .footer-col h4 {
+  .footer-col h3,
+.footer-col h4 {
     margin-bottom: var(--space-md);
   }
   .footer-social {
@@ -3717,4 +3720,25 @@ textarea:focus-visible,
   body {
     padding-bottom: 64px;
   }
+}
+
+/* Keep footer links distinguishable without relying on color alone. */
+.footer-bottom a {
+  color: var(--primary-300);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+/* Maintain compact visual dots inside keyboard/touch targets of at least 24px. */
+.testimonial-dots .dot {
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle, var(--navy-400) 0 5px, transparent 5.5px);
+}
+.testimonial-dots .dot.active {
+  background: radial-gradient(circle, var(--primary-600) 0 6px, transparent 6.5px);
+  transform: none;
+}
+.testimonial-dots .dot:focus-visible {
+  outline: 2px solid var(--primary-600);
+  outline-offset: 2px;
 }

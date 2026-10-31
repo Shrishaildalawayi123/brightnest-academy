@@ -1,3 +1,12 @@
+/* Author layout rules must not override the native hidden state of closed widgets. */
+.marketing-chatbot[hidden],
+.marketing-float-actions[hidden],
+.marketing-demo-popup[hidden],
+.marketing-wa-popup[hidden],
+.marketing-chatbot-minichip[hidden] {
+  display: none !important;
+}
+
 .marketing-float-stack {
   position: fixed;
   right: 1rem;
@@ -71,12 +80,12 @@
 }
 
 .marketing-float-btn--whatsapp {
-  background: linear-gradient(135deg, #12b76a, #0f9f5f);
+  background: linear-gradient(135deg, #047857, #065f46);
   color: #fff;
 }
 
 .marketing-float-btn--demo {
-  background: linear-gradient(135deg, #f97316, #fb923c);
+  background: linear-gradient(135deg, #9a3412, #c2410c);
   color: #fff;
 }
 
@@ -230,7 +239,7 @@
   padding: 0 1rem 1rem;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #0f9f5f;
+  color: #047857;
   background: #fff;
 }
 
@@ -257,7 +266,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #0f9f5f;
+  color: #047857;
 }
 
 .marketing-wa-popup h3 {
@@ -287,7 +296,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #0f9f5f;
+  background: #047857;
   color: #fff;
 }
 
@@ -431,7 +440,7 @@
   display: inline-flex;
   margin-top: 1rem;
   font-weight: 700;
-  color: #0f9f5f;
+  color: #047857;
 }
 
 .marketing-conversion-strip {
@@ -485,11 +494,11 @@
 }
 
 .marketing-conversion-strip__btn--primary {
-  background: linear-gradient(135deg, #f97316, #fb923c);
+  background: linear-gradient(135deg, #9a3412, #c2410c);
 }
 
 .marketing-conversion-strip__btn--whatsapp {
-  background: linear-gradient(135deg, #12b76a, #0f9f5f);
+  background: linear-gradient(135deg, #047857, #065f46);
 }
 
 .marketing-conversion-strip__btn--call {
