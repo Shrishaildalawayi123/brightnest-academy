@@ -117,7 +117,7 @@ jobs:
           echo "image_ref=${REPOSITORY}@${DIGEST}" >> "$GITHUB_OUTPUT"
 
       - name: Scan pushed image with Trivy (critical fails)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ steps.immutable.outputs.image_ref }}
           severity: CRITICAL
