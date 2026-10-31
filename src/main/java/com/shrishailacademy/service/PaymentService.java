@@ -80,6 +80,9 @@ public class PaymentService {
             Optional<Payment> existingPayment = paymentRepository
                     .findByIdempotencyKeyAndTenantId(sanitizedIdempotencyKey, tenantId);
             if (existingPayment.isPresent()) {
+                if (!existingPayment.get().getUser().getId().equals(userId)) {
+                    throw new AccessDeniedException("Idempotency key belongs to another user");
+                }
                 log.info("PAYMENT_IDEMPOTENT_RETURN: key={} receipt={}",
                         sanitizedIdempotencyKey, existingPayment.get().getReceiptNumber());
                 return existingPayment.get();
