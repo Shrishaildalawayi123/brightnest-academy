@@ -793,7 +793,7 @@ function renderTestimonialSlider(containerId) {
                 </div>
             </div>
             <div class="testimonial-dots">
-                ${TESTIMONIALS.map((_, i) => `<button class="dot ${i === idx ? "active" : ""}" onclick="window.__setTestimonial(${i})"></button>`).join("")}
+                ${TESTIMONIALS.map((_, i) => `<button type="button" aria-label="Show testimonial ${i + 1}" aria-pressed="${i === idx}" class="dot ${i === idx ? "active" : ""}" onclick="window.__setTestimonial(${i})"></button>`).join("")}
             </div>`;
   }
   window.__setTestimonial = function (i) {
@@ -870,7 +870,7 @@ function getFooterHTML() {
         <div class="footer-grid">
           <div>
             <a href="index.html" class="footer-logo">
-              <img src="images/logo.png?v=2" alt="BrightNest Academy" class="logo-icon">
+              <img src="images/logo.png?v=2" alt="" class="logo-icon">
               <span>BrightNest Academy</span>
             </a>
             <p class="footer-desc">
@@ -886,7 +886,7 @@ function getFooterHTML() {
           </div>
 
           <div class="footer-col">
-            <h4>Subjects</h4>
+            <h3>Subjects</h3>
             <ul>
               <li><a href="kannada.html">Kannada</a></li>
               <li><a href="english.html">English</a></li>
@@ -899,7 +899,7 @@ function getFooterHTML() {
           </div>
 
           <div class="footer-col">
-            <h4>Quick Links</h4>
+            <h3>Quick Links</h3>
             <ul>
               <li><a href="about.html">About Us</a></li>
               <li><a href="admissions.html">Admissions</a></li>
@@ -916,7 +916,7 @@ function getFooterHTML() {
           </div>
 
           <div class="footer-col">
-            <h4>Get In Touch</h4>
+            <h3>Get In Touch</h3>
             <ul>
               <li><a href="tel:+917204193980">+91-7204193980</a></li>
               <li><a href="mailto:info@brightnest-academy.com">info@brightnest-academy.com</a></li>

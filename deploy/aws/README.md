@@ -1,5 +1,9 @@
 # BrightNest Academy – AWS Deployment Guide (Nginx → Docker → Spring Boot)
 
+> The release workflow now uses the [release safety runbook](RELEASE_SAFETY_RUNBOOK.md).
+> Complete its staging/host migration steps before enabling deployment. The Compose
+> procedures below are legacy/manual alternatives, not the workflow rollback path.
+
 This guide matches the target production flow:
 
 `User → Nginx (80/443) → Docker container (127.0.0.1:8080) → Spring Boot`

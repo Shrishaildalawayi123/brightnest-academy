@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.DependsOn;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -21,6 +22,7 @@ import java.util.UUID;
  * Admin credentials loaded from environment variables for security.
  */
 @Component
+@DependsOn("productionSafetyValidator")
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
@@ -59,7 +61,7 @@ public class DataInitializer implements CommandLineRunner {
         Tenant defaultTenant = tenantService.ensureDefaultTenantExists();
         Long tenantId = defaultTenant.getId();
 
-        // Create or update admin — credentials from env vars / application.properties
+        // Create an absent admin — credentials from env vars / application.properties
         if (hasAdminBootstrapCredentials()) {
             if (!userRepository.existsByEmailAndTenantId(adminEmail, tenantId)) {
                 User admin = new User();
@@ -71,17 +73,9 @@ public class DataInitializer implements CommandLineRunner {
                 admin.setRole(User.Role.ADMIN);
                 userRepository.save(admin);
                 log.info("Default admin created: {}", adminEmail);
-            } else {
-                // Sync only when password differs so we do not overwrite runtime changes.
-                User admin = userRepository.findByEmailAndTenantId(adminEmail, tenantId).orElse(null);
-                if (admin != null && !passwordEncoder.matches(adminPassword, admin.getPassword())) {
-                    admin.setPassword(passwordEncoder.encode(adminPassword));
-                    userRepository.save(admin);
-                    log.info("Admin password synced to configured value: {}", adminEmail);
-                }
             }
         } else {
-            log.warn("Admin bootstrap skipped: set ADMIN_EMAIL and ADMIN_PASSWORD to create/sync admin user.");
+            log.warn("Admin bootstrap skipped: set ADMIN_EMAIL and ADMIN_PASSWORD to create an initial admin user.");
         }
 
         if (!seedCatalog) {

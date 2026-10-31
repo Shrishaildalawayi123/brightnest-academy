@@ -8,6 +8,7 @@ import com.shrishailacademy.repository.SessionAttendanceRepository;
 import com.shrishailacademy.repository.ClassSessionRepository;
 import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.exception.AccessDeniedException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,8 +50,14 @@ public class SessionAttendanceController {
          */
         @GetMapping("/student/{studentId}")
         @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-        public ResponseEntity<List<AttendanceDTO>> getStudentAttendance(@PathVariable Long studentId) {
+        public ResponseEntity<List<AttendanceDTO>> getStudentAttendance(@PathVariable Long studentId, Authentication authentication) {
                 Long tenantId = TenantContext.requireTenantId();
+                User current = userRepository.findByEmailAndTenantId(authentication.getName(), tenantId)
+                        .orElseThrow(() -> new AccessDeniedException("User not found"));
+                if (current.getRole() == User.Role.STUDENT && !current.getId().equals(studentId)) {
+                    throw new AccessDeniedException("Students may only view their own academic records");
+                }
+
                 List<SessionAttendance> attendances = attendanceRepository.findByStudent_IdAndTenantId(studentId,
                                 tenantId);
                 return ResponseEntity.ok(attendances.stream().map(this::convertToDTO).collect(Collectors.toList()));

@@ -15,6 +15,9 @@ RUN mvn clean package -DskipTests -B
 # Stage 2: Run (slim JRE)
 FROM eclipse-temurin:21-jre
 WORKDIR /app
+ARG RELEASE_REVISION=unknown
+ENV RELEASE_REVISION=${RELEASE_REVISION}
+LABEL org.opencontainers.image.revision=${RELEASE_REVISION}
 
 # Security: minimal packages + create non-root user
 RUN apt-get update \
@@ -30,7 +33,7 @@ USER academy
 
 # Health check — hit the public /health endpoint every 30s
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD curl -fsS http://localhost:8080/health | grep -q '"status"' || exit 1
+  CMD curl -fsS -H "X-Forwarded-Proto: https" http://localhost:8080/health | grep -q '"status"' || exit 1
 
 # Only expose the app port
 EXPOSE 8080

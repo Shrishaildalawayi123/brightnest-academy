@@ -318,7 +318,7 @@ public class CrmLeadService {
     }
 
     private boolean matchesStatus(CrmLeadDto lead, String status) {
-        return !StringUtils.hasText(status) || "all".equals(status) || safeValue(lead.status()).equals(status);
+        return !StringUtils.hasText(status) || "all".equals(status) || safeValue(lead.status()).equalsIgnoreCase(status);
     }
 
     private boolean matchesQuery(CrmLeadDto lead, String query) {
@@ -494,7 +494,7 @@ public class CrmLeadService {
     }
 
     private String csv(String value) {
-        String normalized = value == null ? "" : value.replace('"', '\'');
+        String normalized = value == null ? "" : value.replace("\"", "\"\"");
         return '"' + normalized + '"';
     }
 }

@@ -4,6 +4,7 @@ import com.shrishailacademy.exception.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -20,10 +21,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
+import java.io.InputStream;
 
 /**
  * Service to handle resume file uploads for teacher applications.
- * Stores files on disk under a configurable directory.
+ * Uses S3 without local fallback, or explicit local storage for development.
  */
 @Service
 public class ResumeStorageService {
@@ -46,6 +49,7 @@ public class ResumeStorageService {
     private final String s3Prefix;
     private final S3Client s3Client;
 
+    @Autowired
     public ResumeStorageService(
             @Value("${resume.upload.dir:uploads/resumes}") String uploadPath,
             @Value("${resume.upload.max-bytes:" + DEFAULT_MAX_FILE_SIZE + "}") long maxFileSize,
@@ -55,6 +59,14 @@ public class ResumeStorageService {
             @Value("${resume.storage.s3.bucket:}") String s3Bucket,
             @Value("${resume.storage.s3.prefix:resumes}") String s3Prefix,
             @Value("${resume.storage.s3.region:ap-south-1}") String s3Region) {
+        this(uploadPath, maxFileSize, allowedTypes, allowedExtensions, s3Enabled,
+                s3Bucket, s3Prefix, () -> createS3Client(s3Region));
+    }
+
+    // Package-private injection seam keeps storage failure tests independent of AWS.
+    ResumeStorageService(String uploadPath, long maxFileSize, String allowedTypes,
+            String allowedExtensions, boolean s3Enabled, String s3Bucket,
+            String s3Prefix, Supplier<S3Client> clientFactory) {
         this.uploadDir = Paths.get(uploadPath).toAbsolutePath().normalize();
         this.maxFileSize = maxFileSize > 0 ? maxFileSize : DEFAULT_MAX_FILE_SIZE;
         this.allowedTypes = parseCsvOrDefault(allowedTypes, DEFAULT_ALLOWED_TYPES);
@@ -62,7 +74,17 @@ public class ResumeStorageService {
         this.s3Enabled = s3Enabled;
         this.s3Bucket = s3Bucket == null ? "" : s3Bucket.trim();
         this.s3Prefix = (s3Prefix == null || s3Prefix.isBlank()) ? "resumes" : s3Prefix.trim();
-        this.s3Client = initializeS3Client(s3Region);
+        if (s3Enabled) {
+            if (this.s3Bucket.isBlank()) {
+                throw new IllegalStateException("S3 resume storage requires RESUME_STORAGE_S3_BUCKET");
+            }
+            this.s3Client = clientFactory.get();
+            if (this.s3Client == null) {
+                throw new IllegalStateException("S3 resume storage could not be initialized");
+            }
+            return; // S3 mode never touches the container filesystem.
+        }
+        this.s3Client = null;
         try {
             Files.createDirectories(this.uploadDir);
             log.info("Resume upload directory: {}", this.uploadDir);
@@ -103,7 +125,7 @@ public class ResumeStorageService {
         // Generate unique filename
         String storedName = UUID.randomUUID() + "." + extension;
 
-        if (s3Enabled && !s3Bucket.isBlank() && s3Client != null) {
+        if (s3Enabled) {
             String key = s3Prefix + "/" + storedName;
             try {
                 PutObjectRequest request = PutObjectRequest.builder()
@@ -115,7 +137,8 @@ public class ResumeStorageService {
                 log.info("RESUME_UPLOADED_S3: original='{}' key='s3://{}/{}'", originalFilename, s3Bucket, key);
                 return new String[] { originalFilename, "s3://" + s3Bucket + "/" + key };
             } catch (Exception ex) {
-                log.warn("S3 resume upload failed; falling back to local storage. reason={}", ex.getMessage());
+                log.error("S3 resume upload failed; refusing non-durable local fallback");
+                throw new BusinessException("Failed to upload resume. Please try again.", "UPLOAD_FAILED");
             }
         }
 
@@ -125,7 +148,9 @@ public class ResumeStorageService {
             if (!target.startsWith(uploadDir)) {
                 throw new BusinessException("Invalid file path", "INVALID_PATH");
             }
-            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            try (InputStream input = file.getInputStream()) {
+                Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
+            }
             log.info("RESUME_UPLOADED: original='{}' stored='{}'", originalFilename, storedName);
             return new String[] { originalFilename, target.toString() };
         } catch (IOException e) {
@@ -149,21 +174,11 @@ public class ResumeStorageService {
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
-    private S3Client initializeS3Client(String s3Region) {
-        if (!s3Enabled) {
-            return null;
-        }
-        try {
-            Region region = Region.of((s3Region == null || s3Region.isBlank()) ? "ap-south-1" : s3Region.trim());
-            S3Client client = S3Client.builder()
-                    .region(region)
-                    .credentialsProvider(DefaultCredentialsProvider.create())
-                    .build();
-            log.info("Resume storage S3 mode enabled for region={} bucket={}", region.id(), s3Bucket);
-            return client;
-        } catch (Exception ex) {
-            log.warn("Unable to initialize S3 client; local fallback remains active. reason={}", ex.getMessage());
-            return null;
-        }
+    private static S3Client createS3Client(String s3Region) {
+        Region region = Region.of((s3Region == null || s3Region.isBlank()) ? "ap-south-1" : s3Region.trim());
+        return S3Client.builder()
+                .region(region)
+                .credentialsProvider(DefaultCredentialsProvider.create())
+                .build();
     }
 }

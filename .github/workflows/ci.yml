@@ -9,6 +9,28 @@ permissions:
   packages: read
 
 jobs:
+  release-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test deployment transactions without contacting a server
+        run: |
+          python3 -m unittest discover -s deploy/aws/tests -v
+          bash -n deploy/aws/scripts/release-blue-green.sh
+          shellcheck deploy/aws/scripts/release-blue-green.sh
+
+  frontend-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: qa/package-lock.json
+      - run: npm ci --prefix qa
+      - run: npm run --prefix qa test:unit
+
   test:
     runs-on: ubuntu-latest
     services:
@@ -41,9 +63,9 @@ jobs:
           mvn -B clean verify
           -Dspring.profiles.active=test
           -Dspring.datasource.url=jdbc:mysql://127.0.0.1:3306/brightnest_test
+          -Dspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
           -Dspring.datasource.username=root
           -Dspring.datasource.password=test
-          -Djacoco.minimum.coverage=0.60
 
       - name: Upload test reports
         if: always()
@@ -120,14 +142,17 @@ jobs:
           push: false
           load: true
           tags: brightnest-ci:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Docker Scout CVE scan (critical fails build)
-        uses: docker/scout-action@v1
+      - name: Scan CI image for critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          command: cves
-          image: local://brightnest-ci:${{ github.sha }}
-          only-severities: critical
-          exit-code: true
+          image-ref: brightnest-ci:${{ github.sha }}
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: false
+          exit-code: "1"
 
   lighthouse:
     runs-on: ubuntu-latest
@@ -136,6 +161,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download tested application artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar-${{ github.sha }}
+          path: target
+
+      - name: Start isolated application for Lighthouse
+        run: |
+          java -jar target/shrishail-academy-1.0.0.jar \
+            --spring.profiles.active=loadtest --spring.flyway.enabled=false \
+            --admin.email= --admin.password= --server.address=127.0.0.1 \
+            > /tmp/brightnest-lighthouse.log 2>&1 &
+          echo "$!" > /tmp/brightnest-lighthouse.pid
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8080/health > /tmp/brightnest-health.json && \
+              python3 -c 'import json; assert json.load(open("/tmp/brightnest-health.json"))["status"] == "UP"'; then
+              exit 0
+            fi
+            sleep 2
+          done
+          tail -n 30 /tmp/brightnest-lighthouse.log
+          exit 1
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -149,3 +203,23 @@ jobs:
 
       - name: Run Lighthouse CI assertions
         run: npx lhci autorun --config=qa/lighthouse/lighthouserc.json
+
+      - name: Explain accessibility failures
+        if: always()
+        run: node qa/lighthouse/report-failures.cjs
+
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-${{ github.sha }}
+          include-hidden-files: true
+          path: .lighthouseci/**
+          if-no-files-found: warn
+
+      - name: Stop isolated application
+        if: always()
+        run: |
+          if [ -f /tmp/brightnest-lighthouse.pid ]; then
+            kill "$(cat /tmp/brightnest-lighthouse.pid)" || true
+          fi

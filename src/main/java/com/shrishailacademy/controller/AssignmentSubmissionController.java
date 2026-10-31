@@ -8,6 +8,7 @@ import com.shrishailacademy.repository.AssignmentRepository;
 import com.shrishailacademy.repository.AssignmentSubmissionRepository;
 import com.shrishailacademy.repository.UserRepository;
 import com.shrishailacademy.tenant.TenantContext;
+import com.shrishailacademy.exception.AccessDeniedException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -70,8 +71,14 @@ public class AssignmentSubmissionController {
      */
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    public ResponseEntity<List<AssignmentSubmissionDTO>> getStudentSubmissions(@PathVariable Long studentId) {
+    public ResponseEntity<List<AssignmentSubmissionDTO>> getStudentSubmissions(@PathVariable Long studentId, Authentication authentication) {
         Long tenantId = TenantContext.requireTenantId();
+                User current = userRepository.findByEmailAndTenantId(authentication.getName(), tenantId)
+                        .orElseThrow(() -> new AccessDeniedException("User not found"));
+                if (current.getRole() == User.Role.STUDENT && !current.getId().equals(studentId)) {
+                    throw new AccessDeniedException("Students may only view their own academic records");
+                }
+
         List<AssignmentSubmission> submissions = submissionRepository.findByStudent_IdAndTenantId(studentId, tenantId);
         return ResponseEntity.ok(submissions.stream().map(this::convertToDTO).collect(Collectors.toList()));
     }
@@ -198,7 +205,10 @@ public class AssignmentSubmissionController {
         AssignmentSubmission submission = submissionRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Submission not found: " + id));
         
-        // Validate score
+        // Validate score before unboxing or persisting.
+        if (dto.getScore() == null) {
+            throw new IllegalArgumentException("Score is required");
+        }
         if (dto.getScore() > submission.getAssignment().getMaxScore()) {
             throw new IllegalArgumentException("Score cannot exceed maximum: " + submission.getAssignment().getMaxScore());
         }
