@@ -1,27 +1,35 @@
 package com.shrishailacademy.controller;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class HealthControllerTest {
-
-    private final HealthController healthController = new HealthController();
+    private final HealthEndpoint endpoint = mock(HealthEndpoint.class);
+    private final HealthController controller = new HealthController(endpoint, "tested-revision");
 
     @Test
-    void healthCheckShouldReturnUpStatusPayload() {
-        ResponseEntity<Map<String, Object>> response = healthController.healthCheck();
-
+    void returnsReadyAndReleaseIdentityWithoutDependencyDetails() {
+        when(endpoint.healthForPath("readiness")).thenReturn(Health.up().withDetail("dbPassword", "hidden").build());
+        var response = controller.healthCheck();
         assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
         assertEquals("UP", response.getBody().get("status"));
-        assertEquals("BrightNest Academy API is running", response.getBody().get("message"));
+        assertEquals("tested-revision", response.getBody().get("revision"));
         assertEquals("1.0.0", response.getBody().get("version"));
-        assertTrue((Long) response.getBody().get("timestamp") > 0L);
+        assertFalse(response.getBody().containsKey("dbPassword"));
+    }
+
+    @Test
+    void dependencyFailureIsNotReportedAsReady() {
+        when(endpoint.healthForPath("readiness")).thenReturn(Health.down().build());
+        assertEquals(503, controller.healthCheck().getStatusCode().value());
+    }
+
+    @Test
+    void missingReadinessGroupFailsClosed() {
+        assertEquals(503, controller.healthCheck().getStatusCode().value());
     }
 }

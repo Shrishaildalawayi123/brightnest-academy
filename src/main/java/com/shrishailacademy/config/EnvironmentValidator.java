@@ -44,6 +44,12 @@ public class EnvironmentValidator {
     @Value("${rate.limit.backend:inmemory}")
     private String rateLimitBackend;
 
+    @Value("${resume.storage.s3.enabled:false}")
+    private boolean resumeS3Enabled;
+
+    @Value("${resume.storage.s3.bucket:}")
+    private String resumeS3Bucket;
+
     @PostConstruct
     public void validate() {
         log.info("Validating production environment configuration...");
@@ -99,6 +105,12 @@ public class EnvironmentValidator {
                     "FATAL: rate.limit.backend must be 'redis' in production. Set RATE_LIMIT_BACKEND=redis.");
         }
 
+        if (!resumeS3Enabled || resumeS3Bucket == null || resumeS3Bucket.isBlank()) {
+            throw new IllegalStateException("Production resume storage requires S3 and a configured bucket.");
+        }
+        if ((adminEmail == null || adminEmail.isBlank()) != (adminPassword == null || adminPassword.isBlank())) {
+            throw new IllegalStateException("Set both administrator bootstrap values or neither.");
+        }
         log.info("Production environment validation complete — all critical checks passed.");
     }
 }

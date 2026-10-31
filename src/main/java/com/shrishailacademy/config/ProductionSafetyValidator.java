@@ -3,10 +3,9 @@ package com.shrishailacademy.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.EventListener;
+import jakarta.annotation.PostConstruct;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 
 import java.util.Arrays;
 
@@ -42,7 +41,7 @@ public class ProductionSafetyValidator {
         this.environment = environment;
     }
 
-    @EventListener(ApplicationReadyEvent.class)
+    @PostConstruct
     public void validate() {
         if (!Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
             return;
