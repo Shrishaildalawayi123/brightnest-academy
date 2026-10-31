@@ -201,11 +201,16 @@ jobs:
       - name: Run Lighthouse CI assertions
         run: npx lhci autorun --config=qa/lighthouse/lighthouserc.json
 
+      - name: Explain accessibility failures
+        if: always()
+        run: node qa/lighthouse/report-failures.cjs
+
       - name: Upload Lighthouse results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-${{ github.sha }}
+          include-hidden-files: true
           path: .lighthouseci/**
           if-no-files-found: warn
 

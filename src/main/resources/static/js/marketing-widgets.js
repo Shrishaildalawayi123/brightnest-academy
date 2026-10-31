@@ -157,7 +157,7 @@
       <div class="marketing-chatbot__messages" id="marketingChatMessages"></div>
       <div class="marketing-chatbot__quick" id="marketingChatQuickReplies"></div>
       <form class="marketing-chatbot__composer" id="marketingChatForm">
-        <input id="marketingChatInput" type="text" maxlength="500" placeholder="Ask about courses, fees, ICSE, demo class..." autocomplete="off" />
+        <input id="marketingChatInput" aria-label="Message to admission advisor" type="text" maxlength="500" placeholder="Ask about courses, fees, ICSE, demo class..." autocomplete="off" />
         <button type="submit">Send</button>
       </form>
       <a class="marketing-chatbot__human" href="${SITE_INFO.whatsappUrl}" target="_blank" rel="noopener" data-source-page="${window.location.pathname || "/"}">
@@ -621,9 +621,9 @@
       <h3>Book a Demo + Fee Estimate</h3>
       <p class="marketing-demo-popup__text">Share details and get a quick callback from our admission advisor.</p>
       <form class="marketing-demo-popup__form" id="marketingDemoLeadForm">
-        <input id="demoLeadName" type="text" maxlength="100" placeholder="Parent name" required>
-        <input id="demoLeadClass" type="text" maxlength="30" placeholder="Grade (1-10)" required>
-        <input id="demoLeadPhone" type="tel" maxlength="20" placeholder="Phone number" required>
+        <input id="demoLeadName" aria-label="Parent name" type="text" maxlength="100" placeholder="Parent name" required>
+        <input id="demoLeadClass" aria-label="Student class or grade" type="text" maxlength="30" placeholder="Grade (1-10)" required>
+        <input id="demoLeadPhone" aria-label="Parent phone number" type="tel" maxlength="20" placeholder="Phone number" required>
         <button type="submit">Request Callback</button>
       </form>
       <p class="marketing-demo-popup__hint" id="marketingDemoLeadHint">Response usually within 15 minutes.</p>
