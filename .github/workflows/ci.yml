@@ -66,7 +66,6 @@ jobs:
           -Dspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
           -Dspring.datasource.username=root
           -Dspring.datasource.password=test
-          -Djacoco.minimum.coverage=0.60
 
       - name: Upload test reports
         if: always()
@@ -160,6 +159,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download tested application artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar-${{ github.sha }}
+          path: target
+
+      - name: Start isolated application for Lighthouse
+        run: |
+          java -jar target/shrishail-academy-1.0.0.jar \
+            --spring.profiles.active=loadtest --spring.flyway.enabled=false \
+            --admin.email= --admin.password= --server.address=127.0.0.1 \
+            > /tmp/brightnest-lighthouse.log 2>&1 &
+          echo "$!" > /tmp/brightnest-lighthouse.pid
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8080/health > /tmp/brightnest-health.json && \
+              python3 -c 'import json; assert json.load(open("/tmp/brightnest-health.json"))["status"] == "UP"'; then
+              exit 0
+            fi
+            sleep 2
+          done
+          tail -n 30 /tmp/brightnest-lighthouse.log
+          exit 1
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -172,3 +200,18 @@ jobs:
 
       - name: Run Lighthouse CI assertions
         run: npx lhci autorun --config=qa/lighthouse/lighthouserc.json
+
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-${{ github.sha }}
+          path: .lighthouseci/**
+          if-no-files-found: warn
+
+      - name: Stop isolated application
+        if: always()
+        run: |
+          if [ -f /tmp/brightnest-lighthouse.pid ]; then
+            kill "$(cat /tmp/brightnest-lighthouse.pid)" || true
+          fi

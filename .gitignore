@@ -9,3 +9,6 @@ uploads/
 # Local dependency installs and Python release-test bytecode
 node_modules/
 __pycache__/
+
+# Local Lighthouse reports
+.lighthouseci/

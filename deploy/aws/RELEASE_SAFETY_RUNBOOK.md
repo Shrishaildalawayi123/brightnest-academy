@@ -95,7 +95,8 @@ itself does not initialize Nginx, migrate a database, rotate credentials, or dep
 
 The workflow invokes the tools from `/opt/brightnest/releases/<sha>/deploy/aws/scripts`.
 It only deploys from main after its existing Java/frontend/dependency/image gates;
-coverage thresholds and security scan thresholds are unchanged by this patch.
+all Java verification uses the 75% instruction-coverage gate defined in pom.xml.
+Security scan thresholds are preserved.
 The separate main CI and staging workflows are not yet unified into a promotion gate.
 
 For a staging rehearsal, use staging-specific paths, environment and HTTPS origin:
