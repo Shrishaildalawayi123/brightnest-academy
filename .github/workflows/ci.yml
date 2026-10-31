@@ -9,6 +9,28 @@ permissions:
   packages: read
 
 jobs:
+  release-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test deployment transactions without contacting a server
+        run: |
+          python3 -m unittest discover -s deploy/aws/tests -v
+          bash -n deploy/aws/scripts/release-blue-green.sh
+          shellcheck deploy/aws/scripts/release-blue-green.sh
+
+  frontend-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: qa/package-lock.json
+      - run: npm ci --prefix qa
+      - run: npm run --prefix qa test:unit
+
   test:
     runs-on: ubuntu-latest
     services:
@@ -41,6 +63,7 @@ jobs:
           mvn -B clean verify
           -Dspring.profiles.active=test
           -Dspring.datasource.url=jdbc:mysql://127.0.0.1:3306/brightnest_test
+          -Dspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
           -Dspring.datasource.username=root
           -Dspring.datasource.password=test
           -Djacoco.minimum.coverage=0.60

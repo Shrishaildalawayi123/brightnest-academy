@@ -4,11 +4,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Optional image tag override (default: commit SHA)"
-        required: false
-        default: ""
 
 permissions:
   contents: read
@@ -18,20 +13,21 @@ concurrency:
   group: production-release
   cancel-in-progress: false
 
-env:
-  APP_NAME: brightnest
-  PROD_PORT: "8080"
-  BLUE_PORT: "18080"
-  GREEN_PORT: "18081"
-
 jobs:
   quality-gates:
     name: Quality and Security Gates
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Test release transactions and environment validation
+        run: |
+          python3 -m unittest discover -s deploy/aws/tests -v
+          bash -n deploy/aws/scripts/release-blue-green.sh
+          shellcheck deploy/aws/scripts/release-blue-green.sh
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
@@ -81,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality-gates
     outputs:
-      image_ref: ${{ steps.meta.outputs.image_ref }}
+      image_ref: ${{ steps.immutable.outputs.image_ref }}
 
     steps:
       - name: Checkout repository
@@ -97,27 +93,34 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Resolve image metadata
+      - name: Resolve lowercase image repository
         id: meta
         run: |
-          TAG_INPUT="${{ github.event.inputs.image_tag }}"
-          if [ -z "$TAG_INPUT" ]; then
-            TAG_INPUT="${{ github.sha }}"
-          fi
-          IMAGE_REF="ghcr.io/${{ github.repository_owner }}/brightnest-academy:${TAG_INPUT}"
-          echo "image_ref=$IMAGE_REF" >> "$GITHUB_OUTPUT"
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "repository=ghcr.io/${OWNER}/brightnest-academy" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push immutable and latest tags
+      - name: Build and push candidate image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.repository }}:${{ github.sha }}
+          build-args: RELEASE_REVISION=${{ github.sha }}
+
+      - name: Resolve immutable image
+        id: immutable
+        env:
+          REPOSITORY: ${{ steps.meta.outputs.repository }}
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          IMAGE_REF="${{ steps.meta.outputs.image_ref }}"
-          docker build -t "$IMAGE_REF" -t "ghcr.io/${{ github.repository_owner }}/brightnest-academy:latest" .
-          docker push "$IMAGE_REF"
-          docker push "ghcr.io/${{ github.repository_owner }}/brightnest-academy:latest"
+          [[ "$DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          echo "image_ref=${REPOSITORY}@${DIGEST}" >> "$GITHUB_OUTPUT"
 
       - name: Scan pushed image with Trivy (critical fails)
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: ${{ steps.meta.outputs.image_ref }}
+          image-ref: ${{ steps.immutable.outputs.image_ref }}
           severity: CRITICAL
           ignore-unfixed: true
           exit-code: "1"
@@ -129,104 +132,31 @@ jobs:
     environment: production
 
     steps:
-      - name: Deploy candidate on inactive slot
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Copy release tools to a commit-specific directory
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -euo pipefail
+          source: deploy/aws/scripts/release-blue-green.sh,deploy/aws/scripts/validate-release-env.py
+          target: /opt/brightnest/releases/${{ github.sha }}
 
-            IMAGE="${{ needs.build-and-push.outputs.image_ref }}"
-            APP_NAME="${{ env.APP_NAME }}"
-            PROD_PORT="${{ env.PROD_PORT }}"
-            BLUE_PORT="${{ env.BLUE_PORT }}"
-            GREEN_PORT="${{ env.GREEN_PORT }}"
-
-            ACTIVE_SLOT="blue"
-            if docker ps --format '{{.Names}}' | grep -q "^${APP_NAME}-green$"; then
-              GREEN_PORT_LIVE=$(docker inspect -f '{{range .NetworkSettings.Ports}}{{(index . 0).HostPort}}{{end}}' "${APP_NAME}-green" 2>/dev/null || true)
-              if [ "$GREEN_PORT_LIVE" = "$PROD_PORT" ]; then
-                ACTIVE_SLOT="green"
-              fi
-            fi
-
-            if [ "$ACTIVE_SLOT" = "blue" ]; then
-              CANDIDATE_SLOT="green"
-              CANDIDATE_PORT="$GREEN_PORT"
-              ACTIVE_CONTAINER="${APP_NAME}-blue"
-            else
-              CANDIDATE_SLOT="blue"
-              CANDIDATE_PORT="$BLUE_PORT"
-              ACTIVE_CONTAINER="${APP_NAME}-green"
-            fi
-
-            CANDIDATE_CONTAINER="${APP_NAME}-${CANDIDATE_SLOT}"
-
-            echo "Active slot: $ACTIVE_SLOT"
-            echo "Candidate slot: $CANDIDATE_SLOT"
-            echo "Deploying image: $IMAGE"
-
-            docker pull "$IMAGE"
-            docker rm -f "$CANDIDATE_CONTAINER" || true
-
-            docker run -d \
-              --name "$CANDIDATE_CONTAINER" \
-              --restart unless-stopped \
-              -p "${CANDIDATE_PORT}:8080" \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              "$IMAGE"
-
-            for i in $(seq 1 30); do
-              if curl -fsS "http://127.0.0.1:${CANDIDATE_PORT}/health" >/dev/null; then
-                echo "Candidate container healthy"
-                break
-              fi
-              if [ "$i" -eq 30 ]; then
-                echo "Candidate health check failed"
-                docker logs "$CANDIDATE_CONTAINER" --tail 150 || true
-                exit 1
-              fi
-              sleep 4
-            done
-
-            TMP_CONF="/tmp/${APP_NAME}.conf"
-            sudo cp /etc/nginx/sites-available/brightnest-academy "$TMP_CONF"
-            sudo sed -i -E "s/(proxy_pass\s+http:\/\/127\.0\.0\.1:)[0-9]+/\1${CANDIDATE_PORT}/g" "$TMP_CONF"
-            sudo cp "$TMP_CONF" /etc/nginx/sites-available/brightnest-academy
-            sudo nginx -t
-            sudo systemctl reload nginx
-
-            for i in $(seq 1 20); do
-              if curl -fsS "http://127.0.0.1:${PROD_PORT}/health" >/dev/null; then
-                echo "Production endpoint healthy after switch"
-                break
-              fi
-              if [ "$i" -eq 20 ]; then
-                echo "Production health failed after switch, rolling back nginx"
-                sudo sed -i -E "s/(proxy_pass\s+http:\/\/127\.0\.0\.1:)[0-9]+/\1$( [ \"$ACTIVE_SLOT\" = \"blue\" ] && echo $BLUE_PORT || echo $GREEN_PORT )/g" /etc/nginx/sites-available/brightnest-academy
-                sudo nginx -t
-                sudo systemctl reload nginx
-                docker rm -f "$CANDIDATE_CONTAINER" || true
-                exit 1
-              fi
-              sleep 3
-            done
-
-            if [ -n "$ACTIVE_CONTAINER" ]; then
-              docker rm -f "$ACTIVE_CONTAINER" || true
-            fi
-
-            echo "Deployment complete. Active slot is now: $CANDIDATE_SLOT"
-
-      - name: Final health verification on production port
+      - name: Deploy scanned digest and verify HTTPS traffic
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          RELEASE_IMAGE: ${{ needs.build-and-push.outputs.image_ref }}
+          RELEASE_SHA: ${{ github.sha }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: RELEASE_IMAGE,RELEASE_SHA
           script: |
-            set -euo pipefail
-            curl -fsS "http://127.0.0.1:${{ env.PROD_PORT }}/health" >/dev/null
-            echo "Final health check passed"
+            set -eu
+            bash "/opt/brightnest/releases/${RELEASE_SHA}/deploy/aws/scripts/release-blue-green.sh" \
+              deploy "$RELEASE_IMAGE" "$RELEASE_SHA"

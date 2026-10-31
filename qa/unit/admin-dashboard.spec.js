@@ -8,11 +8,6 @@ function jsonResponse(body, status = 200) {
   };
 }
 
-async function flushAsyncWork() {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
-}
 
 describe("admin dashboard overview", () => {
   beforeEach(() => {
@@ -83,7 +78,9 @@ describe("admin dashboard overview", () => {
     window.fetch = nativeFetch;
 
     loadBrowserScript("admin-dashboard.js");
-    await flushAsyncWork();
+    await vi.waitFor(() => {
+      expect(document.getElementById("totalStudents").textContent).toBe("1");
+    });
 
     const usersRequest = nativeFetch.mock.calls.find(
       ([url]) => url === "/api/users/students",
